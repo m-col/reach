@@ -1,31 +1,48 @@
 #!/usr/bin/env python3
 #
-# Main control script for mouse reaching task 
+# Main control script for reach task control
 #
 
 
-## Libraries ##
-import RPi.GPIO as GPIO     # raspberry pi pins
+## User settings
+session_duration = 30       # in minutes
+
+
+## Libraries
+import RPi.GPIO as GPIO         # raspberry pi pins
 from datetime import datetime
+from time import sleep, time
+import signal
+from helpers import Spout, handle_signal
 
-# custom
-import spout_functions
 
+## Setup
+# Pins
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
 
-## Pin setup ##
-#GPIO.setwarnings(False)
-#GPIO.setmode(GPIO.BOARD)
-
-paw_l = 1       # left paw touch sensor
-paw_r = 2       # right paw touch sensor
+paw_l = 17       # left paw touch sensor
+paw_r = 27       # right paw touch sensor
 GPIO.setup(paw_l, GPIO.IN)
 GPIO.setup(paw_r, GPIO.IN)
 
-# Spout one
-led_1 = 3       # LED cue
-touch_1 = 4     # touch sensor
-water_1 = 5     # solenoid reward dispenser
-init_spout(led_1, touch_1, water_1)
+# Spouts
+spout1 = Spout(22, 23, 24)     # pins for cue, touch sensor, solenoid
+
+# Trap signals
+signal.signal(signal.SIGINT, handle_signal)
+
+# Record start time
+start_time = time()
+end_time = start_time + session_duration * 60
+now = start_time
+
+
+## Main control
+while now < end_time:
+    sleep(1)
+    now = time()
+
 
 """ sequence:
 1. ITI - static state
