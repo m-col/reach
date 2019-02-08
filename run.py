@@ -6,7 +6,7 @@
 
 ## User settings
 session_duration = 30       # in minutes
-
+spout_count = 1             # number of spouts
 
 ## Libraries
 import RPi.GPIO as GPIO         # raspberry pi pins
@@ -27,7 +27,8 @@ GPIO.setup(paw_l, GPIO.IN)
 GPIO.setup(paw_r, GPIO.IN)
 
 # Spouts
-spout1 = Spout(22, 23, 24)     # pins for cue, touch sensor, solenoid
+if spout_count == 1:
+    spout1 = Spout(22, 23, 24)     # pins for cue, touch sensor, solenoid
 
 # Trap signals
 signal.signal(signal.SIGINT, handle_signal)
