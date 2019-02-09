@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Main control script for reach task control
+# Main control script for mouse reach task control
 #
 
 
