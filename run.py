@@ -4,10 +4,6 @@
 #
 
 
-## User settings
-session_duration = 30       # in minutes
-spout_count = 1             # number of spouts
-
 ## Libraries
 import RPi.GPIO as GPIO         # raspberry pi pins
 from datetime import datetime
@@ -17,6 +13,9 @@ from helpers import Spout, handle_signal
 
 
 ## Setup
+# Generate parameter structure from config
+p = process_config()
+
 # Pins
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
