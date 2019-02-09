@@ -1,2 +1,8 @@
 # python bytecode
 __pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# config files
+*.ini
