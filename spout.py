@@ -17,7 +17,7 @@ class Spout(object):
         self.touch = touch
         self.water = water
         GPIO.setup(self.cue, GPIO.OUT)
-        GPIO.setup(self.touch, GPIO.IN)
+        GPIO.setup(self.touch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(self.water, GPIO.OUT)
 
     def dispense(reward_ms):
