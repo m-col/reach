@@ -4,23 +4,23 @@
 #
 
 
-## Libraries
+## Libraries ##
 import RPi.GPIO as GPIO         # raspberry pi pins
 from datetime import datetime
 from time import sleep, time
-import signal
-import random
-import sys
+import signal, random, sys
 
 # Custom
-import spout
-import helpers
+import spout, helpers
 from config import process_config
 
 
-## Setup
-# Generate parameter structure from config
-p = process_config()
+## Setup ##
+
+# Set parameters
+config_file_default = 'settings.ini'
+config_file, save_metadata = helpers.parse_args(sys.argv[1:], config_file_default)
+p = process_config(config_file, config_file_default)
 
 # Pins
 GPIO.setwarnings(False)
@@ -51,7 +51,7 @@ p.end_time = p.start_time + p.session_duration * 60
 now = p.start_time
 
 
-## State 1 - inter-trial interval
+## State 1 - inter-trial interval ##
 def iti(p):
     print("Starting new trial")
     ITI_duration = random.uniform(p.ITI_min, p.ITI_max)
@@ -59,17 +59,17 @@ def iti(p):
     return outcome
 
 
-## State 2 - trial period
+## State 2 - trial period ##
 def trial(p, current_spout):
     print("Current spout: %s. trial." % current_spout)
 
 
-## State 3 - reward period
+## State 3 - reward period ##
 def reward(p, current_spout):
     print("Current spout: %s. reward." % current_spout)
 
 
-## Main control
+## Main control ##
 while now < p.end_time:
     # select a spout for this trial
     current_spout = spout.select_spout(p.spout_count)
