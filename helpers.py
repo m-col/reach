@@ -29,8 +29,9 @@ def print_help():
 
 ## Signal handler ##
 def handle_signal(sig, frame):
-    GPIO.cleanup()
-    sys.exit()
+    if sig == 2:
+        GPIO.cleanup()
+        sys.exit()
 
 
 ## Parse command line arguments
