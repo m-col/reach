@@ -10,9 +10,8 @@ from datetime import datetime
 from time import sleep, time
 import signal, random, sys
 
-# Custom
-import spout, helpers
-from config import process_config
+# Custom modules
+import spout, helpers, config
 
 
 ## Setup ##
@@ -20,7 +19,7 @@ from config import process_config
 # Set parameters
 config_file_default = 'settings.ini'
 config_file, save_metadata = helpers.parse_args(sys.argv[1:], config_file_default)
-p = process_config(config_file, config_file_default)
+p = config.process_config(config_file, config_file_default)
 
 # Pins
 GPIO.setwarnings(False)
@@ -45,6 +44,10 @@ signal.signal(signal.SIGINT, helpers.handle_signal)
 # initialise randomness
 random.seed()
 
+# initialise variables we want global access to
+success = True
+current_spout = None
+
 # Record start time
 p.start_time = time()
 p.end_time = p.start_time + p.session_duration * 60
@@ -68,7 +71,8 @@ def iti_break(pin):
 def iti(p):
     GPIO.remove_event_detect(paw_r)
     is_iti = True
-    GPIO.add_event_detect(paw_r, GPIO.FALLING, callback=iti_break, bouncetime=200)
+    GPIO.add_event_detect(paw_r, GPIO.FALLING,
+            callback=iti_break, bouncetime=200)
     global iti_broken
 
     while is_iti:
@@ -93,32 +97,55 @@ def iti(p):
 
 ## State 2 - trial period ##
 def trial(p, current_spout):
-    # run cued reach and return boolean as outcome
-    print("Current spout: %s. trial." % current_spout)
-    return True
+    # Activate cue
+    GPIO.output( spouts[current_spout - 1].cue, True )
+
+    # Detect contact with spout
+    GPIO.add_event_detect( spouts[current_spout - 1].touch,
+            GPIO.FALLING, callback=reward, bouncetime=4000 )
+
+    # Count down allowed trial time
+    now = time()
+    cue_end = now + p.cue_ms/1000
+    while not success and now < cue_end:
+        sleep(0.1)
+
+    # Disable cue if it was a missed trial
+    GPIO.output(spouts[current_spout - 1].cue, False)
+
+    # Remove spout contact detection
+    GPIO.remove_event_detect( spouts[current_spout - 1].touch )
+
+    return success
 
 
 ## State 3 - reward period ##
-def reward(p, current_spout):
-    # run dispensing of water, count down of reward_ms and return
-    print("Current spout: %s. reward." % current_spout)
+def reward(pin, two):
+    print("pin %s: " % pin)
+    print("two %s: " % two)
+    GPIO.output(spouts[current_spout - 1].cue, False)
+    GPIO.output(spouts[current_spout - 1].water, True)
+    success = True
+    sleep(p.reward_ms / 1000)
+    GPIO.output(spouts[current_spout - 1].water, False)
 
 
-## Main control ##
-while time() < p.end_time:
+## Main ##
+while now < p.end_time:
     trial_count += 1
-    print("Starting trial #%i" % trial_count)
+    print("_________________________________")
+    print("# ----- Starting trial #%i ----- #" % trial_count)
 
     # select a spout for this trial
-    current_spout = spout.select_spout(p.spout_count) - 1
+    current_spout = spout.select_spout(p.spout_count)
 
     # run inter-trial interval
     iti(p)
 
     # initiate cued reach
-    outcome = trial(p, current_spout)
+    success = trial(p, current_spout)
 
-    if outcome:
+    if success:
         print("Successful reach!")
         reward(p, current_spout)
         reward_count += 1
@@ -127,6 +154,8 @@ while time() < p.end_time:
         missed_count += 1
 
     print("Total rewards: %i" % reward_count)
+
+    now = time()
 
     #GPIO.wait_for_edge(spouts[current_spout].touch, GPIO.FALLING)
 
