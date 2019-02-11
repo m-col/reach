@@ -14,8 +14,17 @@ import config
 
 ## Print help
 def print_help():
-    print("HELP")
-    sys.exit(0)
+    help_msg = """
+        Mouse reach task sequencer
+        Usage: ./main.py [OPTIONS]
+        
+        Options:
+        -h          print this help message and exit
+        -c          specify non-default config file and run
+        -g          generate default config file and exit
+        -n          run but do not save metadata
+    """
+    print(help_msg)
 
 
 ## Signal handler ##
