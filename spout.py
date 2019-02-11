@@ -16,14 +16,14 @@ class Spout(object):
         self.cue = cue
         self.touch = touch
         self.water = water
-        GPIO.setup(self.cue, GPIO.OUT)
+        GPIO.setup(self.cue, GPIO.OUT, initial=False)
         GPIO.setup(self.touch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.water, GPIO.OUT)
+        GPIO.setup(self.water, GPIO.OUT, initial=False)
 
     def dispense(reward_ms):
-        GPIO.output(self.water, ON)
+        GPIO.output(self.water, True)
         sleep(reward_ms)
-        GPIO.output(self.water, OFF)
+        GPIO.output(self.water, False)
 
 
 ## Select spout for trial ##

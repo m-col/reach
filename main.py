@@ -45,7 +45,7 @@ signal.signal(signal.SIGINT, helpers.handle_signal)
 random.seed()
 
 # initialise variables we want global access to
-success = True
+success = False
 current_spout = None
 
 # Record start time
@@ -61,7 +61,6 @@ spont_count = 0
 
 
 ## State 1 - inter-trial interval ##
-global iti_broken
 iti_broken = False
 
 def iti_break(pin):
@@ -72,7 +71,7 @@ def iti(p):
     GPIO.remove_event_detect(paw_r)
     is_iti = True
     GPIO.add_event_detect(paw_r, GPIO.FALLING,
-            callback=iti_break, bouncetime=200)
+            callback=iti_break, bouncetime=300)
     global iti_broken
 
     while is_iti:
@@ -109,6 +108,7 @@ def trial(p, current_spout):
     cue_end = now + p.cue_ms/1000
     while not success and now < cue_end:
         sleep(0.1)
+        now = time()
 
     # Disable cue if it was a missed trial
     GPIO.output(spouts[current_spout - 1].cue, False)
@@ -120,11 +120,12 @@ def trial(p, current_spout):
 
 
 ## State 3 - reward period ##
-def reward(pin, two):
-    print("pin %s: " % pin)
-    print("two %s: " % two)
+def reward(pin, opt = 'hi'):
+    if opt != 'hi':
+        print(opt)
     GPIO.output(spouts[current_spout - 1].cue, False)
     GPIO.output(spouts[current_spout - 1].water, True)
+    global success
     success = True
     sleep(p.reward_ms / 1000)
     GPIO.output(spouts[current_spout - 1].water, False)
@@ -136,6 +137,9 @@ while now < p.end_time:
     print("_________________________________")
     print("# ----- Starting trial #%i ----- #" % trial_count)
 
+    # reset success
+    success = False
+
     # select a spout for this trial
     current_spout = spout.select_spout(p.spout_count)
 
@@ -145,6 +149,7 @@ while now < p.end_time:
     # initiate cued reach
     success = trial(p, current_spout)
 
+    # deal with outcome
     if success:
         print("Successful reach!")
         reward(p, current_spout)
@@ -154,13 +159,11 @@ while now < p.end_time:
         missed_count += 1
 
     print("Total rewards: %i" % reward_count)
-
     now = time()
 
-    #GPIO.wait_for_edge(spouts[current_spout].touch, GPIO.FALLING)
 
 ##
-""" sequence:
+"""
 
 What do I want to be output?
 Constant output channels:
@@ -171,6 +174,7 @@ Constant output channels:
 
 Metadata (and ignore with -n flag)
  - p struct info
- - config_file
+ - config_file name (are all options in it also in p struct?)
+ - counts for things
 
 """

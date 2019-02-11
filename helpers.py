@@ -39,6 +39,7 @@ def parse_args(argv, config_file):
 
         if opt == '-h':         # print help and exit
             print_help()
+            sys.exit(0)
 
         elif opt == '-c':       # specify config file
             config_file = arg
