@@ -13,12 +13,12 @@ from os import path
 class params(object):
     """ p structure holds configuration parameters """
     def __init__(self, config, config_file):
-        self.session_duration = config.getint('Settings', 'session_duration')
+        self.duration =         config.getint('Settings', 'duration')
         self.spout_count =      config.getint('Settings', 'spout_count')
         self.reward_ms =        config.getint('Settings', 'reward_ms')
         self.cue_ms =           config.getint('Settings', 'cue_ms')
-        self.ITI_min =          config.getint('Settings', 'ITI_min')
-        self.ITI_max =          config.getint('Settings', 'ITI_max')
+        self.ITI_min_ms =       config.getint('Settings', 'ITI_min_ms')
+        self.ITI_max_ms =       config.getint('Settings', 'ITI_max_ms')
         self.config_file =      config_file
 
 
@@ -27,12 +27,12 @@ def get_defaults():
     config = configparser.RawConfigParser()
 
     config.add_section('Settings')
-    config.set('Settings', 'session_duration',  '30')
-    config.set('Settings', 'spout_count',       '1')
-    config.set('Settings', 'reward_ms',         '500')
-    config.set('Settings', 'cue_ms',            '2000')
-    config.set('Settings', 'ITI_min',           '4')
-    config.set('Settings', 'ITI_max',           '6')
+    config.set('Settings', 'duration',      '30')
+    config.set('Settings', 'spout_count',   '1')
+    config.set('Settings', 'reward_ms',     '300')
+    config.set('Settings', 'cue_ms',        '10000')
+    config.set('Settings', 'ITI_min_ms',    '4000')
+    config.set('Settings', 'ITI_max_ms',    '6000')
 
     return config
 
@@ -57,7 +57,7 @@ def process_config(config_file, config_file_default):
             print("Custom config file %s was not found." % config_file)
             sys.exit(1)
 
-    # read its settings, falling back to defaults
+    # read its settings, overwriting defaults with any specified settings
     try:
         config.read(config_file)
     except configparser.MissingSectionHeaderError:

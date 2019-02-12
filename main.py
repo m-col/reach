@@ -7,7 +7,9 @@
 ## Libraries ##
 import RPi.GPIO as GPIO         # raspberry pi pins
 from time import sleep, time, strftime
-import signal, random, sys
+import signal
+import random
+import sys
 
 # Custom modules
 import spout, helpers, config
@@ -52,7 +54,7 @@ current_spout = None
 
 # Record start time
 p.start_time = time()
-p.end_time = p.start_time + p.session_duration * 60
+p.end_time = p.start_time + p.duration * 60
 now = p.start_time
 
 # Start keeping track of performance
@@ -60,6 +62,10 @@ reward_count = 0
 missed_count = 0
 trial_count = 0
 spont_count = 0
+
+# get metadata
+if save_metadata:
+    metadata, mouseID = helpers.request_metadata()
 
 
 ## State 1 - inter-trial interval ##
@@ -92,7 +98,7 @@ def iti(p, current_spout):
 
     while is_iti:
         iti_broken = False
-        ITI_duration = random.uniform(p.ITI_min, p.ITI_max)
+        ITI_duration = random.uniform(p.ITI_min_ms, p.ITI_max_ms) / 1000
         print("Counting down %.2fs" % ITI_duration)
         now = time()
         trial_start = now
@@ -137,13 +143,15 @@ def trial(p, current_spout):
     # Remove spout contact detection
     GPIO.remove_event_detect( spouts[current_spout - 1].touch )
 
+    # We need to sleep at the same time as a reward
+    if success:
+        sleep(p.reward_ms / 1000)
+
     return success
 
 
 ## State 3 - reward period ##
-def reward(pin, opt = 'hi'):
-    if opt != 'hi':
-        print("OPT in reward: %s", opt)
+def reward(pin, var=1):
     GPIO.output(spouts[current_spout - 1].cue, False)
     GPIO.output(spouts[current_spout - 1].water, True)
     global success
@@ -153,15 +161,15 @@ def reward(pin, opt = 'hi'):
 
 
 ## Main ##
-mouseID = input("Enter mouse ID: ")
-print("Starting cued reaching training for %s" % mouseID)
 print("Hit the start button to begin.")
 GPIO.wait_for_edge(start_button, GPIO.FALLING)
 
-while now < p.end_time:
+#while now < p.end_time:
+if True:
     trial_count += 1
     print("_________________________________")
-    print("# ----- Starting trial #%i ----- #" % trial_count)
+    print("# ----- Starting trial #%i ----- #"
+            % trial_count)
 
     # reset success
     success = False
@@ -178,7 +186,6 @@ while now < p.end_time:
     # deal with outcome
     if success:
         print("Successful reach!")
-        reward(p, current_spout)
         reward_count += 1
     else:
         print("Missed reach")
@@ -190,7 +197,6 @@ while now < p.end_time:
 
 ## Finish ##
 print("""_________________________________
-_________________________________
 
 # __________ The end __________ #
 
@@ -205,32 +211,15 @@ Totals:
         spont_count, iti_break_count))
 
 if save_metadata:
-    # get filename
-    date = strftime('%Y-%m-%d')
-    metadata_file = date + '_' + mouseID + '.json'
+    # save metadata to mouse training JSON
+    p.trial_count   = trial_count
+    p.reward_count  = reward_count
+    p.missed_count  = missed_count
+    p.spont_count   = spont_count
+    p.resets        = iti_break_count
 
-    # save metadata file
+    helpers.write_metadata(metadata, mouseID, p)
 
-    # print out message
-    print("Metadata was saved in:\n     %s" % metadata_file)
+print("\nGoodbye!\n")
 
-print("Goodbye!\n")
 exit(0)
-
-
-##
-"""
-
-What do I want to be output?
-Constant output channels:
- - paw_l
- - paw_r
- - spout_position
- + led, touch and water per spout
-
-Metadata (and ignore with -n flag)
- - p struct info
- - config_file name (are all options in it also in p struct?)
- - counts for things
-
-"""
