@@ -1,0 +1,39 @@
+Pin numbering in python code uses BCM scheme
+Here it is shown as BCM (BOARD)
+
+General:
+    	(6)  ground
+    	(2)  +5V supply
+    17  (11)  left paw sensor
+    27  (13)  right paw sensor
+    25  (22)  start button
+
+Spout1:
+    22	(15)  cue
+    23	(16)  touch sensor
+    24	(18)  solenoid
+
+
+Labelled on BOARD scheme:
+                           .___.              
+                       --1-|O O|--2-----+5V
+                       --3-|O O|--4
+                       --5-|O O|--6----_gnd
+                       --7-|O O|--8-
+                      _--9-|O.O|-10-
+    left paw sensor-----11-|O O|-12-
+    right paw sensor----13-|O O|-14-_
+    spout1 cue----------15-|O O|-16-----spout1 touch sensor
+                  +3V3--17-|O O|-18-----spout1 solenoid
+                       -19-|O.O|-20--_
+                       -21-|O O|-22-----start button
+                       -23-|O O|-24-
+                      _-25-|O O|-26-
+                       -27-|O O|-28-
+                       -29-|O.O|-30-_
+                       -31-|O O|-32-
+                       -33-|O O|-34-_
+                       -35-|O O|-36-
+                       -37-|O O|-38-
+                      _-39-|O O|-40-
+                           '---'
