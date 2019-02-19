@@ -7,6 +7,7 @@
 ## Libraries ##
 import RPi.GPIO as GPIO
 import random
+import gertbot
 
 
 ## Spout class ##
@@ -30,3 +31,24 @@ class Spout(object):
 def select_spout(spout_count):
     new_spout = random.randint(0, spout_count)
     return new_spout
+
+
+## Control stepper motor
+
+import gertbot
+board = 0
+stepper = 2
+mode = 24
+frequency = 900.0
+
+gertbot.open_uart(0)
+
+gertbot.set_mode(board, stepper, mode)
+gertbot.freq_stepper(board, stepper, mode)
+
+# move 200 steps
+gertbot.move_stepper(board, stepper, 200)
+
+# stop everything
+gertbot.emergency_stop()
+
