@@ -7,7 +7,10 @@
 ## Libraries ##
 import RPi.GPIO as GPIO
 import random
-import gertbot
+from time import sleep
+
+# external
+import external.gertbot as gertbot
 
 
 ## Spout class ##
@@ -21,10 +24,13 @@ class Spout(object):
         GPIO.setup(self.touch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(self.water, GPIO.OUT, initial=False)
 
-    def dispense(reward_ms):
+    def dispense(self, reward_ms):
         GPIO.output(self.water, True)
-        sleep(reward_ms)
+        sleep(reward_ms / 1000)
         GPIO.output(self.water, False)
+
+    def set_cue(self, state):
+        GPIO.output(self.cue, state)
 
 
 ## Select spout for trial ##
@@ -33,22 +39,22 @@ def select_spout(spout_count):
     return new_spout
 
 
-## Control stepper motor
+## Control stepper motor ##
 
-import gertbot
-board = 0
-stepper = 2
+board = 3
+channel = 0
 mode = 24
 frequency = 900.0
-
+steps = 200
 gertbot.open_uart(0)
 
-gertbot.set_mode(board, stepper, mode)
-gertbot.freq_stepper(board, stepper, mode)
+gertbot.set_mode(board, channel, mode)
+gertbot.freq_stepper(board, channel, mode)
 
-# move 200 steps
-gertbot.move_stepper(board, stepper, 200)
+def present():
+    gertbot.move_stepper(board, channel, steps)
 
-# stop everything
-gertbot.emergency_stop()
+def retract():
+    gertbot.move_stepper(board, channel, -steps)
 
+#TODO: add end stops? - see notes on yellow sheet

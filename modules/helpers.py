@@ -12,10 +12,14 @@ import json
 import time
 from os import path
 
-# custom
-import config
+# external
+import external.gertbot
 
-## Print help
+# custom
+import modules.config
+
+
+## Print help ##
 def print_help():
     help_msg = """
         Mouse reach task sequencer
@@ -30,7 +34,7 @@ def print_help():
     print(help_msg)
 
 
-## Parse command line arguments
+## Parse command line arguments ##
 def parse_args(argv, config_file):
     # some defaults
     save_metadata = True
@@ -62,6 +66,7 @@ def parse_args(argv, config_file):
 def handle_signal(sig, frame):
     if sig == 2:
         GPIO.cleanup()
+        gertbot.stop_all()
         sys.exit()
 
 

@@ -5,44 +5,49 @@
 
 
 ## Libraries ##
-import RPi.GPIO as GPIO         # raspberry pi pins
+import RPi.GPIO as GPIO
 from time import sleep, time, strftime
 import signal
 import random
 import sys
 
-# Custom modules
-import spout, helpers, config
+# external
+import external.gertbot
+
+# custom modules
+import modules.config as config
+import modules.helpers as helpers
+import modules.spout as spout
 
 
 ## Setup ##
 
-# Set parameters
+# set parameters
 config_file_default = 'settings.ini'
 config_file, save_metadata = helpers.parse_args(sys.argv[1:], config_file_default)
 p = config.process_config(config_file, config_file_default)
 
-# Pins
+# pins
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-paw_l = 17          # left paw touch sensor
-paw_r = 27          # right paw touch sensor
-start_button = 25   # start button used to begin task
+paw_l = 20          # left paw touch sensor
+paw_r = 26          # right paw touch sensor
+start_button = 21   # start button used to begin task
 
 GPIO.setup(paw_l, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(paw_r, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(start_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-# Create spouts
+# create spouts
 spouts = []
 if p.spout_count == 1:
-    spouts.append(spout.Spout(22, 23, 24))     # pins for cue, touch sensor, solenoid
+    spouts.append(spout.Spout(19, 13, 16))     # pins for cue, touch sensor, solenoid
 else:
     print("Pins described for only one spout")
     sys.exit(1)
 
-# Trap INT signal
+# trap INT signal
 signal.signal(signal.SIGINT, helpers.handle_signal)
 
 # initialise randomness
@@ -52,12 +57,12 @@ random.seed()
 success = False
 current_spout = None
 
-# Record start time
+# record start time
 p.start_time = time()
 p.end_time = p.start_time + p.duration * 60
 now = p.start_time
 
-# Start keeping track of performance
+# start keeping track of performance
 reward_count = 0
 missed_count = 0
 trial_count = 0
@@ -122,7 +127,7 @@ def iti(p, current_spout):
 ## State 2 - trial period ##
 def trial(p, current_spout):
     # Activate cue
-    GPIO.output( spouts[current_spout - 1].cue, True )
+    spouts[current_spout - 1].set_cue(True)
 
     # Detect contact with spout
     GPIO.add_event_detect( spouts[current_spout - 1].touch,
@@ -132,7 +137,7 @@ def trial(p, current_spout):
     now = time()
     cue_end = now + p.cue_ms/1000
 
-# add tiemr signal here instad of polling?
+# add timer signal here instad of polling? (and also in main loop?)
     while not success and now < cue_end:
         sleep(0.01)
         now = time()
@@ -152,12 +157,19 @@ def trial(p, current_spout):
 
 ## State 3 - reward period ##
 def reward(pin, var=1):
-    GPIO.output(spouts[current_spout - 1].cue, False)
-    GPIO.output(spouts[current_spout - 1].water, True)
+    # disable cue
+    spouts[current_spout - 1].set_cue(False)
+
+    # set success
     global success
     success = True
-    sleep(p.reward_ms / 1000)
-    GPIO.output(spouts[current_spout - 1].water, False)
+
+    # dispense water reward
+    spouts[current_spout - 1].dispense(p.reward_ms)
+
+    #GPIO.output(spouts[current_spout - 1].water, True)
+    #sleep(p.reward_ms / 1000)
+    #GPIO.output(spouts[current_spout - 1].water, False)
 
 
 ## Main ##
