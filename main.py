@@ -18,34 +18,35 @@ import external.gertbot
 import modules.config as config
 import modules.helpers as helpers
 import modules.spout as spout
+import modules.utils as utils
 
 
 ## Setup ##
 
-# set parameters
-config_file_default = 'settings.ini'
-config_file, save_metadata = helpers.parse_args(sys.argv[1:], config_file_default)
-p = config.process_config(config_file, config_file_default)
+# set settings and parameters
+settings = helpers.parse_args(sys.argv[1:])
+p = config.process_config(settings)
 
 # pins
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 
-paw_l = 37          # left paw touch sensor
-paw_r = 38          # right paw touch sensor
-start_button = 40   # start button used to begin task
+p.paw_l = 38          # left paw touch sensor
+p.paw_r = 37          # right paw touch sensor
+p.start_button = 40   # start button used to begin task
 
-GPIO.setup(paw_l, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(paw_r, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(start_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(p.paw_l, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(p.paw_r, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(p.start_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # create spouts
 spouts = []
 if p.spout_count == 1:
-    spouts.append(spout.Spout(35, 33, 36))     # pins for cue, touch sensor, solenoid
+    # pins for cue, touch sensor, solenoid
+    spouts.append(spout.Spout(35, 33, 31))     
 else:
     print("Pins described for only one spout")
-    sys.exit(1)
+    helpers.clean_exit(1)
 
 # trap INT signal
 signal.signal(signal.SIGINT, helpers.handle_signal)
@@ -56,6 +57,8 @@ random.seed()
 # initialise variables we want global access to
 success = False
 current_spout = None
+iti_broken = False
+iti_break_count = 0
 
 # record start time
 p.start_time = time()
@@ -67,21 +70,26 @@ reward_count = 0
 missed_count = 0
 trial_count = 0
 spont_count = 0
+reset_pins = []
 
 # get metadata
-if save_metadata:
-    metadata, mouseID = helpers.request_metadata()
+if settings['save_metadata']:
+    metadata = helpers.request_metadata(settings)
+
+
+## Use utility
+if settings['utility']:
+    utils.use_util(settings, p, spouts)
 
 
 ## State 1 - inter-trial interval ##
-iti_broken = False
-iti_break_count = 0
-
 def iti_break(pin):
     global iti_broken
     iti_broken = True
     global iti_break_count
     iti_break_count += 1
+    global reset_pins
+    reset_pins.append(pin)
 
 def inc_sponts(pin):
     global spont_count
@@ -92,9 +100,9 @@ def iti(p, current_spout):
     global iti_broken
 
     # start watching for paws moving from rest position
-    GPIO.add_event_detect(paw_r, GPIO.FALLING,
+    GPIO.add_event_detect(p.paw_r, GPIO.RISING,
             callback=iti_break, bouncetime=300)
-    GPIO.add_event_detect(paw_l, GPIO.FALLING,
+    GPIO.add_event_detect(p.paw_l, GPIO.FALLING,
             callback=iti_break, bouncetime=300)
 
     # start watching for spontaneous reaches to spout
@@ -118,8 +126,8 @@ def iti(p, current_spout):
         else:
             is_iti = False
 
-    GPIO.remove_event_detect(paw_r)
-    GPIO.remove_event_detect(paw_l)
+    GPIO.remove_event_detect(p.paw_r)
+    GPIO.remove_event_detect(p.paw_l)
     GPIO.remove_event_detect(spouts[current_spout - 1].touch)
     return
 
@@ -174,10 +182,10 @@ def reward(pin, var=1):
 
 ## Main ##
 print("Hit the start button to begin.")
-GPIO.wait_for_edge(start_button, GPIO.FALLING)
+GPIO.wait_for_edge(p.start_button, GPIO.FALLING)
 
-#while now < p.end_time:
-if True:
+while now < p.end_time:
+#if True:
     trial_count += 1
     print("_________________________________")
     print("# ----- Starting trial #%i ----- #"
@@ -208,6 +216,8 @@ if True:
 
 
 ## Finish ##
+resets_l      = reset_pins.count(p.paw_l)
+resets_r      = reset_pins.count(p.paw_r)
 print("""_________________________________
 
 # __________ The end __________ #
@@ -218,20 +228,23 @@ Totals:
     Missed cues:            %i (%0.1f%%)
     Spontaneous reaches:    %i
     ITI resets:             %i
+        right paw:          %i
+        left paw:           %i
     """ % (trial_count, reward_count, 100*reward_count/trial_count,
         missed_count, 100*missed_count/trial_count,
-        spont_count, iti_break_count))
+        spont_count, iti_break_count, resets_r, resets_l))
 
-if save_metadata:
+if settings['save_metadata']:
     # save metadata to mouse training JSON
     p.trial_count   = trial_count
     p.reward_count  = reward_count
     p.missed_count  = missed_count
     p.spont_count   = spont_count
     p.resets        = iti_break_count
+    p.resets_l      = resets_l
+    p.resets_r      = resets_r
 
-    helpers.write_metadata(metadata, mouseID, p)
+    helpers.write_metadata(metadata, s, p)
 
 print("\nGoodbye!\n")
-
-exit(0)
+helpers.clean_exit(0)

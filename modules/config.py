@@ -12,14 +12,13 @@ from os import path
 ## We ultimately want to store parameters in a simple structure
 class params(object):
     """ p structure holds configuration parameters """
-    def __init__(self, config, config_file):
+    def __init__(self, config):
         self.duration =         config.getint('Settings', 'duration')
         self.spout_count =      config.getint('Settings', 'spout_count')
         self.reward_ms =        config.getint('Settings', 'reward_ms')
         self.cue_ms =           config.getint('Settings', 'cue_ms')
         self.ITI_min_ms =       config.getint('Settings', 'ITI_min_ms')
         self.ITI_max_ms =       config.getint('Settings', 'ITI_max_ms')
-        self.config_file =      config_file
 
 
 ## Get default settings
@@ -45,12 +44,12 @@ def gen_config(config, config_file):
 
 
 ## Process config
-def process_config(config_file, config_file_default):
+def process_config(settings):
     config = get_defaults()
 
     # create config file if it doesn't exist
-    if not path.isfile(config_file):
-        if config_file == config_file_default:
+    if not path.isfile(settings['config_file']):
+        if settings['custom_config']:
             print("No config file exists.")
             gen_config(config, config_file)
         else:
@@ -59,11 +58,11 @@ def process_config(config_file, config_file_default):
 
     # read its settings, overwriting defaults with any specified settings
     try:
-        config.read(config_file)
+        config.read(settings['config_file'])
     except configparser.MissingSectionHeaderError:
-        print("%s is an invalid config file." % config_file)
+        print("%s is an invalid config file." % settings['config_file'])
         sys.exit(1)
 
-    # transfer settings into p structure
-    p = params(config, config_file)
+    # generate parameter structure
+    p = params(config)
     return p

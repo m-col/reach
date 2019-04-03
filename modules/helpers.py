@@ -13,34 +13,50 @@ import time
 from os import path
 
 # external
-import external.gertbot
+import external.gertbot as gertbot
 
 # custom
-import modules.config
+import modules.config as config
 
 
 ## Print help ##
 def print_help():
+    """ Display help information """
     help_msg = """
         Mouse reach task sequencer
         Usage: ./main.py [OPTIONS]
 
         Options:
-        -h          print this help message and exit
-        -c          specify non-default config file and run
-        -g          generate default config file and exit
-        -n          run but do not save metadata
+        -h              print this help message and exit
+        -c              specify non-default config file and run
+        -g              generate default config file and exit
+        -n              run but do not save metadata
+        -m <mouseID>    specify mouseID for this run
+        -u <utility>    use utility and exit
+
+        Utilities:
+        'spout'         used to hold solenoid open
     """
     print(help_msg)
 
 
 ## Parse command line arguments ##
-def parse_args(argv, config_file):
-    # some defaults
-    save_metadata = True
+def parse_args(argv):
+    """ Parse command line arguments to create settings dict """
+
+    # default settings
+    settings = {
+            'save_metadata': True, 
+            'utility': '',
+            'config_file': 'settings.ini',
+            'custom_config': False,
+            'mouseID': '',
+            }
+
+    gen_config = False
 
     try:
-        opts, args = getopt.getopt(argv, 'hc:gn')
+        opts, args = getopt.getopt(argv, 'hc:gnm:u:')
     except getopt.GetoptError:
         print("Error parsing arguments. Pass -h for help.")
         sys.exit(1)
@@ -52,30 +68,57 @@ def parse_args(argv, config_file):
             sys.exit(0)
 
         elif opt == '-c':       # specify config file
-            config_file = arg
+            settings['config_file'] = arg
+            settings['custom_config'] = True
 
         elif opt == '-g':       # generate config file and exit
-            config.gen_config(config.get_defaults(), config_file)
-            sys.exit(0)
+            gen_config = True
 
         elif opt == '-n':       # flag to not save metadata
-            save_metadata = False
+            settings['save_metadata'] = False
 
-    return config_file, save_metadata
+        elif opt == '-m':
+            settings['mouseID'] = arg
+
+        elif opt == '-u':       # use a utility
+            settings['utility'] = arg
+            settings['save_metadata'] = False
+
+    if gen_config:
+        config.gen_config(config.get_defaults(), settings['config_file'])
+        sys.exit(0)
+
+    return settings
+
+
+## Clean up pins and exit
+def clean_exit(exit_code):
+    """ Clean up allocation of GPIO pins """
+    GPIO.output(31, False)  # close solenoid
+    GPIO.cleanup()
+    gertbot.stop_all()
+    sys.exit(exit_code)
+
+
 ## Signal handler ##
 def handle_signal(sig, frame):
+    """ Run clean_exit upon ctrl-c """
     if sig == 2:
-        GPIO.cleanup()
-        gertbot.stop_all()
-        sys.exit()
+        clean_exit(1)
 
 
 ## Request metadata ##
-def request_metadata():
-    mouseID = input("Enter mouse ID: ")
+def request_metadata(settings):
+    """ Get metadata from a mouse JSON file """
+
+    if not settings['mouseID']:
+        settings['mouseID'] = input("Enter mouse ID: ")
+    mouseID = settings['mouseID']
+
     if not mouseID:
-        print("Please enter a mouse ID or pass -n to ignore metadata")
-        sys.exit(1)
+        print("Please enter a mouse ID at the prompt or by passing -m <mouseID>")
+        print("Alternatively pass -n to ignore metadata")
+        clean_exit(1)
 
     date = time.strftime('%Y-%m-%d')
     metadata_file = mouseID + '.json'
@@ -118,8 +161,9 @@ def request_metadata():
 
 
 ## Save metadata ##
-def write_metadata(metadata, mouseID, p):
-    metadata_file = mouseID + '.json'
+def write_metadata(metadata, settings, p):
+    """ Write metadata to a mouse JSON file """
+    metadata_file = settings['mouseID'] + '.json'
 
     date = time.strftime('%Y-%m-%d')
     metadata['date'] = date
@@ -136,6 +180,8 @@ def write_metadata(metadata, mouseID, p):
     metadata['missed_count'] = p.missed_count
     metadata['trial_count'] = p.trial_count
     metadata['spont_count'] = p.spont_count
+    metadata['resets_l'] = p.resets_l
+    metadata['resets_r'] = p.resets_r
 
     if metadata['day'] == 1:
         # First day so we are not appending to existing metadata

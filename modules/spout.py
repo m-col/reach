@@ -29,6 +29,12 @@ class Spout(object):
         sleep(reward_ms / 1000)
         GPIO.output(self.water, False)
 
+    def open(self):
+        GPIO.output(self.water, True)
+
+    def close(self):
+        GPIO.output(self.water, False)
+
     def set_cue(self, state):
         GPIO.output(self.cue, state)
 
