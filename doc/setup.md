@@ -47,19 +47,7 @@ stepper motor
 
 === Everything else ===
 
-Pin numbering in the python code and here uses the BOARD scheme.
-
-Pinout:
-
-| 33 | Spout touch sensor |
-| 35 | Spout cue LED |
-| 36 | Spout solenoid control |
-| 37 | Left paw sensor |
-| 38 | Right paw sensor |
-| 39 | Ground |
-| 40 | Start button |
-
-Labelled on BOARD scheme:
+Pin numbering in the python code and here uses the BOARD scheme. Pinout:
                            .___.              
                        --1-|O O|--2-
                        --3-|O O|--4
@@ -69,19 +57,20 @@ Labelled on BOARD scheme:
                        -11-|O O|-12-
                        -13-|O O|-14-_
                        -15-|O O|-16-
-                       -17-|O O|-18-
-                       -19-|O.O|-20-_
-                       -21-|O O|-22-
-                       -23-|O O|-24-
+         3.3V power-----17-|O O|-18-----Start button
+       spout sensor-----19-|O.O|-20---_ ground
+   right paw sensor-----21-|O O|-22-----cue LED
+    left paw sensor-----23-|O O|-24-----solenoid control
                       _-25-|O O|-26-
                        -27-|O O|-28-
                        -29-|O.O|-30-_
-                       -31-|O O|-32-----Start button
-       spout sensor-----33-|O O|-34-_
-	    cue LED-----35-|O O|-36-----solenoid control
-    left paw sensor-----37-|O O|-38-----right paw sensor
-               gnd----_-39-|O O|-40-
+                       -31-|O O|-32-
+		       -33-|O O|-34-_
+		       -35-|O O|-36-
+		       -37-|O O|-38-
+                       -39-|O O|-40-
                            '---'
+
 
 === Raspberry pi ===
 
