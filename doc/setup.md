@@ -58,9 +58,9 @@ Pin numbering in the python code and here uses the BOARD scheme. Pinout:
                        -13-|O O|-14-_
                        -15-|O O|-16-
          3.3V power-----17-|O O|-18-----Start button
-       spout sensor-----19-|O.O|-20---_ ground
+    left paw sensor-----19-|O.O|-20---_ ground
    right paw sensor-----21-|O O|-22-----cue LED
-    left paw sensor-----23-|O O|-24-----solenoid control
+       spout sensor-----23-|O O|-24-----solenoid control
                       _-25-|O O|-26-
                        -27-|O O|-28-
                        -29-|O.O|-30-_

@@ -31,9 +31,9 @@ p = config.process_config(settings)
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 
-p.paw_l = 35          # left paw touch sensor
-p.paw_r = 37          # right paw touch sensor
-p.start_button = 40   # start button used to begin task
+p.paw_l = 19          # left paw touch sensor
+p.paw_r = 21          # right paw touch sensor
+p.start_button = 18   # start button used to begin task
 
 GPIO.setup(p.paw_l, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(p.paw_r, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -43,7 +43,7 @@ GPIO.setup(p.start_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 spouts = []
 if p.spout_count == 1:
     # pins for cue, touch sensor, solenoid
-    spouts.append(spout.Spout(38, 33, 31))     
+    spouts.append(spout.Spout(22, 23, 24))     
 else:
     print("Pins described for only one spout")
     helpers.clean_exit(1)
