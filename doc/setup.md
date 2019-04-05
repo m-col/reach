@@ -77,7 +77,7 @@ Pin numbering in the python code and here uses the BOARD scheme. Pinout:
 1. Install raspbian with desktop (for easier wifi control)
 1. Connect to mouse, keyboard and monitor
 1. Set passwords for pi and root users
-6. Run raspi-config and enable automatic login as user pi
+6. Run raspi-config and enable automatic login as user pi, and set locale to en_US.UTF-8 
 3. Get IS to assign static IP to mac address
 2. To connect to eduroam, add this to /etc/wpa_supplicant/wpa_supplicant.conf and reboot (not needed?):
 
