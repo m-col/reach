@@ -8,6 +8,8 @@
 import configparser, sys
 from os import path
 
+from modules.helpers import clean_exit
+
 
 ## We ultimately want to store parameters in a simple structure
 class params(object):
@@ -38,6 +40,13 @@ def get_defaults():
 
 ## Config file generator
 def gen_config(config, config_file):
+
+    if path.isfile(config_file):
+        confirm = input("Config file %s already exists. Overwrite? (Y/n) "
+                % config_file)
+        if confirm == "n":
+            clean_exit(1)
+            
     with open(config_file, 'w') as new_file:
         config.write(new_file)
     print("A new config file has been generated as %s." % config_file)
@@ -50,18 +59,18 @@ def process_config(settings):
     # create config file if it doesn't exist
     if not path.isfile(settings['config_file']):
         if settings['custom_config']:
-            print("No config file exists.")
-            gen_config(config, config_file)
+            print("Custom config file %s was not found." % settings['config_file'])
+            clean_exit(1)
         else:
-            print("Custom config file %s was not found." % config_file)
-            sys.exit(1)
+            print("No config file exists.")
+            gen_config(config, settings['config_file'])
 
     # read its settings, overwriting defaults with any specified settings
     try:
         config.read(settings['config_file'])
     except configparser.MissingSectionHeaderError:
         print("%s is an invalid config file." % settings['config_file'])
-        sys.exit(1)
+        clean_exit(1)
 
     # generate parameter structure
     p = params(config)

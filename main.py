@@ -72,12 +72,14 @@ trial_count = 0
 spont_count = 0
 reset_pins = []
 
-# get metadata
-if settings['save_metadata']:
-    metadata = helpers.request_metadata(settings)
+
+## Generate config
+if settings['gen_config']:
+    config.gen_config(config.get_defaults(), settings['config_file'])
+    helpers.clean_exit(0)
 
 
-## Use utility
+## Use utility ##
 if settings['utility']:
     utils.use_util(settings, p, spouts)
 
@@ -175,12 +177,16 @@ def reward(pin, var=1):
     # dispense water reward
     spouts[current_spout - 1].dispense(p.reward_ms)
 
-    #GPIO.output(spouts[current_spout - 1].water, True)
-    #sleep(p.reward_ms / 1000)
-    #GPIO.output(spouts[current_spout - 1].water, False)
+    # give one second to drink
+    sleep(1)
 
 
 ## Main ##
+
+# get metadata
+if settings['save_metadata']:
+    metadata = helpers.request_metadata(settings)
+
 print("Hit the start button to begin.")
 GPIO.wait_for_edge(p.start_button, GPIO.FALLING)
 

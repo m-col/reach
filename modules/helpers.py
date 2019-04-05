@@ -15,9 +15,6 @@ from os import path
 # external
 import external.gertbot as gertbot
 
-# custom
-import modules.config as config
-
 
 ## Print help ##
 def print_help():
@@ -35,7 +32,8 @@ def print_help():
         -u <utility>    use utility and exit
 
         Utilities:
-        'spout'         used to hold solenoid open
+        'spout'         press button to open solenoid
+        'paws'          test paw rest touch sensors
     """
     print(help_msg)
 
@@ -51,9 +49,10 @@ def parse_args(argv):
             'config_file': 'settings.ini',
             'custom_config': False,
             'mouseID': '',
+            'gen_config': False,
             }
 
-    gen_config = False
+    to_gen_config = False
 
     try:
         opts, args = getopt.getopt(argv, 'hc:gnm:u:')
@@ -68,11 +67,11 @@ def parse_args(argv):
             sys.exit(0)
 
         elif opt == '-c':       # specify config file
-            settings['config_file'] = arg
+            settings['config_file'] = enforce_suffix('.ini', arg)
             settings['custom_config'] = True
 
         elif opt == '-g':       # generate config file and exit
-            gen_config = True
+            settings['gen_config'] = True
 
         elif opt == '-n':       # flag to not save metadata
             settings['save_metadata'] = False
@@ -83,10 +82,6 @@ def parse_args(argv):
         elif opt == '-u':       # use a utility
             settings['utility'] = arg
             settings['save_metadata'] = False
-
-    if gen_config:
-        config.gen_config(config.get_defaults(), settings['config_file'])
-        sys.exit(0)
 
     return settings
 
@@ -202,3 +197,12 @@ def write_metadata(metadata, settings, p):
 
     # print out message
     print("Metadata was saved in:\n     %s" % metadata_file)
+
+
+## Enforce suffix ##
+def enforce_suffix(suffix, string):
+    """ Append suffix to string if not present """
+    if not string.endswith(suffix):
+        string = string + suffix
+
+    return string
