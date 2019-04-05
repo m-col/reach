@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Main control script for mouse reach task control
+# Mouse reach task sequencer
+#       Main script
 #
 
 
@@ -141,13 +142,13 @@ def trial(p, current_spout):
 
     # Detect contact with spout
     GPIO.add_event_detect( spouts[current_spout - 1].touch,
-            GPIO.FALLING, callback=reward, bouncetime=4000 )
+            GPIO.FALLING, callback=reward, bouncetime=p.ITI_min_ms )
 
     # Count down allowed trial time
     now = time()
     cue_end = now + p.cue_ms/1000
 
-# add timer signal here instad of polling? (and also in main loop?)
+    # Wait until reward() is run or the trial times out
     while not success and now < cue_end:
         sleep(0.01)
         now = time()
@@ -158,15 +159,16 @@ def trial(p, current_spout):
     # Remove spout contact detection
     GPIO.remove_event_detect( spouts[current_spout - 1].touch )
 
-    # We need to sleep at the same time as a reward
+    # Sleep in parallel with reward function, and add a second for drinking
     if success:
-        sleep(p.reward_ms / 1000)
+        sleep(p.reward_ms / 1000)   # dispensing
+        sleep(1)                    # drinking
 
     return success
 
 
 ## State 3 - reward period ##
-def reward(pin, var=1):
+def reward(pin):
     # disable cue
     spouts[current_spout - 1].set_cue(False)
 
@@ -176,9 +178,6 @@ def reward(pin, var=1):
 
     # dispense water reward
     spouts[current_spout - 1].dispense(p.reward_ms)
-
-    # give one second to drink
-    sleep(1)
 
 
 ## Main ##
@@ -191,14 +190,11 @@ print("Hit the start button to begin.")
 GPIO.wait_for_edge(p.start_button, GPIO.FALLING)
 
 while now < p.end_time:
-#if True:
     trial_count += 1
+    success = False
     print("_________________________________")
     print("# ----- Starting trial #%i ----- #"
             % trial_count)
-
-    # reset success
-    success = False
 
     # select a spout for this trial
     current_spout = spout.select_spout(p.spout_count)

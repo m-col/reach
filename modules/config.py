@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Config processor for mouse reach task control
+# Mouse reach task sequencer
+#       Configuration processor
 #
 
 

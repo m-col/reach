@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Spout definitions for mouse reach task control
+# Mouse reach task sequencer
+#       Spout definitions and functions
 #
 
 
@@ -15,8 +16,10 @@ import external.gertbot as gertbot
 
 ## Spout class ##
 class Spout(object):
-    """ Sets up a spout and initialises Pi pins """
+    """ Handle raspberry pi pins and functions to control a water spout """
+
     def __init__(self, cue, touch, water):
+        """ Sets up a spout and initialises Pi pins """
         self.cue = cue
         self.touch = touch
         self.water = water

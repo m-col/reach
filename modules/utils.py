@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Utilities for mouse reach task control
+# Mouse reach task sequencer
+#       Utilities
 #
 
 ## Libraries

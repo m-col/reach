@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
-# Helper functions for mouse reach task control
+# Mouse reach task sequencer
+#       Helper functions
 #
 
 
@@ -197,6 +198,25 @@ def write_metadata(metadata, settings, p):
 
     # print out message
     print("Metadata was saved in:\n     %s" % metadata_file)
+
+
+## Keep track of behavioural data ##
+class Data(object):
+    """ Store and manipulate behavioural data during training session """
+
+    def __init__(self):
+        """ Initialise data structure """
+        self.lift_l     = []
+        self.lift_r     = []
+        self.rest_l     = []
+        self.rest_r     = []
+        self.grab       = []
+        self.release    = []
+        self.cue        = []
+
+    def reaction_time(self, time):
+        self.reaction_times.append(time)
+
 
 
 ## Enforce suffix ##
