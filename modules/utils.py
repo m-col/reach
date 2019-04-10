@@ -26,8 +26,8 @@ def use_util(settings, p, spouts):
     elif util == 'solenoid':
         solenoid(p, spouts)
 
-    elif util == 'paws':
-        paws(p)
+    elif util == 'sensors':
+        touch_sensors(p, spouts)
 
     else:
         print("Util '%s' does not exit" % util)
@@ -40,7 +40,7 @@ def use_util(settings, p, spouts):
 def list_utils():
     print("Available utilities:")
     print("solenoid - open solenoid")
-    print("paws     - test paw rest touch sensors")
+    print("sensors  - test paw and spout touch sensors")
 
 
 ## Open solenoid
@@ -61,21 +61,37 @@ def solenoid(p, spouts):
         sleep(0.02)
 
 
-## Test paw rest touch sensors
-def paws(p):
-    """ Test paw rest touch sensors """
+## Test touch sensors
+def touch_sensors(p, spouts):
+    """ Test paw and spout touch sensors """
 
-    def read_paw_r(pin):
-        print("Right:    %s" % GPIO.input(p.paw_r))
+    def print_touch(pin):
+        if pin == p.paw_r:
+            print("Right:    %s" % GPIO.input(pin))
+        elif pin == p.paw_l:
+            print("Left:    %s" % GPIO.input(pin))
+        else:
+            for i in range(len(spouts)):
+                if spouts[i-1].touch == pin:
+                    spout_num = i+1
+                    print("Spout %i:    %s" %
+                            (spout_num,
+                            GPIO.input(pin)))
+                    break
 
-    def read_paw_l(pin):
-        print("Left:    %s" % GPIO.input(p.paw_l))
-
+    # listen to touches on paw rests
     GPIO.add_event_detect(p.paw_r, GPIO.BOTH,
-            callback=read_paw_r, bouncetime=100)
+        callback=print_touch, bouncetime=100)
 
     GPIO.add_event_detect(p.paw_l, GPIO.BOTH,
-            callback=read_paw_l, bouncetime=100)
+        callback=print_touch, bouncetime=100)
+
+    # listen to touches to spouts
+    for spout in spouts:
+        GPIO.add_event_detect(
+                spout.touch, GPIO.FALLING,
+                callback=print_touch, bouncetime=100
+                )
 
     input("Hit enter or ctrl-c to quit\n")
     helpers.clean_exit(0)

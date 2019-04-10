@@ -104,9 +104,9 @@ def iti(p, current_spout):
 
     # start watching for paws moving from rest position
     GPIO.add_event_detect(p.paw_r, GPIO.RISING,
-            callback=iti_break, bouncetime=300)
+            callback=iti_break, bouncetime=100)
     GPIO.add_event_detect(p.paw_l, GPIO.FALLING,
-            callback=iti_break, bouncetime=300)
+            callback=iti_break, bouncetime=100)
 
     # start watching for spontaneous reaches to spout
     GPIO.add_event_detect( spouts[current_spout - 1].touch,
