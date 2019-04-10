@@ -1,0 +1,18 @@
+This is an early prototype for the reach task circuit using stripboard.
+
+It uses the BOARD pin layout in the code and pin numbers.
+
+In this setup, the 2x4 strip sockets cover pins 17-24.
+
+The pins in the python code are therefore:
+
+p.paw_l = 19
+p.paw_r = 21
+p.start_button = 18
+
+spouts[0].cue = 22
+spouts[0].touch = 23
+spouts[0].water = 24
+
+Pin 17 is 3.3V
+Pin 20 is ground

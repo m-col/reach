@@ -30,11 +30,7 @@ def print_help():
         -g              generate default config file and exit
         -n              run but do not save metadata
         -m <mouseID>    specify mouseID for this run
-        -u <utility>    use utility and exit
-
-        Utilities:
-        'spout'         press button to open solenoid
-        'paws'          test paw rest touch sensors
+        -u <utility>    use utility and exit. Pass 'list' to list utilities
     """
     print(help_msg)
 

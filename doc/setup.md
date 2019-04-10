@@ -8,13 +8,14 @@ Raspberry pi 3
     - raspbian on SD card
     - ethernet cable
 
-gertbot motor driver
-    - driver source: http://www.gertbot.com
+Touch sensors (per sensor):
+    - 220 ohm + 270 ohm resistor
+    - 2N2222 transistor
+    - for paw rest sensors, conductive paint
 
-stepper motor
-    - (part here)
-    - 9V power supply (e.g. xxxxx) 
-
+Spouts:
+    - 3.2 mm x 1.6 mm x 3M silicon tubing
+    - 1.1 x 40 mm (19G) syringe needle, with plastic trimmed to fit into tubing
 
 == Setup ==
 

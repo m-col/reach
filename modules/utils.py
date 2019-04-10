@@ -67,9 +67,9 @@ def touch_sensors(p, spouts):
 
     def print_touch(pin):
         if pin == p.paw_r:
-            print("Right:    %s" % GPIO.input(pin))
+            print("Right:    %i" % GPIO.input(pin))
         elif pin == p.paw_l:
-            print("Left:    %s" % GPIO.input(pin))
+            print("Left:    %i" % GPIO.input(pin))
         else:
             for i in range(len(spouts)):
                 if spouts[i-1].touch == pin:
@@ -81,16 +81,16 @@ def touch_sensors(p, spouts):
 
     # listen to touches on paw rests
     GPIO.add_event_detect(p.paw_r, GPIO.BOTH,
-        callback=print_touch, bouncetime=100)
+        callback=print_touch, bouncetime=10)
 
     GPIO.add_event_detect(p.paw_l, GPIO.BOTH,
-        callback=print_touch, bouncetime=100)
+        callback=print_touch, bouncetime=10)
 
     # listen to touches to spouts
     for spout in spouts:
         GPIO.add_event_detect(
                 spout.touch, GPIO.FALLING,
-                callback=print_touch, bouncetime=100
+                callback=print_touch, bouncetime=10
                 )
 
     input("Hit enter or ctrl-c to quit\n")
