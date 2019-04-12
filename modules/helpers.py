@@ -86,7 +86,7 @@ def parse_args(argv):
 ## Clean up pins and exit
 def clean_exit(exit_code):
     """ Clean up allocation of GPIO pins """
-    GPIO.output(24, False)  # close solenoid
+    GPIO.output(13, False)  # close solenoid
     GPIO.cleanup()
     gertbot.stop_all()
     sys.exit(exit_code)
