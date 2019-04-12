@@ -1,0 +1,13 @@
+This is prototype 2 using a permo-proto raspberry pi hat.
+
+This pi hat as 3.3 V and ground strips, and uses BCM pin numbering.
+
+The pins in the python code are therefore:
+
+p.paw_l = 23
+p.paw_r = 18
+p.start_button = 4
+
+spouts[0].cue = 20
+spouts[0].touch = 6
+spouts[0].water = 13
