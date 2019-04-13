@@ -10,9 +10,6 @@ import RPi.GPIO as GPIO
 import random
 from time import sleep
 
-# external
-import external.gertbot as gertbot
-
 
 ## Spout class ##
 class Spout(object):
@@ -26,44 +23,34 @@ class Spout(object):
         GPIO.setup(self.cue, GPIO.OUT, initial=False)
         GPIO.setup(self.touch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(self.water, GPIO.OUT, initial=False)
+        self.sponts = []
 
-    def dispense(self, reward_ms):
-        GPIO.output(self.water, True)
-        sleep(reward_ms / 1000)
-        GPIO.output(self.water, False)
+        # also keep track of timepoints
+        self.t_cue = []
+        self.t_touch = []
+        self.t_release = []
 
     def open(self):
+        """ Open solenoid. This is used for testing. """
         GPIO.output(self.water, True)
 
     def close(self):
+        """ Close solenoid. This is used for testing. """
         GPIO.output(self.water, False)
 
+    def dispense(self, reward_ms):
+        """ Dispense water reward during training """
+        self.open()
+        sleep(reward_ms / 1000)
+        self.close(
+
     def set_cue(self, state):
+        """ Enable or disable LED cue """
+        self.t_cue.append(time())
         GPIO.output(self.cue, state)
 
 
 ## Select spout for trial ##
 def select_spout(spout_count):
-    new_spout = random.randint(0, spout_count)
+    new_spout = random.randint(0, spout_count - 1)
     return new_spout
-
-
-## Control stepper motor ##
-
-board = 3
-channel = 0
-mode = 24
-frequency = 900.0
-steps = 200
-gertbot.open_uart(0)
-
-gertbot.set_mode(board, channel, mode)
-gertbot.freq_stepper(board, channel, mode)
-
-def present():
-    gertbot.move_stepper(board, channel, steps)
-
-def retract():
-    gertbot.move_stepper(board, channel, -steps)
-
-#TODO: add end stops? - see notes on yellow sheet

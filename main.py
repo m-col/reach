@@ -12,9 +12,6 @@ import signal
 import random
 import sys
 
-# external
-import external.gertbot
-
 # custom modules
 import modules.config as config
 import modules.helpers as helpers
@@ -70,7 +67,8 @@ now = p.start_time
 reward_count = 0
 missed_count = 0
 trial_count = 0
-spont_count = 0
+sponts_pins = []
+sponts_t = []
 reset_pins = []
 
 
@@ -95,22 +93,36 @@ def iti_break(pin):
     reset_pins.append(pin)
 
 def inc_sponts(pin):
-    global spont_count
-    spont_count += 1
+    global sponts_pins
+    sponts_pins.append(pin)
+    global sponts_t
+    sponts_t.append(time())
 
 def iti(p, current_spout):
     is_iti = True
     global iti_broken
 
     # start watching for paws moving from rest position
-    GPIO.add_event_detect(p.paw_r, GPIO.RISING,
-            callback=iti_break, bouncetime=100)
-    GPIO.add_event_detect(p.paw_l, GPIO.FALLING,
-            callback=iti_break, bouncetime=100)
+    GPIO.add_event_detect(
+            p.paw_r,
+            GPIO.RISING,
+            callback=iti_break,
+            bouncetime=100
+            )
+    GPIO.add_event_detect(
+            p.paw_l,
+            GPIO.RISING,
+            callback=iti_break,
+            bouncetime=100
+            )
 
     # start watching for spontaneous reaches to spout
-    GPIO.add_event_detect( spouts[current_spout - 1].touch,
-            GPIO.FALLING, callback=inc_sponts, bouncetime=300 )
+    GPIO.add_event_detect(
+            spouts[current_spout].touch,
+            GPIO.FALLING,
+            callback=inc_sponts,
+            bouncetime=100
+            )
 
     while is_iti:
         iti_broken = False
@@ -131,18 +143,23 @@ def iti(p, current_spout):
 
     GPIO.remove_event_detect(p.paw_r)
     GPIO.remove_event_detect(p.paw_l)
-    GPIO.remove_event_detect(spouts[current_spout - 1].touch)
+    GPIO.remove_event_detect(spouts[current_spout].touch)
     return
 
 
 ## State 2 - trial period ##
 def trial(p, current_spout):
     # Activate cue
-    spouts[current_spout - 1].set_cue(True)
+
+    spouts[current_spout].set_cue(True)
 
     # Detect contact with spout
-    GPIO.add_event_detect( spouts[current_spout - 1].touch,
-            GPIO.FALLING, callback=reward, bouncetime=p.ITI_min_ms )
+    GPIO.add_event_detect(
+            spouts[current_spout].touch,
+            GPIO.FALLING,
+            callback=reward,
+            bouncetime=p.ITI_min_ms
+            )
 
     # Count down allowed trial time
     now = time()
@@ -154,10 +171,15 @@ def trial(p, current_spout):
         now = time()
 
     # Disable cue if it was a missed trial
-    GPIO.output(spouts[current_spout - 1].cue, False)
+    GPIO.output(
+            spouts[current_spout].cue,
+            False
+            )
 
     # Remove spout contact detection
-    GPIO.remove_event_detect( spouts[current_spout - 1].touch )
+    GPIO.remove_event_detect(
+            spouts[current_spout].touch
+            )
 
     # Sleep in parallel with reward function, and add a second for drinking
     if success:
@@ -170,21 +192,21 @@ def trial(p, current_spout):
 ## State 3 - reward period ##
 def reward(pin):
     # disable cue
-    spouts[current_spout - 1].set_cue(False)
+    spouts[current_spout].set_cue(False)
 
     # set success
     global success
     success = True
 
     # dispense water reward
-    spouts[current_spout - 1].dispense(p.reward_ms)
+    spouts[current_spout].dispense(p.reward_ms)
 
 
 ## Main ##
 
-# get metadata
-if settings['save_metadata']:
-    metadata = helpers.request_metadata(settings)
+# get past data
+if settings['save_data']:
+    data = helpers.request_data(settings)
 
 print("Hit the start button to begin.")
 GPIO.wait_for_edge(p.start_button, GPIO.FALLING)
@@ -217,7 +239,7 @@ while now < p.end_time:
     now = time()
 
 
-## Finish ##
+## Display results ##
 resets_l      = reset_pins.count(p.paw_l)
 resets_r      = reset_pins.count(p.paw_r)
 print("""_________________________________
@@ -234,19 +256,34 @@ Totals:
         left paw:           %i
     """ % (trial_count, reward_count, 100*reward_count/trial_count,
         missed_count, 100*missed_count/trial_count,
-        spont_count, iti_break_count, resets_r, resets_l))
+        len(sponts_pins), iti_break_count, resets_r, resets_l))
 
-if settings['save_metadata']:
-    # save metadata to mouse training JSON
+
+## Save data to disk ##
+if settings['save_data']:
+    # split spontaneous touches by pin
+    for spout in spouts:
+        sponts_pins
+        sponts_t
+    # TODO: format spontaneous touches for each spout
+
+    # reformat data for saving
+    # TODO: format cued touches for each spout
+    # TODO: format rests for both paw rests
+    # TODO: format lists for both paw rests
+    data.reformat(p, spouts)
+
+    # save data to mouse's JSON
     p.trial_count   = trial_count
     p.reward_count  = reward_count
     p.missed_count  = missed_count
-    p.spont_count   = spont_count
     p.resets        = iti_break_count
     p.resets_l      = resets_l
     p.resets_r      = resets_r
 
-    helpers.write_metadata(metadata, s, p)
+    helpers.write_data(data, s, p)
 
+
+## Finish ##
 print("\nGoodbye!\n")
 helpers.clean_exit(0)

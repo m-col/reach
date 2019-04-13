@@ -8,9 +8,6 @@
 import RPi.GPIO as GPIO
 from time import sleep, time, strftime
 
-# external
-import external.gertbot
-
 # custom modules
 import modules.helpers as helpers
 
