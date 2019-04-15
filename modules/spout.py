@@ -23,9 +23,9 @@ class Spout(object):
         self.cue = cue
         self.touch = touch
         self.water = water
-        GPIO.setup(self.cue, GPIO.OUT, initial=False)
-        GPIO.setup(self.touch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.water, GPIO.OUT, initial=False)
+        GPIO.setup(cue, GPIO.OUT, initial=False)
+        GPIO.setup(touch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(water, GPIO.OUT, initial=False)
 
     def dispense(self, reward_ms):
         GPIO.output(self.water, True)
@@ -38,8 +38,12 @@ class Spout(object):
     def close(self):
         GPIO.output(self.water, False)
 
-    def set_cue(self, state):
+    def set_cue(self, state='toggle'):
+        if state == 'toggle':
+            state = not GPIO.input(self.cue)
         GPIO.output(self.cue, state)
+
+
 
 
 ## Select spout for trial ##
