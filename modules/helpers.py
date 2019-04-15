@@ -13,9 +13,6 @@ import json
 import time
 from os import path
 
-# external
-import external.gertbot as gertbot
-
 
 ## Print help ##
 def print_help():
@@ -28,7 +25,8 @@ def print_help():
         -h              print this help message and exit
         -c              specify non-default config file and run
         -g              generate default config file and exit
-        -n              run but do not save metadata
+        -n              run but do not save data
+        -N              run but do not save training data
         -m <mouseID>    specify mouseID for this run
         -u <utility>    use utility and exit. Pass 'list' to list utilities
     """
@@ -41,7 +39,7 @@ def parse_args(argv):
 
     # default settings
     settings = {
-            'save_metadata': True, 
+            'save_data': True, 
             'utility': '',
             'config_file': 'settings.ini',
             'custom_config': False,
@@ -70,15 +68,15 @@ def parse_args(argv):
         elif opt == '-g':       # generate config file and exit
             settings['gen_config'] = True
 
-        elif opt == '-n':       # flag to not save metadata
-            settings['save_metadata'] = False
+        elif opt == '-n':       # flag to not save data
+            settings['save_data'] = False
 
         elif opt == '-m':
             settings['mouseID'] = arg
 
         elif opt == '-u':       # use a utility
             settings['utility'] = arg
-            settings['save_metadata'] = False
+            settings['save_data'] = False
 
     return settings
 
@@ -88,7 +86,6 @@ def clean_exit(exit_code):
     """ Clean up allocation of GPIO pins """
     GPIO.output(13, False)  # close solenoid
     GPIO.cleanup()
-    gertbot.stop_all()
     sys.exit(exit_code)
 
 
@@ -99,9 +96,9 @@ def handle_signal(sig, frame):
         clean_exit(1)
 
 
-## Request metadata ##
-def request_metadata(settings):
-    """ Get metadata from a mouse JSON file """
+## Request past data ##
+def request_data(settings):
+    """ Get data from mouse JSON file """
 
     if not settings['mouseID']:
         settings['mouseID'] = input("Enter mouse ID: ")
@@ -109,110 +106,125 @@ def request_metadata(settings):
 
     if not mouseID:
         print("Please enter a mouse ID at the prompt or by passing -m <mouseID>")
-        print("Alternatively pass -n to ignore metadata")
+        print("Alternatively pass -n to ignore data")
         clean_exit(1)
 
     date = time.strftime('%Y-%m-%d')
-    metadata_file = mouseID + '.json'
-    metadata = {}
+    data_file = mouseID + '.json'
+    data = {}
 
-    if path.isfile(metadata_file):
-        # load metadata from pre-existing training JSON
+    if path.isfile(data_file):
+        # load data from pre-existing training JSON
         print("Found pre-existing training JSON for %s" % mouseID)
-        with open(metadata_file) as json_file:
+        with open(data_file) as json_file:
             try:
-                prev_metadata = json.load(json_file)
-                metadata['day'] = prev_metadata[-1]['day'] + 1
+                prev_data = json.load(json_file)
+                data['day'] = prev_data[-1]['day'] + 1
 
-                prev_trainer = prev_metadata[-1]['trainer']
-                metadata['trainer'] = input("Enter trainer (%s): " %
+                prev_trainer = prev_data[-1]['trainer']
+                data['trainer'] = input("Enter trainer (%s): " %
                         prev_trainer) or prev_trainer
 
-                prev_weight = prev_metadata[-1]['weight']
-                metadata['weight'] = input("Enter weight (%s): " %
+                prev_weight = prev_data[-1]['weight']
+                data['weight'] = input("Enter weight (%s): " %
                         prev_weight) or prev_weight
 
-                prev_training_box = prev_metadata[-1]['box']
-                metadata['box'] = input("Enter training box (%s): " %
+                prev_training_box = prev_data[-1]['box']
+                data['box'] = input("Enter training box (%s): " %
                         prev_training_box) or prev_training_box
             except:
-                print("Something appears to be wrong with %s" % metadata_file)
-                sys.exit(1)
+                print("Something appears to be wrong with %s" % data_file)
+                clean_exit(1)
 
     else:
-        # we will save to new training JSON
+        # save to new JSON
         print("Generating new training JSON for %s" % mouseID)
-        metadata['day'] = 1
-        metadata['trainer'] = input("Enter trainer: ") or 'matt'
-        metadata['weight'] = input("Enter weight: ") or '?'
-        metadata['box'] = input("Enter training box: ") or 1
+        data['day'] = 1
+        data['trainer'] = input("Enter trainer: ") or 'matt'
+        data['weight'] = input("Enter weight: ") or '?'
+        data['box'] = input("Enter training box: ") or 1
 
-    metadata['prewatering'] = input("Enter prewatering volume (0): ") or '0'
+    data['prewatering'] = input("Enter prewatering volume (0): ") or '0'
 
-    return metadata, mouseID
+    return data, mouseID
 
 
-## Save metadata ##
-def write_metadata(metadata, settings, p):
-    """ Write metadata to a mouse JSON file """
-    metadata_file = settings['mouseID'] + '.json'
+## Save data ##
+def write_data(data, settings, p):
+    """ Write data to a mouse JSON file """
+    data_file = settings['mouseID'] + '.json'
 
     date = time.strftime('%Y-%m-%d')
-    metadata['date'] = date
-    metadata['start_time'] = time.strftime('%H:%M',
-            time.localtime(p.start_time))
-    metadata['data_file'] = date + '_' + mouseID
-    metadata['spout_count'] = p.spout_count
-    metadata['duration'] = p.duration
-    metadata['cue_ms'] = p.cue_ms
-    metadata['ITI_min_ms'] = p.ITI_min_ms
-    metadata['ITI_max_ms'] = p.ITI_max_ms
-    metadata['reward_ms'] = p.reward_ms
-    metadata['reward_count'] = p.reward_count
-    metadata['missed_count'] = p.missed_count
-    metadata['trial_count'] = p.trial_count
-    metadata['spont_count'] = p.spont_count
-    metadata['resets_l'] = p.resets_l
-    metadata['resets_r'] = p.resets_r
+    data['date'] = date
+    data['start_time'] = time.strftime('%H:%M',
+            time.localtime(p.start_time)
+            )
+    data['spout_count'] = p.spout_count
+    data['duration'] = p.duration
+    data['cue_ms'] = p.cue_ms
+    data['ITI_min_ms'] = p.ITI_min_ms
+    data['ITI_max_ms'] = p.ITI_max_ms
+    data['reward_ms'] = p.reward_ms
+    data['reward_count'] = p.reward_count
+    data['missed_count'] = p.missed_count
+    data['trial_count'] = p.trial_count
+    data['spont_count'] = p.spont_count
+    data['resets_l'] = p.resets_l
+    data['resets_r'] = p.resets_r
 
-    if metadata['day'] == 1:
-        # First day so we are not appending to existing metadata
-        metadata = [metadata]
+    if data['day'] == 1:
+        # First day so we are not appending to existing data
+        data = [data]
 
-        with open(metadata_file, 'w') as output:
-            json.dump(metadata, output, indent=4)
+        with open(data_file, 'w') as output:
+            json.dump(data, output, indent=4)
 
     else:
-        # we are appending to existing metadata
-        with open(metadata_file) as json_file:
-            prev_metadata = json.load(json_file)
+        # we are appending to existing data
+        with open(data_file) as json_file:
+            prev_data = json.load(json_file)
 
-        prev_metadata.append(metadata)
+        prev_data.append(data)
 
-        with open(metadata_file, 'w') as output:
-            json.dump(prev_metadata, output, indent=4)
+        with open(data_file, 'w') as output:
+            json.dump(prev_data, output, indent=4)
 
     # print out message
-    print("Metadata was saved in:\n     %s" % metadata_file)
+    print("Data was saved in:\n     %s" % data_file)
 
 
 ## Keep track of behavioural data ##
 class Data(object):
     """ Store and manipulate behavioural data during training session """
 
-    def __init__(self):
+    def __init__(self, spouts):
         """ Initialise data structure """
-        self.lift_l     = []
-        self.lift_r     = []
-        self.rest_l     = []
-        self.rest_r     = []
+        # paw rest touch sensors
+        self.lift       = []
+        self.rest       = []
         self.grab       = []
         self.release    = []
-        self.cue        = []
 
-    def reaction_time(self, time):
-        self.reaction_times.append(time)
+    def reformat(self, p, spouts, sponts):
+        """ Re-format the data for saving """
+        # get data from each spout
+        cue = []
+        touch = []
+        release = []
+        for i in range(len(spouts)):
+            cue.append(spouts[i].t_cue)
+            touch.append(spouts[i].t_touch)
+            release.append(spouts[i].t_release)
 
+        self.cue = cue
+        self.touch = touch
+        self.release = release
+
+        # get paw sensor data
+        lift_l
+        lift_r
+        rest_l
+        rest_r
 
 
 ## Enforce suffix ##

@@ -3,7 +3,14 @@
 
 == Parts list ==
 
-Raspberry pi 3
+3D printed parts:
+    - reach task base
+    - 2x RIVETS head bars
+    - spout rail and carriage
+    - 50 ml syringe holder (1 per spout)
+    - small button box
+
+Raspberry pi 3:
     - power supply
     - raspbian on SD card
     - ethernet cable
@@ -11,81 +18,44 @@ Raspberry pi 3
 Touch sensors (per sensor):
     - 220 ohm + 270 ohm resistor
     - 2N2222 transistor
-    - for paw rest sensors, conductive paint
+    - 1x 1x1 wire socket
+One set is needed per paw rest and per spout.
 
-Spouts:
+Spouts (per spout):
     - 3.2 mm x 1.6 mm x 3M silicon tubing
     - 1.1 x 40 mm (19G) syringe needle, with plastic trimmed to fit into tubing
+    - 1x solenoid with a pair of pins soldered to wire ends
+    - 1x 1N4001 diode
+    - 1x 2N2222 transistor
+    - 1x 3.9 KOhm resistor
+    - 1x LED
+    - 2x 2x1 wire sockets
+    - 50 ml syringe
+
+Misc:
+    - perma-proto pi hat
+    - conductive paint for paw rest spouts
+    - 100 uF capacitor
+    - 2x RIVETS bar thumb screws
+    - USB camera
+    - Momentary button with ~50 cm wires ending in pair of pins for start button
+
 
 == Setup ==
-
-=== Circuit ===
-
-==== Stepper motor ====
-
-- Red and black wires: 100 Ohm resistor in series
-- 4 wires from motor plug directly into gertbot:
-(photo)
-
-- Power cable wires need exposing and plug directly into gertbot:
-(photo)
-
-	________.__.              
-	gertbot | O|--1- 
-		| O|--2-
-	    	| O|--3- power - black and white
-	    	| O|--4-
-	    	| O|--5-
-	    	| O|--6- power - ground
-	    	| O|--7-
-	    	| O|--8-
-	    	| O|--9-
-	    	| O|-10-
-	    	| O|-11-
-	    	| O|-12-
-	--------'--'
-
-
-=== Everything else ===
-
-Pin numbering in the python code and here uses the BOARD scheme. Pinout:
-                           .___.              
-                       --1-|O O|--2-
-                       --3-|O O|--4
-                       --5-|O O|--6-
-                       --7-|O O|--8-
-                      _--9-|O.O|-10-
-                       -11-|O O|-12-
-                       -13-|O O|-14-_
-                       -15-|O O|-16-
-         3.3V power-----17-|O O|-18-----Start button
-    left paw sensor-----19-|O.O|-20---_ ground
-   right paw sensor-----21-|O O|-22-----cue LED
-       spout sensor-----23-|O O|-24-----solenoid control
-                      _-25-|O O|-26-
-                       -27-|O O|-28-
-                       -29-|O.O|-30-_
-                       -31-|O O|-32-
-		       -33-|O O|-34-_
-		       -35-|O O|-36-
-		       -37-|O O|-38-
-                       -39-|O O|-40-
-                           '---'
-
 
 === Raspberry pi ===
 
 1. Install raspbian with desktop (for easier wifi control)
-1. Connect to mouse, keyboard and monitor
-1. Set passwords for pi and root users
-6. Run raspi-config and enable automatic login as user pi, and set locale to en_US.UTF-8 
-3. Get IS to assign static IP to mac address
-2. To connect to eduroam, add this to /etc/wpa_supplicant/wpa_supplicant.conf and reboot (not needed?):
+2. Connect to mouse, keyboard and monitor
+3. Set passwords for pi and root users
+4. Run raspi-config and enable automatic login as user pi, and set locale to en\_US.UTF-8 
+5. Get IS to assign static IP to mac address
+6. To connect to eduroam, add this to /etc/wpa\_supplicant/wpa_supplicant.conf and reboot (not needed?):
 
     network={
 	ssid="eduroam"
-	scan_ssid=1
-	key_mgmt=WPA-EAP
+	scan\_ssid=1
+	key\_mgmt=WPA-EAP
 	eap=PEAP
 	identity="<uun>@ed.ac.uk"
 	password="<password>"
@@ -93,31 +63,31 @@ Pin numbering in the python code and here uses the BOARD scheme. Pinout:
 	phase2="auth=MSCHAPV2"
     }
 
-2. apt-get update and upgrade
-5. Edit /etc/dhcpcd.conf to show:
+7. apt-get update and upgrade
+8. Edit /etc/dhcpcd.conf to show:
 
     interface eth0
-    static ip_address=<IP address assigned by IS>/23
+    static ip\_address=<IP address assigned by IS>/23
     #static ip6......
     static routers=172.19.83.254
 
-3. Clone reach repo into pi home directory
-4. Remove "console=serial0,115200 console=tty1" from /boot/cmdline.txt (needed for gertbot)
-5. Add to /boot/config.txt:
+9. Clone reach repo into pi home directory
+10. Remove "console=serial0,115200 console=tty1" from /boot/cmdline.txt (needed for gertbot)
+11. Add to /boot/config.txt:
 
     dtoverlay=pi3-disable-bt
     dtoverlay=pi3-disable-wifi
-    enable_uart=1
+    enable\_uart=1
 
-5. Add to /etc/rc.local:
+12. Add to /etc/rc.local:
 
     echo none > /sys/class/leds/led0/trigger
     echo none > /sys/class/leds/led1/trigger
     echo 0 > /sys/class/leds/led0/brightness
     echo 0 > /sys/class/leds/led1/brightness
 
-6. Remove "NOPASSWD:" from /etc/sudoers.d/010_pi-nopasswd
-6. Create /etc/apt/apt.conf.d/80proxy containing:
+13. Remove "NOPASSWD:" from /etc/sudoers.d/010\_pi-nopasswd
+14. Create /etc/apt/apt.conf.d/80proxy containing:
 
     Acquire::https {
 	Proxy "https://wwwcache.ed.ac.uk:3128";
@@ -126,12 +96,44 @@ Pin numbering in the python code and here uses the BOARD scheme. Pinout:
 	Proxy "http://wwwcache.ed.ac.uk:3128";
     }
 
-6. Add to ~/.zshrc:
+15. Add to ~/.zshrc:
 
-    export https_proxy=wwwcache.ed.ac.uk:3128
-    export http_proxy=$https_proxy
+    export https\_proxy=wwwcache.ed.ac.uk:3128
+    export http\_proxy=$https_proxy
 
-6. Optionally install zsh ranger vim and any other useful tools
-6. Reboot and test connectivity
+16. Optionally install zsh ranger vim and any other useful tools
+17. Reboot and test connectivity
 
 The raspberry pi can now be remoted into using the IP address assigned by IS, so the monitor, keyboard and mouse are no longer required.
+
+
+=== Base ===
+
+1. Make paw rests:
+    - Fix a piece of stick from a cotton bud to each of two M6 screws with araldite
+    - Solder the end of a wire to the threads of each screw. The other end of each wire should reach the top of the raspberry pi.
+    - Solder a pin to the other end of each wire
+    - Cover the rests with heat shrink, leaving the screw heads partly exposed 
+    - Fix to the rig base with araldite
+    - Paint a thick layer on the rests with conductive paint, reaching the heads of each screw.
+
+2. Assemble spouts (for a single spout):
+    - Fix syringe holder to wall, fix tubing to syringe, mount syringe into holder
+    - Fix other end of tubing to solenoid
+    - Fix another length of tubing to solenoid to reach spout area
+    - Fix plastic end of 19G syringe needle into end of tubing, angled downward
+
+3. Make start button:
+    - Mount button to 3D printed switch box
+
+4. Mount raspberry pi to base and screw into place
+5. Fix base to bench
+
+
+=== Pi-hat circuitry ===
+
+1. Solder stick of sockets to pi-hat
+2. Use fritzing file as guide to solder components to pi-hat
+3. Mount pi-hat to raspberry pi
+4. Plug paw rest sensor pins, spout solenoid, LED and touch sensor pins, and start button pins
+
