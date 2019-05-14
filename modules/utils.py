@@ -26,6 +26,9 @@ def use_util(settings, p, spouts):
     elif util == 'sensors':
         touch_sensors(p, spouts)
 
+    elif util == 'cues':
+        cues(p, spouts)
+
     else:
         print("Util '%s' does not exit" % util)
         helpers.clean_exit(1)
@@ -38,17 +41,20 @@ def list_utils():
     print("Available utilities:")
     print("solenoid - open solenoid")
     print("sensors  - test paw and spout touch sensors")
+    print("cues     - test spout LEDs")
 
 
 ## Open solenoid
 def solenoid(p, spouts):
+    """ Open solenoid valve using push button """
+
     if len(spouts) > 1:
         print("Number of spouts: %s" % len(spouts))
         num = input("Select spout: ")
     else:
         num = 0
 
-    print("Hold start button to open spout")
+    print("Hold button to open spout")
     print("and hit ctrl-C to finish")
     while True:
         if GPIO.input(p.start_button):
@@ -92,3 +98,26 @@ def touch_sensors(p, spouts):
 
     input("Hit enter or ctrl-c to quit\n")
     helpers.clean_exit(0)
+
+
+## Test LED cues
+def cues(p, spouts):
+    """ Test spout LEDs """
+
+    if len(spouts) > 1:
+        print("Number of spouts: %s" % len(spouts))
+        num = input("Select spout to test: ")
+    else:
+        num = 0
+
+    print("Push button to toggle LED cue")
+    print("and hit ctrl-C to finish")
+
+    def toggle_LED(pin):
+        spouts[num].set_cue('toggle')
+
+    GPIO.add_event_detect(p.start_button, GPIO.FALLING,
+        callback=toggle_LED, bouncetime=300)
+    
+    while True:
+        sleep(1)

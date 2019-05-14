@@ -28,7 +28,7 @@ Spouts (per spout):
     - 1x 1N4001 diode
     - 1x 2N2222 transistor
     - 1x 3.9 KOhm resistor
-    - 1x LED
+    - 1x LED with 100 Ohm resistor in series, long wires
     - 2x 2x1 wire sockets
     - 50 ml syringe
 

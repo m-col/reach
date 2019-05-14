@@ -20,9 +20,9 @@ class Spout(object):
         self.cue = cue
         self.touch = touch
         self.water = water
-        GPIO.setup(self.cue, GPIO.OUT, initial=False)
-        GPIO.setup(self.touch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.water, GPIO.OUT, initial=False)
+        GPIO.setup(cue, GPIO.OUT, initial=False)
+        GPIO.setup(touch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(water, GPIO.OUT, initial=False)
         self.sponts = []
 
         # also keep track of timepoints
@@ -38,16 +38,18 @@ class Spout(object):
         """ Close solenoid. This is used for testing. """
         GPIO.output(self.water, False)
 
+    def set_cue(self, state='toggle'):
+        """ Enable or disable LED cue """
+        #self.t_cue.append(time())
+        if state == 'toggle':
+            state = not GPIO.input(self.cue)
+        GPIO.output(self.cue, state)
+
     def dispense(self, reward_ms):
         """ Dispense water reward during training """
-        self.open()
+        GPIO.output(self.water, True)
         sleep(reward_ms / 1000)
-        self.close(
-
-    def set_cue(self, state):
-        """ Enable or disable LED cue """
-        self.t_cue.append(time())
-        GPIO.output(self.cue, state)
+        GPIO.output(self.water, False)
 
 
 ## Select spout for trial ##
