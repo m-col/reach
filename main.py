@@ -40,7 +40,7 @@ GPIO.setup(p.start_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 # create spouts
 spouts = []
 if p.spout_count == 1:
-    # pins for cue, touch sensor, solenoid
+    # pins for cue, touch sensor, water dispensor
     spouts.append(spout.Spout(20, 6, 13))     
 else:
     print("Pins described for only one spout")

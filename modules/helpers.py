@@ -84,7 +84,7 @@ def parse_args(argv):
 ## Clean up pins and exit
 def clean_exit(exit_code):
     """ Clean up allocation of GPIO pins """
-    GPIO.output(13, False)  # close solenoid
+    GPIO.output(13, False)  # stop water flow
     GPIO.cleanup()
     sys.exit(exit_code)
 

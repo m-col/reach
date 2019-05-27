@@ -20,8 +20,8 @@ def use_util(settings, p, spouts):
     if util == 'list':
         list_utils()
 
-    elif util == 'solenoid':
-        solenoid(p, spouts)
+    elif util == 'water':
+        water(p, spouts)
 
     elif util == 'sensors':
         touch_sensors(p, spouts)
@@ -39,14 +39,14 @@ def use_util(settings, p, spouts):
 ## List utilities
 def list_utils():
     print("Available utilities:")
-    print("solenoid - open solenoid")
+    print("water - dispense water")
     print("sensors  - test paw and spout touch sensors")
     print("cues     - test spout LEDs")
 
 
-## Open solenoid
-def solenoid(p, spouts):
-    """ Open solenoid valve using push button """
+## Dispense water
+def water(p, spouts):
+    """ Dispense water using push button """
 
     if len(spouts) > 1:
         print("Number of spouts: %s" % len(spouts))
@@ -54,7 +54,7 @@ def solenoid(p, spouts):
     else:
         num = 0
 
-    print("Hold button to open spout")
+    print("Hold button to dispense water")
     print("and hit ctrl-C to finish")
     while True:
         if GPIO.input(p.start_button):

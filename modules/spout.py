@@ -31,11 +31,11 @@ class Spout(object):
         self.t_release = []
 
     def open(self):
-        """ Open solenoid. This is used for testing. """
+        """ Dispense water. This is used for testing. """
         GPIO.output(self.water, True)
 
     def close(self):
-        """ Close solenoid. This is used for testing. """
+        """ Stop dispensing water. This is used for testing. """
         GPIO.output(self.water, False)
 
     def set_cue(self, state='toggle'):
