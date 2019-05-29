@@ -4,6 +4,7 @@
 #       Main script
 #
 
+#TODO: perhaps actually put docstrings on things or im gonna regret 
 
 ## Libraries ##
 import RPi.GPIO as GPIO
@@ -11,6 +12,7 @@ from time import sleep, time, strftime
 import signal
 import random
 import sys
+import asyncio
 
 # custom modules
 import modules.config as config
@@ -32,6 +34,7 @@ GPIO.setmode(GPIO.BCM)
 p.paw_l = 18          # left paw touch sensor
 p.paw_r = 23          # right paw touch sensor
 p.start_button = 4   # start button used to begin task
+
 
 GPIO.setup(p.paw_l, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(p.paw_r, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -57,11 +60,8 @@ success = False
 current_spout = None
 iti_broken = False
 iti_break_count = 0
-
-# record start time
-p.start_time = time()
-p.end_time = p.start_time + p.duration * 60
-now = p.start_time
+resting_l = 0
+resting_r = 0
 
 # start keeping track of performance
 reward_count = 0
@@ -69,7 +69,8 @@ missed_count = 0
 trial_count = 0
 sponts_pins = []
 sponts_t = []
-reset_pins = []
+resets_pins = []
+resets_t = []
 
 
 ## Generate config
@@ -84,13 +85,30 @@ if settings['utility']:
 
 
 ## State 1 - inter-trial interval ##
+def set_resting_l(pin):
+    global resting_l
+    resting_l = 1
+
+def set_resting_r(pin):
+    global resting_r
+    resting_r = 1
+
+@asyncio.coroutine
+async def lifting():
+    while True:
+        resting_l = resting_r = 0
+        sleep(0.005)
+asyncio.Task(lifting())
+
 def iti_break(pin):
     global iti_broken
     iti_broken = True
     global iti_break_count
     iti_break_count += 1
-    global reset_pins
-    reset_pins.append(pin)
+    global resets_pins
+    resets_pins.append(pin)
+    global resets_t
+    resets_t.append(time())
 
 def inc_sponts(pin):
     global sponts_pins
@@ -106,14 +124,14 @@ def iti(p, current_spout):
     GPIO.add_event_detect(
             p.paw_r,
             GPIO.RISING,
-            callback=iti_break,
-            bouncetime=100
+            callback=resting,
+            bouncetime=200
             )
     GPIO.add_event_detect(
             p.paw_l,
             GPIO.RISING,
-            callback=iti_break,
-            bouncetime=100
+            callback=resting,
+            bouncetime=200
             )
 
     # start watching for spontaneous reaches to spout
@@ -150,8 +168,8 @@ def iti(p, current_spout):
 ## State 2 - trial period ##
 def trial(p, current_spout):
     # Activate cue
-
-    spouts[current_spout].set_cue(True)
+    spouts[current_spout].t_cue.append(time())
+    GPIO.output(spouts[current_spout].cue, True)
 
     # Detect contact with spout
     GPIO.add_event_detect(
@@ -171,15 +189,10 @@ def trial(p, current_spout):
         now = time()
 
     # Disable cue if it was a missed trial
-    GPIO.output(
-            spouts[current_spout].cue,
-            False
-            )
+    GPIO.output(spouts[current_spout].cue, False)
 
     # Remove spout contact detection
-    GPIO.remove_event_detect(
-            spouts[current_spout].touch
-            )
+    GPIO.remove_event_detect(spouts[current_spout].touch)
 
     # Sleep in parallel with reward function, and add a second for drinking
     if success:
@@ -192,7 +205,8 @@ def trial(p, current_spout):
 ## State 3 - reward period ##
 def reward(pin):
     # disable cue
-    spouts[current_spout].set_cue(False)
+    GPIO.output(spouts[current_spout].cue, False)
+    spouts[current_spout].t_touch.append(time())
 
     # set success
     global success
@@ -206,11 +220,29 @@ def reward(pin):
 
 # get past data
 if settings['save_data']:
-    data = helpers.request_data(settings)
+    data, settings['mouseID'] = helpers.request_data(settings)
 
+# display information about current session
+print("")
+print("_________________________________")
+print("")
+print("Mouse:       %s" % settings['mouseID'])
+print("Spouts:      %i" % p.spout_count)
+print("Duration:    %i min" % p.duration)
+print("")
+print("_________________________________")
+print("")
+
+# wait to begin
 print("Hit the start button to begin.")
 GPIO.wait_for_edge(p.start_button, GPIO.FALLING)
 
+# record times
+p.start_time = time()
+p.end_time = p.start_time + p.duration * 60
+now = p.start_time
+
+# start behaviour
 while now < p.end_time:
     trial_count += 1
     success = False
@@ -240,8 +272,6 @@ while now < p.end_time:
 
 
 ## Display results ##
-resets_l      = reset_pins.count(p.paw_l)
-resets_r      = reset_pins.count(p.paw_r)
 print("""_________________________________
 
 # __________ The end __________ #
@@ -256,30 +286,39 @@ Totals:
         left paw:           %i
     """ % (trial_count, reward_count, 100*reward_count/trial_count,
         missed_count, 100*missed_count/trial_count,
-        len(sponts_pins), iti_break_count, resets_r, resets_l))
+        len(sponts_pins), iti_break_count, 
+        reset_pins.count(p.paw_r), reset_pins.count(p.paw_l)))
 
 
 ## Save data to disk ##
 if settings['save_data']:
-    # split spontaneous touches by pin
-    for spout in spouts:
-        sponts_pins
-        sponts_t
-    # TODO: format spontaneous touches for each spout
+
+    # spout contact
+    cue = touch = release = []
+    for idx, spout in enumerate(spouts):
+        sponts_pins = [idx if x == spout.touch else x for x in sponts_pins]
+        cue[idx] = spout.t_cue
+        touch[idx] = spout.t_touch
+        release[idx] = spout.t_release
+
+    p.sponts_t = sponts_t
+    p.sponts_spout = sponts_pins
+
+    # resets
+    resets_pins = ["l" if x == p.paw_l else x for x in resets_side]
+    resets_pins = ["r" if x == p.paw_r else x for x in resets_side]
+    p.resets_t = resets_t
+
 
     # reformat data for saving
-    # TODO: format cued touches for each spout
     # TODO: format rests for both paw rests
-    # TODO: format lists for both paw rests
+    # TODO: format lifts for both paw rests
     data.reformat(p, spouts)
 
     # save data to mouse's JSON
     p.trial_count   = trial_count
     p.reward_count  = reward_count
     p.missed_count  = missed_count
-    p.resets        = iti_break_count
-    p.resets_l      = resets_l
-    p.resets_r      = resets_r
 
     helpers.write_data(data, s, p)
 

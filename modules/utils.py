@@ -15,7 +15,8 @@ import modules.helpers as helpers
 ## Utility helper
 def use_util(settings, p, spouts):
     util = settings['utility']
-    print("Utility: %s" % util)
+    if util != 'list':
+        print("Utility: %s" % util)
 
     if util == 'list':
         list_utils()
@@ -39,9 +40,9 @@ def use_util(settings, p, spouts):
 ## List utilities
 def list_utils():
     print("Available utilities:")
-    print("water - dispense water")
-    print("sensors  - test paw and spout touch sensors")
-    print("cues     - test spout LEDs")
+    print("water        - dispense water")
+    print("sensors      - test paw and spout touch sensors")
+    print("cues         - test spout LEDs")
 
 
 ## Dispense water
@@ -83,11 +84,11 @@ def touch_sensors(p, spouts):
                     break
 
     # listen to touches on paw rests
-    GPIO.add_event_detect(p.paw_r, GPIO.BOTH,
-        callback=print_touch, bouncetime=10)
+    GPIO.add_event_detect(p.paw_r, GPIO.RISING,
+        callback=print_touch, bouncetime=1)
 
-    GPIO.add_event_detect(p.paw_l, GPIO.BOTH,
-        callback=print_touch, bouncetime=10)
+    GPIO.add_event_detect(p.paw_l, GPIO.RISING,
+        callback=print_touch, bouncetime=1)
 
     # listen to touches to spouts
     for spout in spouts:
@@ -113,11 +114,8 @@ def cues(p, spouts):
     print("Push button to toggle LED cue")
     print("and hit ctrl-C to finish")
 
-    def toggle_LED(pin):
-        spouts[num].set_cue('toggle')
-
     GPIO.add_event_detect(p.start_button, GPIO.FALLING,
-        callback=toggle_LED, bouncetime=300)
+        callback=spouts[num].cue_toggle, bouncetime=300)
     
     while True:
         sleep(1)

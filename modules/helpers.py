@@ -142,7 +142,7 @@ def request_data(settings):
         data['day'] = 1
         data['trainer'] = input("Enter trainer: ") or 'matt'
         data['weight'] = input("Enter weight: ") or '?'
-        data['box'] = input("Enter training box: ") or 1
+        data['box'] = input("Enter training box: (1) ") or 1
 
     data['prewatering'] = input("Enter prewatering volume (0): ") or '0'
 

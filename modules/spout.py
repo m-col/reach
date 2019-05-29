@@ -23,7 +23,6 @@ class Spout(object):
         GPIO.setup(cue, GPIO.OUT, initial=False)
         GPIO.setup(touch, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(water, GPIO.OUT, initial=False)
-        self.sponts = []
 
         # also keep track of timepoints
         self.t_cue = []
@@ -38,11 +37,9 @@ class Spout(object):
         """ Stop dispensing water. This is used for testing. """
         GPIO.output(self.water, False)
 
-    def set_cue(self, state='toggle'):
-        """ Enable or disable LED cue """
-        #self.t_cue.append(time())
-        if state == 'toggle':
-            state = not GPIO.input(self.cue)
+    def cue_toggle(self, pin):
+        """ Toggle LED. This is used for testing. """
+        state = not GPIO.input(self.cue)
         GPIO.output(self.cue, state)
 
     def dispense(self, reward_ms):
@@ -50,6 +47,11 @@ class Spout(object):
         GPIO.output(self.water, True)
         sleep(reward_ms / 1000)
         GPIO.output(self.water, False)
+
+    def release(self, pin):
+        """ Increment release of spout as callback for touch
+        sensor event detect """
+        self.t_release.append(time())
 
 
 ## Select spout for trial ##
