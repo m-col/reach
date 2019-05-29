@@ -78,8 +78,14 @@ Misc:
     dtoverlay=pi3-disable-bt
     dtoverlay=pi3-disable-wifi
     enable\_uart=1
+    dtparam=eth_led0=14
+    dtparam=eth_led1=14
+    dtparam=pwr_led_trigger=none
+    dtparam=pwr_led_activelow=off
+    dtparam=act_led_trigger=none
+    dtparam=act_led_activelow=off
 
-12. Add to /etc/rc.local:
+12. Add to /etc/rc.local (possibly unneeded):
 
     echo none > /sys/class/leds/led0/trigger
     echo none > /sys/class/leds/led1/trigger
