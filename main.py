@@ -35,10 +35,11 @@ p.paw_l = 18          # left paw touch sensor
 p.paw_r = 23          # right paw touch sensor
 p.start_button = 4   # start button used to begin task
 
-
-GPIO.setup(p.paw_l, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(p.paw_r, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(p.start_button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(
+        [p.paw_l, p.paw_r, p.start_button],
+        GPIO.IN,
+        pull_up_down=GPIO.PUD_UP
+        )
 
 # create spouts
 spouts = []
@@ -60,8 +61,6 @@ success = False
 current_spout = None
 iti_broken = False
 iti_break_count = 0
-resting_l = 0
-resting_r = 0
 
 # start keeping track of performance
 reward_count = 0
@@ -85,20 +84,26 @@ if settings['utility']:
 
 
 ## State 1 - inter-trial interval ##
-def set_resting_l(pin):
-    global resting_l
-    resting_l = 1
+class Sensors():
+    def __init__(self, paw_l, paw_r):
+        self.paw_l = paw_l
+        self.paw_r = paw_r
+        self.resting_l = 0
+        self.resting_r = 0
 
-def set_resting_r(pin):
-    global resting_r
-    resting_r = 1
+    def rest(self, pin):
+        if pain == self.paw_l:
+            self.resting_l = 1
+        else:
+            self.resting_r = 1
 
-@asyncio.coroutine
+sensors = Sensors(p.paw_l, p.paw_r)
+
 async def lifting():
     while True:
-        resting_l = resting_r = 0
+        sesnsors.resting_l = sesnsors.resting_r = 0
         sleep(0.005)
-asyncio.Task(lifting())
+asyncio.run(lifting())
 
 def iti_break(pin):
     global iti_broken
@@ -124,14 +129,14 @@ def iti(p, current_spout):
     GPIO.add_event_detect(
             p.paw_r,
             GPIO.RISING,
-            callback=resting,
-            bouncetime=200
+            callback=sensors.rest,
+            bouncetime=100
             )
     GPIO.add_event_detect(
             p.paw_l,
             GPIO.RISING,
-            callback=resting,
-            bouncetime=200
+            callback=sensors.rest,
+            bouncetime=100
             )
 
     # start watching for spontaneous reaches to spout
