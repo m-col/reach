@@ -108,7 +108,8 @@ Misc:
     export http\_proxy=$https_proxy
 
 16. Optionally install zsh ranger vim and any other useful tools
-17. Reboot and test connectivity
+17. Install python3.7 (required for asyncio; find info online)
+18. Reboot and test connectivity
 
 The raspberry pi can now be remoted into using the IP address assigned by IS, so the monitor, keyboard and mouse are no longer required.
 
