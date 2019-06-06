@@ -143,3 +143,11 @@ The raspberry pi can now be remoted into using the IP address assigned by IS, so
 3. Mount pi-hat to raspberry pi
 4. Plug paw rest sensor pins, spout solenoid, LED and touch sensor pins, and start button pins
 
+
+=== stepper motor drive ===
+
+1. Power with 3.7V from raspberry pi
+2. Connect RST to SLP to enable driver
+3. Measure Vref, from ground to potentiometer
+4. Turn potentiometer so that Vref == 8 * 0.068 * (motor current rating)
+    - this was around 0.913V but I set to 0.900
