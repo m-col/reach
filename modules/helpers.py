@@ -26,7 +26,6 @@ def print_help():
         -c              specify non-default config file and run
         -g              generate default config file and exit
         -n              run but do not save data
-        -N              run but do not save training data
         -m <mouseID>    specify mouseID for this run
         -u <utility>    use utility and exit. Pass 'list' to list utilities
     """
@@ -84,7 +83,7 @@ def parse_args(argv):
 ## Clean up pins and exit
 def clean_exit(exit_code):
     """ Clean up allocation of GPIO pins """
-    GPIO.output(13, False)  # stop water flow
+    GPIO.output(25, False)  # stop water flow
     GPIO.cleanup()
     sys.exit(exit_code)
 

@@ -84,11 +84,11 @@ def touch_sensors(p, spouts):
                     break
 
     # listen to touches on paw rests
-    GPIO.add_event_detect(p.paw_r, GPIO.RISING,
-        callback=print_touch, bouncetime=1)
+    GPIO.add_event_detect(p.paw_r, GPIO.BOTH,
+        callback=print_touch, bouncetime=10)
 
-    GPIO.add_event_detect(p.paw_l, GPIO.RISING,
-        callback=print_touch, bouncetime=1)
+    GPIO.add_event_detect(p.paw_l, GPIO.BOTH,
+        callback=print_touch, bouncetime=10)
 
     # listen to touches to spouts
     for spout in spouts:

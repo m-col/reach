@@ -22,8 +22,9 @@ import modules.utils as utils
 
 
 ## Setup ##
+signal.signal(signal.SIGINT, helpers.handle_signal)
+random.seed()
 
-# set settings and parameters
 settings = helpers.parse_args(sys.argv[1:])
 p = config.process_config(settings)
 
@@ -31,30 +32,25 @@ p = config.process_config(settings)
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
+p.paw_r = 17          # right paw touch sensor
 p.paw_l = 18          # left paw touch sensor
-p.paw_r = 23          # right paw touch sensor
 p.start_button = 4   # start button used to begin task
 
-GPIO.setup(
-        [p.paw_l, p.paw_r, p.start_button],
+GPIO.setup([p.paw_l, p.paw_r],
         GPIO.IN,
-        pull_up_down=GPIO.PUD_UP
-        )
+        pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(p.start_button,
+        GPIO.IN,
+        pull_up_down=GPIO.PUD_UP)
 
 # create spouts
 spouts = []
 if p.spout_count == 1:
     # pins for cue, touch sensor, water dispensor
-    spouts.append(spout.Spout(20, 6, 13))     
+    spouts.append(spout.Spout(5, 22, 25))     
 else:
     print("Pins described for only one spout")
     helpers.clean_exit(1)
-
-# trap INT signal
-signal.signal(signal.SIGINT, helpers.handle_signal)
-
-# initialise randomness
-random.seed()
 
 # initialise variables we want global access to
 success = False
@@ -84,26 +80,26 @@ if settings['utility']:
 
 
 ## State 1 - inter-trial interval ##
-class Sensors():
-    def __init__(self, paw_l, paw_r):
-        self.paw_l = paw_l
-        self.paw_r = paw_r
-        self.resting_l = 0
-        self.resting_r = 0
-
-    def rest(self, pin):
-        if pain == self.paw_l:
-            self.resting_l = 1
-        else:
-            self.resting_r = 1
-
-sensors = Sensors(p.paw_l, p.paw_r)
-
-async def lifting():
-    while True:
-        sesnsors.resting_l = sesnsors.resting_r = 0
-        sleep(0.005)
-asyncio.run(lifting())
+#class Sensors():
+#    def __init__(self, paw_l, paw_r):
+#        self.paw_l = paw_l
+#        self.paw_r = paw_r
+#        self.resting_l = 0
+#        self.resting_r = 0
+#
+#    def rest(self, pin):
+#        if pain == self.paw_l:
+#            self.resting_l = 1
+#        else:
+#            self.resting_r = 1
+#
+#sensors = Sensors(p.paw_l, p.paw_r)
+#
+#async def lifting():
+#    while True:
+#        sensors.resting_l = sensors.resting_r = 0
+#        sleep(0.005)
+#asyncio.run(lifting())
 
 def iti_break(pin):
     global iti_broken
@@ -126,23 +122,18 @@ def iti(p, current_spout):
     global iti_broken
 
     # start watching for paws moving from rest position
-    GPIO.add_event_detect(
-            p.paw_r,
-            GPIO.RISING,
-            callback=sensors.rest,
-            bouncetime=100
-            )
-    GPIO.add_event_detect(
-            p.paw_l,
-            GPIO.RISING,
-            callback=sensors.rest,
-            bouncetime=100
-            )
+    for paw_rest in p.paw_r, p.paw_l:
+        GPIO.add_event_detect(
+                paw_rest,
+                GPIO.FALLING,
+                callback=iti_break,
+                bouncetime=20
+                )
 
     # start watching for spontaneous reaches to spout
     GPIO.add_event_detect(
             spouts[current_spout].touch,
-            GPIO.FALLING,
+            GPIO.RISING,
             callback=inc_sponts,
             bouncetime=100
             )
