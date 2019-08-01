@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-#
-# Mouse reach task sequencer
-#       Configuration processor
-#
+""" Process config files """
 
 
 ## Libraries ##

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-#
-# Mouse reach task sequencer
-#       Utilities
-#
+""" Misc utilities to test the reach rig """
+
 
 ## Libraries
 import RPi.GPIO as GPIO

@@ -1,29 +1,15 @@
 #!/usr/bin/env python3
-#
-# Mouse reach task sequencer
-#       Main script
-#
+""" Mouse reach behavioural task sequencer """
 
-#TODO: perhaps actually put docstrings on things or im gonna regret 
 
-## Libraries ##
 import RPi.GPIO as GPIO
 from time import sleep, time, strftime
 import signal
-import random
 import sys
-import asyncio
-
-# custom modules
-import modules.config as config
-import modules.helpers as helpers
-import modules.spout as spout
-import modules.utils as utils
 
 
-## Setup ##
+## Setup
 signal.signal(signal.SIGINT, helpers.handle_signal)
-random.seed()
 
 settings = helpers.parse_args(sys.argv[1:])
 p = config.process_config(settings)
@@ -32,9 +18,9 @@ p = config.process_config(settings)
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-p.paw_r = 17          # right paw touch sensor
-p.paw_l = 18          # left paw touch sensor
-p.start_button = 4   # start button used to begin task
+p.paw_r = 18
+p.paw_l = 17
+p.start_button = 4
 
 GPIO.setup([p.paw_l, p.paw_r],
         GPIO.IN,
@@ -52,21 +38,6 @@ else:
     print("Pins described for only one spout")
     helpers.clean_exit(1)
 
-# initialise variables we want global access to
-success = False
-current_spout = None
-iti_broken = False
-iti_break_count = 0
-
-# start keeping track of performance
-reward_count = 0
-missed_count = 0
-trial_count = 0
-sponts_pins = []
-sponts_t = []
-resets_pins = []
-resets_t = []
-
 
 ## Generate config
 if settings['gen_config']:
@@ -77,140 +48,6 @@ if settings['gen_config']:
 ## Use utility ##
 if settings['utility']:
     utils.use_util(settings, p, spouts)
-
-
-## State 1 - inter-trial interval ##
-#class Sensors():
-#    def __init__(self, paw_l, paw_r):
-#        self.paw_l = paw_l
-#        self.paw_r = paw_r
-#        self.resting_l = 0
-#        self.resting_r = 0
-#
-#    def rest(self, pin):
-#        if pain == self.paw_l:
-#            self.resting_l = 1
-#        else:
-#            self.resting_r = 1
-#
-#sensors = Sensors(p.paw_l, p.paw_r)
-#
-#async def lifting():
-#    while True:
-#        sensors.resting_l = sensors.resting_r = 0
-#        sleep(0.005)
-#asyncio.run(lifting())
-
-def iti_break(pin):
-    global iti_broken
-    iti_broken = True
-    global iti_break_count
-    iti_break_count += 1
-    global resets_pins
-    resets_pins.append(pin)
-    global resets_t
-    resets_t.append(time())
-
-def inc_sponts(pin):
-    global sponts_pins
-    sponts_pins.append(pin)
-    global sponts_t
-    sponts_t.append(time())
-
-def iti(p, current_spout):
-    is_iti = True
-    global iti_broken
-
-    # start watching for paws moving from rest position
-    for paw_rest in p.paw_r, p.paw_l:
-        GPIO.add_event_detect(
-                paw_rest,
-                GPIO.FALLING,
-                callback=iti_break,
-                bouncetime=20
-                )
-
-    # start watching for spontaneous reaches to spout
-    GPIO.add_event_detect(
-            spouts[current_spout].touch,
-            GPIO.RISING,
-            callback=inc_sponts,
-            bouncetime=100
-            )
-
-    while is_iti:
-        iti_broken = False
-        ITI_duration = random.uniform(p.ITI_min_ms, p.ITI_max_ms) / 1000
-        print("Counting down %.2fs" % ITI_duration)
-        now = time()
-        trial_start = now
-        trial_end = trial_start + ITI_duration
-
-        while now < trial_end and not iti_broken:
-            sleep(0.02)
-            now = time()
-
-        if iti_broken:
-            continue
-        else:
-            is_iti = False
-
-    GPIO.remove_event_detect(p.paw_r)
-    GPIO.remove_event_detect(p.paw_l)
-    GPIO.remove_event_detect(spouts[current_spout].touch)
-    return
-
-
-## State 2 - trial period ##
-def trial(p, current_spout):
-    # Activate cue
-    spouts[current_spout].t_cue.append(time())
-    GPIO.output(spouts[current_spout].cue, True)
-
-    # Detect contact with spout
-    GPIO.add_event_detect(
-            spouts[current_spout].touch,
-            GPIO.FALLING,
-            callback=reward,
-            bouncetime=p.ITI_min_ms
-            )
-
-    # Count down allowed trial time
-    now = time()
-    cue_end = now + p.cue_ms/1000
-
-    # Wait until reward() is run or the trial times out
-    while not success and now < cue_end:
-        sleep(0.01)
-        now = time()
-
-    # Disable cue if it was a missed trial
-    GPIO.output(spouts[current_spout].cue, False)
-
-    # Remove spout contact detection
-    GPIO.remove_event_detect(spouts[current_spout].touch)
-
-    # Sleep in parallel with reward function, and add a second for drinking
-    if success:
-        sleep(p.reward_ms / 1000)   # dispensing
-        sleep(1)                    # drinking
-
-    return success
-
-
-## State 3 - reward period ##
-def reward(pin):
-    # disable cue
-    GPIO.output(spouts[current_spout].cue, False)
-    spouts[current_spout].t_touch.append(time())
-
-    # set success
-    global success
-    success = True
-
-    # dispense water reward
-    spouts[current_spout].dispense(p.reward_ms)
-
 
 ## Main ##
 

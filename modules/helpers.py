@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-#
-# Mouse reach task sequencer
-#       Helper functions
-#
+""" Helper functions used for misc tasks """
 
 
 ## Libraries ##

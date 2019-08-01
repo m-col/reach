@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-#
-# Mouse reach task sequencer
-#       Spout definitions and functions
-#
+""" Spout definitions and functions """
 
 
 ## Libraries ##
