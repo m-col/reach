@@ -2,7 +2,7 @@
 """ Helper functions to handle user input, parameters and file processing """
 
 
-import argparse, configparser, sys, time
+import argparse, configparser, json, sys, time
 from os.path import isfile, join
 
 
@@ -63,7 +63,7 @@ def default_config():
     config = configparser.RawConfigParser()
 
     config.add_section('Settings')
-    config.set('Settings', 'duration',      '30')
+    config.set('Settings', 'duration',      '1800')
     config.set('Settings', 'spout_count',   '1')
     config.set('Settings', 'reward_ms',     '300')
     config.set('Settings', 'cue_ms',        '10000')

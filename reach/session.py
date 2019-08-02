@@ -72,21 +72,20 @@ class Session(object):
 
         config = read_config(config, config_file)
 
-        duration            =   config.getint('Settings', 'duration')
-        spout_count         =   config.getint('Settings', 'spout_count')
+        self.duration       =   config.getint('Settings', 'duration')
+        self.spout_count    =   config.getint('Settings', 'spout_count')
         self.reward_ms      =   config.getint('Settings', 'reward_ms')
         self.cue_ms         =   config.getint('Settings', 'cue_ms')
         self.ITI_min_ms     =   config.getint('Settings', 'ITI_min_ms')
         self.ITI_max_ms     =   config.getint('Settings', 'ITI_max_ms')
         self.shaping        =   config.getboolean('Settings', 'shaping')
-        json_dir            =   config.get('Settings', 'json_dir')
+        self.json_dir       =   config.get('Settings', 'json_dir')
 
 
         # Third: initialise data handlers and hardware
         if self.save_data:
-            data, self.mouseID = request_metadata(self.mouseID, json_dir)
+            self.data, self.mouseID = request_metadata(self.mouseID, self.json_dir)
                     
-
         self.success            = False
         self.current_spout      = None
         self.iti_broken         = False
@@ -100,14 +99,14 @@ class Session(object):
         self.resets_t           = []
 
         random.seed()
-        self.pi = Pi(spout_count)
+        self.pi = Pi(self.spout_count)
 
         print("\n_________________________________\n")
         if self.save_data:
             print("Mouse:       %s"     % self.mouseID)
-            print("JSON:        %s"  % join(json_dir, self.mouseID))
-        print("Spouts:      %i"     % spout_count)
-        print("Duration:    %i min" % duration)
+            print("JSON:        %s"  % join(self.json_dir, self.mouseID))
+        print("Spouts:      %i"     % self.spout_count)
+        print("Duration:    %i min" % self.duration)
         print("Cue:         %i ms"  % self.cue_ms)
         print("ITI:         %i - %i ms" % (self.ITI_min_ms, self.ITI_max_ms))
         print("\n_________________________________\n")
@@ -119,23 +118,29 @@ class Session(object):
             GPIO.wait_for_edge(self.pi.start_button, GPIO.FALLING)
             GPIO.remove_event_detect(self.pi.start_button)
 
-        start_time = time.time()
-        end_time = start_time + duration * 60
-        now = start_time
+        if self.save_data:
+            signal.signal(
+                    signal.SIGINT,
+                    self.cleanup_with_prompt
+                    )
+
+        self.start_time = time.time()
+        self.end_time = self.start_time + self.duration
+        now = self.start_time
 
         if self.debugging:
-            end_time = now - 1
+            self.end_time = now - 1
             self.randomise_data()
 
 
-        while now < end_time:
+        while now < self.end_time:
             self.trial_count += 1
             self.success = False
             print("_________________________________")
             print("# ----- Starting trial #%i ----- #"
                     % self.trial_count)
 
-            self.current_spout = random.randint(0, spout_count - 1)
+            self.current_spout = random.randint(0, self.spout_count - 1)
             self.iti()
             self.trial()
 
@@ -143,16 +148,7 @@ class Session(object):
             now = time.time()
 
         # Fifth: end session
-        cue_t = []
-        touch_t = []
-        for idx, spout in enumerate(self.pi.spouts):
-            self.sponts_pins = [idx if x == spout.touch else x for x in self.sponts_pins]
-            cue_t.append(spout.cue_t)
-            touch_t.append(spout.touch_t)
-
-        self.resets_pins = ["l" if x == self.pi.paw_l else x for x in self.resets_pins]
-        self.resets_pins = ["r" if x == self.pi.paw_r else x for x in self.resets_pins]
-
+        data = self.collate_data(False)
         display_results((
             self.trial_count,
             self.reward_count,
@@ -161,44 +157,13 @@ class Session(object):
             100*self.missed_count/self.trial_count,
             len(self.sponts_pins),
             self.iti_break_count, 
-            self.resets_pins.count("l"),
-            self.resets_pins.count("r")))
+            self.data['resets_sides'].count("l"),
+            self.data['resets_sides'].count("r")))
 
-
-        # Sixth: optionally save all data to file
         if self.save_data:
-            # session parameters
-            date = time.strftime('%Y-%m-%d')
-            data['date'] = date
-            data['start_time'] = time.strftime('%H:%M:%S',
-                    time.localtime(start_time)
-                    )
-            data['end_time'] = time.strftime('%H:%M:%S',
-                    time.localtime(end_time)
-                    )
-            data['spout_count'] = spout_count
-            data['duration'] = duration
-            data['cue_ms'] = self.cue_ms
-            data['ITI_min_ms'] = self.ITI_min_ms
-            data['ITI_max_ms'] = self.ITI_max_ms
-            data['reward_ms'] = self.reward_ms
-
-            # behavioural data
-            data['trial_count'] = self.trial_count
-            data['reward_count'] = self.reward_count
-            data['missed_count'] = self.missed_count
-            data['sponts_pins'] = self.sponts_pins
-            data['iti_break_count'] = self.iti_break_count
-            data['resets_sides'] = self.resets_pins
-            data['resets_t'] = self.resets_t
-            data['cue_t'] = cue_t
-            data['touch_t'] = touch_t
-
-            print(json.dumps(data, indent=4))
-            #write_data(self.mouseID, json_dir, data)
+            write_data(self.mouseID, self.json_dir, data)
 
         self.pi.cleanup()
-
 
 
     def iti_break(self, pin):
@@ -244,7 +209,7 @@ class Session(object):
                 callback=self.inc_sponts,
                 bouncetime=100
                 )
-        
+
         while is_iti:
             while not all([GPIO.input(self.pi.paw_l),
                     GPIO.input(self.pi.paw_r)]):
@@ -291,7 +256,7 @@ class Session(object):
                 self.pi.start_button,
                 GPIO.FALLING,
                 callback=self.reward,
-                bouncetime=self.ITI_min_ms
+                bouncetime=1000 #self.ITI_min_ms # may have been causing it to be ignored
                 )
 
         now = time.time()
@@ -336,6 +301,67 @@ class Session(object):
         self.resets_t           = [int(random.random()*1000)
                 for x in range(len(self.resets_pins))]
         self.resets_t.sort()
+
+
+    def collate_data(self, interrupted):
+        """ Organise all metadata and collected data into single structure """
+
+        if interrupted:
+            # This was called via Control-C callback
+            self.end_time = time.time()
+            self.duration = self.end_time - self.start_time
+
+        cue_t = []
+        touch_t = []
+        for idx, spout in enumerate(self.pi.spouts):
+            self.sponts_pins = [idx if x == spout.touch else x for x in self.sponts_pins]
+            cue_t.append(spout.cue_t)
+            touch_t.append(spout.touch_t)
+
+        self.resets_pins = ["l" if x == self.pi.paw_l else x for x in self.resets_pins]
+        self.resets_pins = ["r" if x == self.pi.paw_r else x for x in self.resets_pins]
+
+        # session parameters
+        data = self.data
+        data['date'] = time.strftime('%Y-%m-%d')
+        data['start_time'] = time.strftime('%H:%M:%S',
+                time.localtime(self.start_time)
+                )
+        data['end_time'] = time.strftime('%H:%M:%S',
+                time.localtime(self.end_time)
+                )
+        data['spout_count']     = self.spout_count
+        data['duration']        = self.duration
+        data['cue_ms']          = self.cue_ms
+        data['ITI_min_ms']      = self.ITI_min_ms
+        data['ITI_max_ms']      = self.ITI_max_ms
+        data['reward_ms']       = self.reward_ms
+
+        # behavioural data
+        data['trial_count']     = self.trial_count
+        data['reward_count']    = self.reward_count
+        data['missed_count']    = self.missed_count
+        data['sponts_pins']     = self.sponts_pins
+        data['iti_break_count'] = self.iti_break_count
+        data['resets_sides']    = self.resets_pins
+        data['resets_t']        = self.resets_t
+        data['cue_t']           = cue_t
+        data['touch_t']         = touch_t
+        return data
+    
+
+    def cleanup_with_prompt(self, signum, frame):
+        """ Control-C signal handler covering main training period
+
+        This will prompt to save data collected thus far before
+        uninitialising the raspberry pi and exiting """
+        
+        response = input("\nExiting: Do you want to keep collected data? (N/y) ") 
+        if response is "y":
+            data = self.collate_data(True)
+            write_data(self.mouseID, self.json_dir, data)
+
+        self.pi.cleanup()
 
 
 

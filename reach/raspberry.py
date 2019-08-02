@@ -66,10 +66,10 @@ class Pi(object):
                 self.cleanup
                 )
 
-    def cleanup(self, sig=0, frame=0):
+    def cleanup(self, signum=0, frame=0):
         """ Unitialise pins for clean exit """
         for spout in self.spouts:
             GPIO.output(spout.water, False)
         GPIO.cleanup()
-        sys.exit(sig)
+        sys.exit(signum)
 
