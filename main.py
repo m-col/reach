@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """ Mouse reach behavioural task sequencer """
 
-from modules.session import Session
+import reach
 
 def main():
-    session = Session()
+    session = reach.Session()
 
 if __name__ == '__main__':
     main()

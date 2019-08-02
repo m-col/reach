@@ -5,7 +5,7 @@
 import RPi.GPIO as GPIO
 from time import sleep, time, strftime
 import sys
-from modules.raspberry import Pi
+from reach.raspberry import Pi
 
 
 def use_utility(utility):
