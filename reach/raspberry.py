@@ -56,7 +56,7 @@ class Pi(object):
         self.spouts = []
         if spout_count == 1:
             # pins for cue, touch sensor, water dispensor
-            self.spouts.append(Spout(5, 22, 25))     
+            self.spouts.append(Spout(5, 27, 25))     
         elif spout_count > 1:
             print("Pins described for only one spout")
             helpers.clean_exit(1)

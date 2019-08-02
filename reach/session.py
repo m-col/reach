@@ -203,7 +203,7 @@ class Session(object):
                     paw_rest,
                     GPIO.FALLING,
                     callback=self.iti_break,
-                    bouncetime=20
+                    bouncetime=40
                     )
 
         # start watching for spontaneous reaches to spout
@@ -248,20 +248,20 @@ class Session(object):
         self.pi.spouts[self.current_spout].dispense(self.reward_ms)
 
         # This is for the spout touch sensor
-        #GPIO.add_event_detect(
-        #        self.pi.spouts[current_spout].touch,
-        #        GPIO.RISING,
-        #        callback=reward,
-        #        bouncetime=self.ITI_min_ms
-        #        )
+        GPIO.add_event_detect(
+                self.pi.spouts[current_spout].touch,
+                GPIO.RISING,
+                callback=self.reward,
+                bouncetime=1000 #self.ITI_min_ms
+                )
 
         # This is for the start button (manual cue off)
-        GPIO.add_event_detect(
-                self.pi.start_button,
-                GPIO.FALLING,
-                callback=self.reward,
-                bouncetime=1000 #self.ITI_min_ms # may have been causing it to be ignored
-                )
+        #GPIO.add_event_detect(
+        #        self.pi.start_button,
+        #        GPIO.FALLING,
+        #        callback=self.reward,
+        #        bouncetime=1000 #self.ITI_min_ms # may have been causing it to be ignored
+        #        )
 
         now = time.time()
         cue_end = now + self.cue_ms/1000
@@ -273,12 +273,12 @@ class Session(object):
         GPIO.output(self.pi.spouts[current_spout].cue,
                 False)
 
-        #GPIO.remove_event_detect(
-        #        self.pi.spouts[current_spout].touch
-        #        )
         GPIO.remove_event_detect(
-                self.pi.start_button
+                self.pi.spouts[current_spout].touch
                 )
+        #GPIO.remove_event_detect(
+        #        self.pi.start_button
+        #        )
 
         # Sleep in parallel with reward function, and add a second for drinking
         if self.success:

@@ -81,7 +81,7 @@ def solenoid():
 def touch_sensors():
     """ Test paw and spout capacitive touch sensors """
 
-    pi = Pi(0)
+    pi = Pi(1)
 
     def print_touch(pin):
         if pin == pi.paw_r:
@@ -106,8 +106,9 @@ def touch_sensors():
 
     # listen to touches to spouts
     for spout in pi.spouts:
+        print("PIN: %i" % spout.touch)
         GPIO.add_event_detect(
-                spout.touch, GPIO.FALLING,
+                spout.touch, GPIO.BOTH,
                 callback=print_touch, bouncetime=10
                 )
 
