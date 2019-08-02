@@ -63,9 +63,9 @@ def default_config():
     config = configparser.RawConfigParser()
 
     config.add_section('Settings')
-    config.set('Settings', 'duration',      '1800')
+    config.set('Settings', 'duration',      '2400')
     config.set('Settings', 'spout_count',   '1')
-    config.set('Settings', 'reward_ms',     '300')
+    config.set('Settings', 'reward_ms',     '220')
     config.set('Settings', 'cue_ms',        '10000')
     config.set('Settings', 'ITI_min_ms',    '4000')
     config.set('Settings', 'ITI_max_ms',    '6000')

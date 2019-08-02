@@ -109,6 +109,7 @@ class Session(object):
         print("Duration:    %i min" % self.duration)
         print("Cue:         %i ms"  % self.cue_ms)
         print("ITI:         %i - %i ms" % (self.ITI_min_ms, self.ITI_max_ms))
+        print("Shaping:     %s" % self.shaping)
         print("\n_________________________________\n")
 
         
@@ -161,6 +162,9 @@ class Session(object):
             self.data['resets_sides'].count("r")))
 
         if self.save_data:
+            notes = input("\nAdd any notes to save (empty adds none):\n")
+            if notes:
+                data["notes"] = notes
             write_data(self.mouseID, self.json_dir, data)
 
         self.pi.cleanup()
@@ -336,6 +340,7 @@ class Session(object):
         data['ITI_min_ms']      = self.ITI_min_ms
         data['ITI_max_ms']      = self.ITI_max_ms
         data['reward_ms']       = self.reward_ms
+        data['shaping']         = self.shaping
 
         # behavioural data
         data['trial_count']     = self.trial_count
@@ -359,6 +364,9 @@ class Session(object):
         response = input("\nExiting: Do you want to keep collected data? (N/y) ") 
         if response is "y":
             data = self.collate_data(True)
+            notes = input("\nAdd any notes to save (empty adds none):\n")
+            if notes:
+                data["notes"] = notes
             write_data(self.mouseID, self.json_dir, data)
 
         self.pi.cleanup()
