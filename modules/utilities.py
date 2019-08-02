@@ -4,7 +4,7 @@
 
 import RPi.GPIO as GPIO
 from time import sleep, time, strftime
-
+import sys
 from modules.raspberry import Pi
 
 
@@ -30,6 +30,7 @@ def use_utility(utility):
         print("Util '%s' does not exit" % utility)
         sys.exit(1)
 
+    sys.exit(0)
 
 
 def list_utils():
@@ -59,9 +60,10 @@ def solenoid():
 
     def toggle(pin):
         """ Set solenoid pin to inverse of start button pin """
+        sleep(0.010)
         GPIO.output(
                 pi.spouts[spout_num].water,
-                not pi.start_button
+                not GPIO.input(pi.start_button)
                 )
 
     GPIO.add_event_detect(
@@ -71,16 +73,12 @@ def solenoid():
             bouncetime=20
             )
 
-    #while True:
-    #    if GPIO.input(pi.start_button):
-    #        pi.spouts[spout_num].close()
-    #    else:
-    #        pi.spouts[spout_num].open()
-    #    sleep(0.02)
+    while True:
+        sleep(1)
 
 
 
-def touch_sensors(pi):
+def touch_sensors():
     """ Test paw and spout capacitive touch sensors """
 
     pi = Pi(0)
@@ -119,7 +117,7 @@ def touch_sensors(pi):
 
 
 
-def cues(pi):
+def cues():
     """ Test spout LEDs """
 
     # Add a second spout when the hardware exists

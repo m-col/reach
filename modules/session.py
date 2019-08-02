@@ -10,11 +10,11 @@ about the session. This includes:
 """
 
 
-import argparse, configparser, json, random, sys, time
+import argparse, configparser, json, random, signal, sys, time
 from os.path import isfile, join
 import RPi.GPIO as GPIO
 
-from modules.utils import use_utility
+from modules.utilities import use_utility
 from modules.raspberry import Pi
 
 
@@ -58,13 +58,33 @@ def parse_args():
             type=str
             )
 
+    parser.add_argument(
+            '-d', '--debug',
+            help='Run in debugging move',
+            default='',
+            action='store_true'
+            )
+
     args = parser.parse_args()
     return args
 
 
 
+def exit(signum, frame):
+    """ Simple exitting signal handler for Ctrl-C events before raspberry pins
+    are initialised """
+    if signum == 2:
+        sys.exit(1)
+
+
+
 class Session(object):
     """ This structure stores all behavioural settings and session metadata """
+
+    signal.signal(
+            signal.SIGINT,
+            exit
+            )
 
     def __init__(self):
         """ Process initial settings from args and config file """
@@ -74,6 +94,7 @@ class Session(object):
 
         self.save_data = not args.no_data
         self.mouseID = args.mouseID
+        self.debugging = args.debug
 
         if args.config:
             self.config_file = enforce_suffix('.ini', args.config)
@@ -84,7 +105,7 @@ class Session(object):
         if args.utility:
             use_utility(args.utility)
 
-        if args.gen_config:
+        if args.generate_config:
             generate_config(default_config(), config_file)
             sys.exit(0)
 
@@ -93,12 +114,12 @@ class Session(object):
         config = default_config()
 
         if not isfile(config_file):
-            if config_file is not 'settings.ini':
-                print("Custom config file %s was not found." % config_file)
-                sys.exit(1)
-            else:
+            if config_file is 'settings.ini':
                 print("No config file exists.")
                 generate_config(config, config_file)
+            else:
+                print("Custom config file %s was not found." % config_file)
+                sys.exit(1)
 
         try:
             config.read(config_file)
@@ -112,7 +133,8 @@ class Session(object):
         self.cue_ms         =   config.getint('Settings', 'cue_ms')
         self.ITI_min_ms     =   config.getint('Settings', 'ITI_min_ms')
         self.ITI_max_ms     =   config.getint('Settings', 'ITI_max_ms')
-        json_dir            =   config.getint('Settings', 'json_dir')
+        self.shaping        =   config.getboolean('Settings', 'shaping')
+        json_dir            =   config.get('Settings', 'json_dir')
 
 
         # Third: initialise data handlers and hardware
@@ -135,19 +157,30 @@ class Session(object):
         self.pi = Pi(self.spout_count)
 
         print("\n_________________________________\n")
-        print("Mouse:       %s"     % self.mouseID)
+        if self.save_data:
+            print("Mouse:       %s"     % self.mouseID)
+            print("JSON:        %s"  % join(json_dir, self.mouseID))
         print("Spouts:      %i"     % self.spout_count)
         print("Duration:    %i min" % self.duration)
+        print("Cue:         %i ms"  % self.cue_ms)
+        print("ITI:         %i - %i ms" % (self.ITI_min_ms, self.ITI_max_ms))
         print("\n_________________________________\n")
 
         
         # Fourth: begin session
-        print("Hit the start button to begin.")
-        GPIO.wait_for_edge(self.pi.start_button, GPIO.FALLING)
+        if not self.debugging:
+            print("Hit the start button to begin.")
+            GPIO.wait_for_edge(self.pi.start_button, GPIO.FALLING)
+            GPIO.remove_event_detect(self.pi.start_button)
 
         self.start_time = time.time()
         self.end_time = self.start_time + self.duration * 60
         now = self.start_time
+
+        if self.debugging:
+            self.end_time = now - 1
+            self.randomise_data()
+
 
         while now < self.end_time:
             self.trial_count += 1
@@ -157,41 +190,45 @@ class Session(object):
                     % self.trial_count)
 
             self.current_spout = random.randint(0, self.spout_count - 1)
-            iti()
-            trial()
+            self.iti()
+            self.trial()
 
             print("Total rewards: %i" % self.reward_count)
             now = time.time()
 
 
         # Fifth: end session
+        self.pi.cleanup()
+
+        # spout contact
+        cue = touch = []
+        for idx, spout in enumerate(self.pi.spouts):
+            sponts_pins = [idx if x == spout.touch else x for x in sponts_pins]
+            cue[idx] = spout.cue_t
+            touch[idx] = spout.touch_t
+
+        self.resets_pins = ["l" if x == self.pi.paw_l else x for x in self.resets_pins]
+        self.resets_pins = ["r" if x == self.pi.paw_r else x for x in self.resets_pins]
+
         display_results((
             self.trial_count,
             self.reward_count,
             100*self.reward_count/self.trial_count,
-            missed_count,
+            self.missed_count,
             100*self.missed_count/self.trial_count,
             len(self.sponts_pins),
             self.iti_break_count, 
-            self.reset_pins.count(self.pi.paw_r),
-            self.reset_pins.count(self.pi.paw_l)))
+            self.resets_pins.count("l"),
+            self.resets_pins.count("r")))
 
-        if self.save_data:
-            # spout contact
-            cue = touch = release = []
-            for idx, spout in enumerate(self.pi.spouts):
-                sponts_pins = [idx if x == spout.touch else x for x in sponts_pins]
-                cue[idx] = spout.t_cue
-                touch[idx] = spout.t_touch
-                release[idx] = spout.t_release
-
-            p.sponts_t = sponts_t
-            p.sponts_spout = sponts_pins
-
-            # resets
-            resets_pins = ["l" if x == p.paw_l else x for x in resets_side]
-            resets_pins = ["r" if x == p.paw_r else x for x in resets_side]
-            p.resets_t = resets_t
+        if self.save_data or self.debugging:
+            print("DATA:")
+            print(data)
+            print("sponts_pins:")
+            print(sponts_pins)
+            print("resets_pins:")
+            print(resets_pins)
+            sys.exit(0)
 
 
             # reformat data for saving
@@ -224,12 +261,13 @@ class Session(object):
         self.sponts_t.append(time.time())
 
 
-    def reward(pin):
+    def reward(self, pin):
         """ Callback for rewarding cued reach """
         GPIO.output(self.pi.spouts[self.current_spout].cue, False)
         self.pi.spouts[self.current_spout].touch_t.append(time.time())
         self.success = True
-        self.pi.spouts[self.current_spout].dispense(self.reward_ms)
+        if not self.shaping:
+            self.pi.spouts[self.current_spout].dispense(self.reward_ms)
 
 
     def iti(self):
@@ -239,7 +277,7 @@ class Session(object):
         # start watching for paws moving from rest position
         for paw_rest in self.pi.paw_r, self.pi.paw_l:
             GPIO.add_event_detect(
-                    paw_rest,   # TODO: test if this works by passing array
+                    paw_rest,
                     GPIO.FALLING,
                     callback=self.iti_break,
                     bouncetime=20
@@ -252,8 +290,12 @@ class Session(object):
                 callback=self.inc_sponts,
                 bouncetime=100
                 )
-
+        
         while is_iti:
+            while not all([GPIO.input(self.pi.paw_l),
+                    GPIO.input(self.pi.paw_r)]):
+                time.sleep(0.010)
+
             self.iti_broken = False
             ITI_duration = random.uniform(self.ITI_min_ms, self.ITI_max_ms) / 1000
             print("Counting down %.2fs" % ITI_duration)
@@ -262,7 +304,7 @@ class Session(object):
             trial_end = trial_start + ITI_duration
 
             while now < trial_end and not self.iti_broken:
-                sleep(0.02)
+                time.sleep(0.02)
                 now = time.time()
 
             if self.iti_broken:
@@ -270,22 +312,31 @@ class Session(object):
             else:
                 is_iti = False
 
-        GPIO.remove_event_detect(self.pi.paw_r)
-        GPIO.remove_event_detect(self.pi.paw_l)
-        GPIO.remove_event_detect(self.pi.spouts[self.current_spout].touch)
-        # TODO: test passing all three as array to one call
+        for pin in [self.pi.paw_r, self.pi.paw_l,
+                self.pi.spouts[self.current_spout].touch]:
+                GPIO.remove_event_detect(pin)
 
 
     def trial(self):
         """ Single trial sequencer  """
         current_spout = self.current_spout
-        self.pi.spouts[current_spout].t_cue.append(time.time())
-        GPIO.output(spouts[current_spout].cue, True)
+        self.pi.spouts[current_spout].cue_t.append(time.time())
+        GPIO.output(self.pi.spouts[current_spout].cue, True)
+        self.pi.spouts[self.current_spout].dispense(self.reward_ms)
 
+        # This is for the spout touch sensor
+        #GPIO.add_event_detect(
+        #        self.pi.spouts[current_spout].touch,
+        #        GPIO.RISING,
+        #        callback=reward,
+        #        bouncetime=self.ITI_min_ms
+        #        )
+
+        # This is for the start button (manual cue off)
         GPIO.add_event_detect(
-                self.pi.spouts[current_spout].touch,
-                GPIO.RISING,
-                callback=reward,
+                self.pi.start_button,
+                GPIO.FALLING,
+                callback=self.reward,
                 bouncetime=self.ITI_min_ms
                 )
 
@@ -293,24 +344,42 @@ class Session(object):
         cue_end = now + self.cue_ms/1000
 
         while not self.success and now < cue_end:
-            sleep(0.01)
+            time.sleep(0.010)
             now = time.time()
 
         GPIO.output(self.pi.spouts[current_spout].cue,
                 False)
+
+        #GPIO.remove_event_detect(
+        #        self.pi.spouts[current_spout].touch
+        #        )
         GPIO.remove_event_detect(
-                self.pi.spouts[current_spout].touch
+                self.pi.start_button
                 )
 
         # Sleep in parallel with reward function, and add a second for drinking
         if self.success:
             print("Successful reach!")
             self.reward_count += 1
-            sleep(self.reward_ms / 1000 + 1) 
+            time.sleep(self.reward_ms / 1000 + 1) 
         else:
             print("Missed reach")
             self.missed_count += 1
 
+
+    def randomise_data(self):
+        """ Create random data in all data variables """
+        self.iti_break_count    = random.randint(1, 100)
+        self.reward_count       = random.randint(1, 100)
+        self.missed_count       = random.randint(1, 100)
+        self.sponts_pins        = [random.randint(1, 2)
+                for x in range(random.randint(1, 100))]
+        self.sponts_t           = [random.random()*1000
+                for x in range(len(self.sponts_pins))].sort()
+        self.resets_pins        = [random.choice([self.pi.paw_l, self.pi.paw_r])
+                for x in range(random.randint(1, 100))]
+        self.resets_t           = [random.random()*1000
+                for x in range(len(self.resets_pins))].sort()
 
 
 
@@ -325,6 +394,7 @@ def default_config():
     config.set('Settings', 'cue_ms',        '10000')
     config.set('Settings', 'ITI_min_ms',    '4000')
     config.set('Settings', 'ITI_max_ms',    '6000')
+    config.set('Settings', 'shaping',       'False')
     config.set('Settings', 'json_dir',
             '/home/pi/CuedBehaviourAnalysis/Data/TrainingJSON')
 
@@ -336,9 +406,9 @@ def generate_config(config, config_file):
     """ Write configuration to file  """
 
     if isfile(config_file):
-        print("Config file %s already exists.")
-        confirm = input("Overwrite? (Y/n) " % config_file)
-        if confirm is not "Y":
+        print("Config file %s already exists." % config_file)
+        confirm = input("Overwrite? (y/N) ")
+        if not confirm in ['y', 'Y']:
             sys.exit(1)
             
     with open(config_file, 'w') as new_file:
@@ -393,11 +463,11 @@ def request_metadata(mouseID, json_dir):
                 sys.exit(1)
 
     else:
-        print("Generating new training JSON for %s" % mouseID)
+        print("This will generate a new training JSON for %s" % mouseID)
         data['day'] = 1
         data['trainer'] = input("Enter trainer: ") or 'matt'
         data['weight'] = input("Enter weight: ") or '?'
-        data['box'] = input("Enter training box: (1) ") or 1
+        data['box'] = input("Enter training box (1): ") or 1
 
     data['prewatering'] = input("Enter prewatering volume (0): ") or '0'
 
@@ -454,12 +524,10 @@ def display_results(numbers):
 
 # __________ The end __________ #
 
-    Totals:
-        Trials:                 %i
-        Rewarded reaches:       %i (%0.1f%%)
-        Missed cues:            %i (%0.1f%%)
-        Spontaneous reaches:    %i
-        ITI resets:             %i
-            right paw:          %i
-            left paw:           %i
-        """ % numbers)
+Trials:                 %i
+Rewarded reaches:       %i (%0.1f%%)
+Missed cues:            %i (%0.1f%%)
+Spontaneous reaches:    %i
+ITI resets:             %i
+    right paw:          %i
+    left paw:           %i""" % numbers)

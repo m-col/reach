@@ -3,7 +3,7 @@
 
 
 
-import signal
+import signal, sys, time
 import RPi.GPIO as GPIO
 
 
@@ -22,12 +22,11 @@ class Spout(object):
 
         self.cue_t = []
         self.touch_t = []
-        self.release_t = []
 
     def dispense(self, duration_ms):
         """ Dispense water reward during training """
         GPIO.output(self.water, True)
-        sleep(duration_ms / 1000)
+        time.sleep(duration_ms / 1000)
         GPIO.output(self.water, False)
 
 
@@ -49,7 +48,7 @@ class Pi(object):
         self.paw_l = 17
         self.paw_r = 18
         GPIO.setup(
-                [p.paw_l, p.paw_r],
+                [self.paw_l, self.paw_r],
                 GPIO.IN,
                 pull_up_down=GPIO.PUD_DOWN
                 )
@@ -62,14 +61,15 @@ class Pi(object):
             print("Pins described for only one spout")
             helpers.clean_exit(1)
 
+        signal.signal(
+                signal.SIGINT,
+                self.cleanup
+                )
 
-    def cleanup(self, *args):
+    def cleanup(self, sig=0, frame=0):
         """ Unitialise pins for clean exit """
         for spout in self.spouts:
             GPIO.output(spout.water, False)
-        GPIO.clean()
+        GPIO.cleanup()
+        sys.exit(sig)
 
-    signal.signal(
-            signal.SIGINT,
-            self.cleanup
-            )
