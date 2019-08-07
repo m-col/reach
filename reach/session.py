@@ -193,7 +193,7 @@ class Session(object):
         GPIO.output(self.pi.spouts[self.current_spout].cue, False)
         self.pi.spouts[self.current_spout].touch_t.append(time.time())
         self.success = True
-        if not self.shaping:
+        if not self.water_at_cue_onset:
             self.pi.spouts[self.current_spout].dispense(self.reward_ms)
 
 
@@ -217,6 +217,16 @@ class Session(object):
                 callback=self.inc_sponts,
                 bouncetime=100
                 )
+
+        # button press reverses shaping boolean for next trial
+        GPIO.add_event_detect(
+                self.pi.start_button,
+                GPIO.FALLING,
+                callback=self.reverse_shaping,
+                bouncetime=self.ITI_min_ms
+                )
+        GPIO.remove_event_detect(self.pi.start_button)
+        self.water_at_cue_onset = True if self.shaping else False
 
         while is_iti:
             while not all([GPIO.input(self.pi.paw_l),
@@ -245,27 +255,19 @@ class Session(object):
 
 
     def trial(self):
-        """ Single trial sequencer  """
+        """ Single trial sequencer """
         current_spout = self.current_spout
         self.pi.spouts[current_spout].cue_t.append(time.time())
         GPIO.output(self.pi.spouts[current_spout].cue, True)
-        self.pi.spouts[self.current_spout].dispense(self.reward_ms)
+        if self.water_at_cue_onset:
+            self.pi.spouts[self.current_spout].dispense(self.reward_ms)
 
-        # This is for the spout touch sensor
         GPIO.add_event_detect(
                 self.pi.spouts[current_spout].touch,
                 GPIO.RISING,
                 callback=self.reward,
-                bouncetime=1000 #self.ITI_min_ms
+                bouncetime=1000
                 )
-
-        # This is for the start button (manual cue off)
-        #GPIO.add_event_detect(
-        #        self.pi.start_button,
-        #        GPIO.FALLING,
-        #        callback=self.reward,
-        #        bouncetime=1000 #self.ITI_min_ms # may have been causing it to be ignored
-        #        )
 
         now = time.time()
         cue_end = now + self.cue_ms/1000
@@ -280,9 +282,6 @@ class Session(object):
         GPIO.remove_event_detect(
                 self.pi.spouts[current_spout].touch
                 )
-        #GPIO.remove_event_detect(
-        #        self.pi.start_button
-        #        )
 
         # Sleep in parallel with reward function, and add a second for drinking
         if self.success:
@@ -358,6 +357,12 @@ class Session(object):
         data['touch_t']         = touch_t
         return data
     
+
+    def reverse_shaping(self, pin):
+        """ Callback to make next trial reverse shaping boolean
+        i.e. switch dispensing of water between cue onset and grasp """
+        self.water_at_cue_onset = False if self.shaping else True
+
 
     def cleanup_with_prompt(self, signum, frame):
         """ Control-C signal handler covering main training period
