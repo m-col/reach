@@ -10,13 +10,17 @@ about the session. This includes:
 """
 
 
-import json, random, signal, sys, time
-from os.path import isfile, join
-import RPi.GPIO as GPIO
-
 from reach.utilities import use_utility
 from reach.raspberry import Pi
 from reach.io import *
+import json, random, signal, sys, time
+from os.path import isfile, join
+
+try:
+    import RPi.GPIO as GPIO
+except ModuleNotFoundError:
+    import PPi.GPIO as GPIO
+
 
 
 def exit(signum, frame):

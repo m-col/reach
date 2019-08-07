@@ -2,10 +2,14 @@
 """ Misc utilities to test the reach rig """
 
 
-import RPi.GPIO as GPIO
+from reach.raspberry import Pi
 from time import sleep, time, strftime
 import sys
-from reach.raspberry import Pi
+
+try:
+    import RPi.GPIO as GPIO
+except ModuleNotFoundError:
+    import PPi.GPIO as GPIO
 
 
 def use_utility(utility):

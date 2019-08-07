@@ -2,9 +2,12 @@
 """ Helper functions and classes """
 
 
-
 import signal, sys, time
-import RPi.GPIO as GPIO
+
+try:
+    import RPi.GPIO as GPIO
+except ModuleNotFoundError:
+    import PPi.GPIO as GPIO
 
 
 
