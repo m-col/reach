@@ -228,7 +228,7 @@ class Session(object):
                 )
 
         while True:
-            print("Waiting for rest...")
+            print("Waiting for rest... ", end='', flush=True)
             while not all([GPIO.input(self.pi.paw_l),
                     GPIO.input(self.pi.paw_r)]):
                 time.sleep(0.010)
