@@ -152,6 +152,7 @@ class Session(object):
             print("Total rewards: %i" % self.reward_count)
             now = time.time()
 
+
         # Fifth: end session
         data = self.collate_data(False)
         display_results((
@@ -199,7 +200,7 @@ class Session(object):
 
     def iti(self):
         """ Inter-trial interval sequencer """
-        is_iti = True
+        #is_iti = True
 
         # start watching for paws moving from rest position
         for paw_rest in self.pi.paw_r, self.pi.paw_l:
@@ -228,7 +229,9 @@ class Session(object):
         GPIO.remove_event_detect(self.pi.start_button)
         self.water_at_cue_onset = True if self.shaping else False
 
-        while is_iti:
+        #while is_iti:
+        while True:
+            print("Waiting for rest...")
             while not all([GPIO.input(self.pi.paw_l),
                     GPIO.input(self.pi.paw_r)]):
                 time.sleep(0.010)
@@ -247,7 +250,8 @@ class Session(object):
             if self.iti_broken:
                 continue
             else:
-                is_iti = False
+                #is_iti = False
+                break
 
         for pin in [self.pi.paw_r, self.pi.paw_l,
                 self.pi.spouts[self.current_spout].touch]:
