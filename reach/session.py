@@ -121,7 +121,6 @@ class Session(object):
         if not self.debugging:
             print("Hit the start button to begin.")
             GPIO.wait_for_edge(self.pi.start_button, GPIO.FALLING)
-            GPIO.remove_event_detect(self.pi.start_button)
 
         if self.save_data:
             signal.signal(
@@ -225,7 +224,7 @@ class Session(object):
                 self.pi.start_button,
                 GPIO.FALLING,
                 callback=self.reverse_shaping,
-                bouncetime=self.ITI_min_ms
+                bouncetime=500
                 )
 
         while True:
@@ -362,7 +361,7 @@ class Session(object):
     def reverse_shaping(self, pin):
         """ Callback to make next trial reverse shaping boolean
         i.e. switch dispensing of water between cue onset and grasp """
-        self.water_at_cue_onset = False if self.shaping else True
+        self.water_at_cue_onset = False if self.water_at_cue_onset else True
         print("For next trial, water at cue onset = %s" % self.water_at_cue_onset)
 
 
