@@ -110,7 +110,6 @@ def touch_sensors():
 
     # listen to touches to spouts
     for spout in pi.spouts:
-        print("PIN: %i" % spout.touch)
         GPIO.add_event_detect(
                 spout.touch, GPIO.BOTH,
                 callback=print_touch, bouncetime=10

@@ -200,7 +200,6 @@ class Session(object):
 
     def iti(self):
         """ Inter-trial interval sequencer """
-        #is_iti = True
 
         # start watching for paws moving from rest position
         for paw_rest in self.pi.paw_r, self.pi.paw_l:
@@ -220,16 +219,15 @@ class Session(object):
                 )
 
         # button press reverses shaping boolean for next trial
+        GPIO.remove_event_detect(self.pi.start_button)
+        self.water_at_cue_onset = True if self.shaping else False
         GPIO.add_event_detect(
                 self.pi.start_button,
                 GPIO.FALLING,
                 callback=self.reverse_shaping,
                 bouncetime=self.ITI_min_ms
                 )
-        GPIO.remove_event_detect(self.pi.start_button)
-        self.water_at_cue_onset = True if self.shaping else False
 
-        #while is_iti:
         while True:
             print("Waiting for rest...")
             while not all([GPIO.input(self.pi.paw_l),
@@ -250,7 +248,6 @@ class Session(object):
             if self.iti_broken:
                 continue
             else:
-                #is_iti = False
                 break
 
         for pin in [self.pi.paw_r, self.pi.paw_l,
@@ -366,6 +363,7 @@ class Session(object):
         """ Callback to make next trial reverse shaping boolean
         i.e. switch dispensing of water between cue onset and grasp """
         self.water_at_cue_onset = False if self.shaping else True
+        print("For next trial, water at cue onset = %s" % self.water_at_cue_onset)
 
 
     def cleanup_with_prompt(self, signum, frame):
