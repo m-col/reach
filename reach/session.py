@@ -140,8 +140,8 @@ class Session(object):
         while now < self.end_time:
             self.trial_count += 1
             self.success = False
-            print("________________________________________")
-            print("# ---- Starting trial #%i ---- %s ---- #"
+            print("_________________________________________")
+            print("# ---- Starting trial #%i -- %4.0f s ---- #"
                     % (self.trial_count, now-self.start_time))
 
             self.current_spout = random.randint(0, self.spout_count - 1)
