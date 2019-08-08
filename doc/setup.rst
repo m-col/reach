@@ -1,27 +1,26 @@
-= Construction guide for mouse reach task training rig =
+Mouse Reach Task Training Rig Setup
+===================================
 
 
-== Parts list ==
+Parts list
+**********
 
 3D printed parts:
-    - reach task base
-    - 2x RIVETS head bars
-    - spout rail and carriage
-    - 50 ml syringe holder (1 per spout)
-    - small button box
 
-Raspberry pi 3:
+Raspberry pi 4:
+
     - power supply
     - raspbian on SD card
     - ethernet cable
 
-Touch sensors (per sensor):
+Touch sensors (per paw rest and spout):
+
     - 220 ohm + 270 ohm resistor
     - 2N2222 transistor
     - 1x 1x1 wire socket
-One set is needed per paw rest and per spout.
 
 Spouts (per spout):
+
     - 3.2 mm x 1.6 mm x 3M silicon tubing
     - 1.1 x 40 mm (19G) syringe needle, with plastic trimmed to fit into tubing
     - 1x solenoid with a pair of pins soldered to wire ends
@@ -34,50 +33,44 @@ Spouts (per spout):
 
 Misc:
     - perma-proto pi hat
-    - conductive paint for paw rest spouts
+    - conductive foil tape
     - 100 uF capacitor
     - 2x RIVETS bar thumb screws
     - USB camera
-    - Momentary button with ~50 cm wires ending in pair of pins for start button
+    - Momentary button with ~15 cm wires ending in pair of pins for start button
 
 
-== Setup ==
+Raspberry Pi Setup
+******************
 
-=== Raspberry pi ===
-
-1. Install raspbian with desktop (for easier wifi control)
-2. Connect to mouse, keyboard and monitor
+1. Flash SD card with raspbian lite
+2. Connect mouse, keyboard and monitor and boot
 3. Set passwords for pi and root users
-4. Run raspi-config and enable automatic login as user pi, and set locale to en\_US.UTF-8 
+4. Run raspi-config and enable automatic login as user pi, and set locale to en_US.UTF-8 
 5. Get IS to assign static IP to mac address
-6. To connect to eduroam, add this to /etc/wpa\_supplicant/wpa_supplicant.conf and reboot (not needed?):
-
-    network={
-	ssid="eduroam"
-	scan\_ssid=1
-	key\_mgmt=WPA-EAP
-	eap=PEAP
-	identity="<uun>@ed.ac.uk"
-	password="<password>"
-	phase1="peaplabel=0"
-	phase2="auth=MSCHAPV2"
-    }
-
-7. apt-get update and upgrade
-8. Edit /etc/dhcpcd.conf to show:
+8. Edit /etc/dhcpcd.conf to show and then restart dhcpcd:
 
     interface eth0
-    static ip\_address=<IP address assigned by IS>/23
+    static ip_address=<IP address assigned by IS>/23
     #static ip6......
     static routers=172.19.83.254
 
-9. Clone reach repo into pi home directory
-10. Remove "console=serial0,115200 console=tty1" from /boot/cmdline.txt (needed for gertbot)
+14. Create /etc/apt/apt.conf.d/80proxy containing:
+
+    Acquire::https {
+	Proxy "https://wwwcache.ed.ac.uk:3128";
+    }
+    Acquire::http {
+	Proxy "http://wwwcache.ed.ac.uk:3128";
+    }
+
+7. apt-get update and upgrade
+9. git clone https://github.com/DuguidLab/reach.git
 11. Add to /boot/config.txt:
 
     dtoverlay=pi3-disable-bt
     dtoverlay=pi3-disable-wifi
-    enable\_uart=1
+    enable_uart=1
     dtparam=eth_led0=14
     dtparam=eth_led1=14
     dtparam=pwr_led_trigger=none
@@ -92,29 +85,17 @@ Misc:
     echo 0 > /sys/class/leds/led0/brightness
     echo 0 > /sys/class/leds/led1/brightness
 
-13. Remove "NOPASSWD:" from /etc/sudoers.d/010\_pi-nopasswd
-14. Create /etc/apt/apt.conf.d/80proxy containing:
-
-    Acquire::https {
-	Proxy "https://wwwcache.ed.ac.uk:3128";
-    }
-    Acquire::http {
-	Proxy "http://wwwcache.ed.ac.uk:3128";
-    }
-
 15. Add to ~/.zshrc:
 
-    export https\_proxy=wwwcache.ed.ac.uk:3128
-    export http\_proxy=$https_proxy
+    export https_proxy=wwwcache.ed.ac.uk:3128
+    export http_proxy=$https_proxy
 
 16. Optionally install zsh ranger vim and any other useful tools
-17. Install python3.7 (required for asyncio; find info online)
-18. Reboot and test connectivity
-
-The raspberry pi can now be remoted into using the IP address assigned by IS, so the monitor, keyboard and mouse are no longer required.
+17. Reboot and test connectivity
 
 
-=== Base ===
+Rig base
+********
 
 1. Make paw rests:
     - Fix a piece of stick from a cotton bud to each of two M6 screws with araldite
@@ -137,18 +118,10 @@ The raspberry pi can now be remoted into using the IP address assigned by IS, so
 5. Fix base to bench
 
 
-=== Pi-hat circuitry ===
-
-1. Solder stick of sockets to pi-hat
-2. Use fritzing file as guide to solder components to pi-hat
-3. Mount pi-hat to raspberry pi
-4. Plug paw rest sensor pins, spout solenoid, LED and touch sensor pins, and start button pins
-
-
-=== stepper motor drive ===
-
-1. Power with 3.7V from raspberry pi
-2. Connect RST to SLP to enable driver
-3. Measure Vref, from ground to potentiometer
-4. Turn potentiometer so that Vref == 8 * 0.068 * (motor current rating)
-    - this was around 0.913V but I set to 0.900
+stepper motor driver
+    
+    1. Power with 3.7V from raspberry pi
+    2. Connect RST to SLP to enable driver
+    3. Measure Vref, from ground to potentiometer
+    4. Turn potentiometer so that Vref == 8 * 0.068 * (motor current rating, this was 1.68 for the first motor)
+        - this calculated to around 0.913V so I set to 0.900
