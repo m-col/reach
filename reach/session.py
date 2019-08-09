@@ -169,7 +169,7 @@ class Session(object):
             notes = input("\nAdd any notes to save (empty adds none):\n")
             if notes:
                 data["notes"] = notes
-            write_data(self.mouseID, self.json_dir, data)
+            write_data(self.mouseID, self.json_dir, data, args.append)
 
         self.pi.cleanup()
 

@@ -40,6 +40,12 @@ def parse_args():
             )
 
     parser.add_argument(
+            '-a', '--append',
+            help='Append data saved to last entry in JSON file',
+            action='store_true'
+            )
+
+    parser.add_argument(
             '-u', '--utility',
             help='Use a utility. Pass \'list\' to list options',
             default='',
@@ -163,8 +169,11 @@ def request_metadata(mouseID, json_dir):
 
 
 
-def write_data(mouseID, json_dir, data):
-    """ Write data to JSON file """
+def write_data(mouseID, json_dir, data, append_last_entry):
+    """ Write data to JSON file 
+
+    Looks for json_dir/mouseID and adds the data to it 
+    If append_last_entry, data is merged with the previous entry in the file """
     data_file = join(json_dir, mouseID + '.json')
 
     if data['day'] == 1:
@@ -178,9 +187,21 @@ def write_data(mouseID, json_dir, data):
         with open(data_file) as json_file:
             prev_data = json.load(json_file)
 
-        prev_data.append(data)
+        if append_last_entry:
+            prev_data[-1]['end_time'] = data['end_time']
 
-        with open(data_file, 'w') as json_file:
-            json.dump(prev_data, json_file, indent=4)
+            for item in ('duration', 'trial_count', 'reward_count',
+            'missed_count', 'iti_break_count'):
+                prev_data[-1][item] = prev_data[-1][item] + data[item]
+
+            for item in ('sponts_pins', 'resets_sides', 'resets_t', 'cue_t',
+                    'touch_t'):
+                prev_data[-1][item].append(data[item])
+
+        else:
+            prev_data.append(data)
+
+            with open(data_file, 'w') as json_file:
+                json.dump(prev_data, json_file, indent=4)
 
     print("Data was saved in:\n     %s" % data_file)
