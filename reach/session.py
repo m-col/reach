@@ -153,7 +153,7 @@ class Session(object):
 
 
         # Fifth: end session
-        data = self.collate_data(False)
+        self.collate_data()
         display_results((
             self.trial_count,
             self.reward_count,
@@ -163,13 +163,16 @@ class Session(object):
             len(self.sponts_pins),
             self.iti_break_count, 
             self.data['resets_sides'].count("l"),
-            self.data['resets_sides'].count("r")))
+            self.data['resets_sides'].count("r"),
+            self.reward_count,
+            self.reward_count * 6
+            ))
 
         if self.save_data:
             notes = input("\nAdd any notes to save (empty adds none):\n")
             if notes:
-                data["notes"] = notes
-            write_data(self.mouseID, self.json_dir, data, args.append)
+                self.data["notes"] = notes
+            write_data(self.mouseID, self.json_dir, self.data, args.append)
 
         self.pi.cleanup()
 
@@ -257,6 +260,7 @@ class Session(object):
     def trial(self):
         """ Single trial sequencer """
         current_spout = self.current_spout
+        print("Cue illuminated")
         self.pi.spouts[current_spout].cue_t.append(time.time())
         GPIO.output(self.pi.spouts[current_spout].cue, True)
         if self.water_at_cue_onset:
@@ -310,7 +314,7 @@ class Session(object):
         self.resets_t.sort()
 
 
-    def collate_data(self, interrupted):
+    def collate_data(self, interrupted=False):
         """ Organise all metadata and collected data into single structure """
 
         if interrupted:
@@ -328,8 +332,11 @@ class Session(object):
         self.resets_pins = ["l" if x == self.pi.paw_l else x for x in self.resets_pins]
         self.resets_pins = ["r" if x == self.pi.paw_r else x for x in self.resets_pins]
 
-        # session parameters
+        if not self.save_data:
+            self.data = {}
         data = self.data
+
+        # session parameters
         data['date'] = time.strftime('%Y-%m-%d')
         data['start_time'] = time.strftime('%H:%M:%S',
                 time.localtime(self.start_time)
@@ -355,7 +362,6 @@ class Session(object):
         data['resets_t']        = self.resets_t
         data['cue_t']           = cue_t
         data['touch_t']         = touch_t
-        return data
     
 
     def reverse_shaping(self, pin):
@@ -397,4 +403,6 @@ ITI resets:             %i
     right paw:          %i
     left paw:           %i
 # _____________________________ #
+
+%i rewards * 6uL = %i uL
     """ % numbers)

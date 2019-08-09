@@ -12,6 +12,7 @@ except ModuleNotFoundError:
     import PPi.GPIO as GPIO
 
 
+
 def use_utility(utility):
     """ Handle specified utility """
 
@@ -30,11 +31,15 @@ def use_utility(utility):
     elif utility == 'cues':
         cues()
 
+    elif utility == 'reward':
+        reward_vol()
+
     else:
         print("Util '%s' does not exit" % utility)
         sys.exit(1)
 
     sys.exit(0)
+
 
 
 def list_utils():
@@ -43,6 +48,7 @@ def list_utils():
     print("solenoid     - open or close a solenoid")
     print("sensors      - test paw and spout touch sensors")
     print("cues         - test spout LEDs")
+    print("reward       - dispense water at reward volumes")
 
 
 
@@ -50,9 +56,9 @@ def solenoid():
     """ Open or close solenoid using push button """
 
     # Add a second spout when the hardware exists
-    pi = Pi(1)
+    num_spouts = 1
+    pi = Pi(num_spouts)
 
-    num_spouts = len(pi.spouts)
     if num_spouts > 1:
         print("Number of spouts: %s" % num_spouts)
         spout_num = input("Select spout (0-%s): " % num_spouts - 1)
@@ -85,7 +91,9 @@ def solenoid():
 def touch_sensors():
     """ Test paw and spout capacitive touch sensors """
 
-    pi = Pi(1)
+    # Add a second spout when the hardware exists
+    num_spouts = 1
+    pi = Pi(num_spouts)
 
     def print_touch(pin):
         if pin == pi.paw_r:
@@ -125,9 +133,9 @@ def cues():
     """ Test spout LEDs """
 
     # Add a second spout when the hardware exists
-    pi = Pi(1)
+    num_spouts = 1
+    pi = Pi(num_spouts)
 
-    num_spouts = len(pi.spouts)
     if num_spouts > 1:
         print("Number of spouts: %s" % num_spouts)
         spout_num = input("Select spout (0-%s): " % num_spouts - 1)
@@ -147,3 +155,37 @@ def cues():
     
     while True:
         sleep(1)
+
+
+
+def reward_vol():
+    """ Measure volume of water dispensed during rewards """
+
+    # Add a second spout when the hardware exists
+    num_spouts = 1
+    pi = Pi(num_spouts)
+
+    if num_spouts > 1:
+        print("Number of spouts: %s" % num_spouts)
+        spout_num = input("Select spout (0-%s): " % num_spouts - 1)
+    else:
+        spout_num = 0
+
+    duration_ms = int(input("Specify duration to open solenoid in ms: "))
+    print("Press button to dispense reward volume")
+    print("Hit Control-C to quit")
+
+    def dispense(pin):
+        """ Set solenoid pin to inverse of start button pin """
+        pi.spouts[spout_num].dispense(duration_ms)
+
+    GPIO.add_event_detect(
+            pi.start_button,
+            GPIO.FALLING,
+            callback=dispense,
+            bouncetime=1000
+            )
+
+    while True:
+        sleep(1)
+
