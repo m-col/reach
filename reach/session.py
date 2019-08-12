@@ -127,9 +127,8 @@ class Session():
                 self.cleanup_with_prompt
             )
 
-        self.start_time = time.time()
+        self.start_time = now = time.time()
         self.end_time = self.start_time + self.duration
-        now = self.start_time
 
         if self.debugging:
             self.end_time = now - 1
@@ -169,7 +168,8 @@ class Session():
             notes = input("\nAdd any notes to save (empty adds none):\n")
             if notes:
                 self.data["notes"] = notes
-            io.write_data(self.mouseID, self.json_dir, self.data, args.append)
+            io.write_data(self.mouseID, self.json_dir, self.data,
+                          append_last_entry=args.append)
 
         self.pi.cleanup()
         print('\a')
@@ -203,7 +203,7 @@ class Session():
                 paw_rest,
                 GPIO.FALLING,
                 callback=self.iti_break,
-                bouncetime=40
+                bouncetime=100
             )
 
         # start watching for spontaneous reaches to spout
@@ -228,7 +228,7 @@ class Session():
             print("Waiting for rest... ", end='', flush=True)
             while not all([GPIO.input(self.pi.paw_l),
                            GPIO.input(self.pi.paw_r)]):
-                time.sleep(0.010)
+                time.sleep(0.020)
 
             self.iti_broken = False
 

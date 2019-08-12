@@ -169,7 +169,7 @@ def request_metadata(mouseID, json_dir):
     return data, mouseID
 
 
-def write_data(mouseID, json_dir, data, append_last_entry):
+def write_data(mouseID, json_dir, data, append_last_entry=False):
     """ Write data to JSON file
 
     Looks for json_dir/mouseID and adds the data to it
