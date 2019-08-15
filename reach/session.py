@@ -175,6 +175,7 @@ class Session(object):
             write_data(self.mouseID, self.json_dir, self.data, args.append)
 
         self.pi.cleanup()
+        print('\a')
 
 
     def iti_break(self, pin):
