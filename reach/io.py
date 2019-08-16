@@ -2,7 +2,10 @@
 """ Helper functions to handle user input, parameters and file processing """
 
 
-import argparse, configparser, json, sys, time
+import argparse
+import configparser
+import json
+import sys
 from os.path import isfile, join
 
 
@@ -10,7 +13,7 @@ def parse_args():
     """ Parse command line arguments """
 
     parser = argparse.ArgumentParser(
-            description = 'mouse reach behavioural task sequencer'
+            description='mouse reach behavioural task sequencer'
             )
 
     parser.add_argument(
@@ -63,7 +66,6 @@ def parse_args():
     return args
 
 
-
 def default_config():
     """ Create configuration structure with default values """
     config = configparser.RawConfigParser()
@@ -77,10 +79,9 @@ def default_config():
     config.set('Settings', 'ITI_max_ms',    '6000')
     config.set('Settings', 'shaping',       'False')
     config.set('Settings', 'json_dir',
-            '/home/pi/CuedBehaviourAnalysis/Data/TrainingJSON')
+               '/home/pi/CuedBehaviourAnalysis/Data/TrainingJSON')
 
     return config
-
 
 
 def read_config(config, config_file):
@@ -94,20 +95,18 @@ def read_config(config, config_file):
     return config
 
 
-
 def generate_config(config, config_file):
     """ Write configuration to file  """
 
     if isfile(config_file):
         print("Config file %s already exists." % config_file)
         confirm = input("Overwrite? (y/N) ")
-        if not confirm in ['y', 'Y']:
+        if confirm not in ['y', 'Y']:
             sys.exit(1)
-            
+
     with open(config_file, 'w') as new_file:
         config.write(new_file)
     print("A new config file has been generated as %s." % config_file)
-
 
 
 def enforce_suffix(suffix, string):
@@ -118,7 +117,6 @@ def enforce_suffix(suffix, string):
     return string
 
 
-
 def request_metadata(mouseID, json_dir):
     """ Request metadata from user and load previous metadata """
 
@@ -126,11 +124,11 @@ def request_metadata(mouseID, json_dir):
         mouseID = input("Enter mouse ID: ") or 'Mouse'
 
         if not mouseID:
-            print("Please enter a mouse ID at the prompt or by passing -m <mouseID>")
+            print("Please enter a mouse ID at the prompt")
+            print("or pass -m <mouseID>")
             print("Alternatively pass -n to ignore data")
             sys.exit(1)
 
-    date = time.strftime('%Y-%m-%d')
     data_file = join(json_dir, mouseID + '.json')
     data = {}
 
@@ -142,17 +140,20 @@ def request_metadata(mouseID, json_dir):
                 data['day'] = prev_data[-1]['day'] + 1
 
                 prev_trainer = prev_data[-1]['trainer']
-                data['trainer'] = input("Enter trainer (%s): " %
-                        prev_trainer) or prev_trainer
+                data['trainer'] = input(
+                        "Enter trainer (%s): " % prev_trainer
+                        ) or prev_trainer
 
                 prev_weight = prev_data[-1]['weight']
-                data['weight'] = input("Enter weight (%s): " %
-                        prev_weight) or prev_weight
+                data['weight'] = input(
+                        "Enter weight (%s): " % prev_weight
+                        ) or prev_weight
 
                 prev_training_box = prev_data[-1]['box']
-                data['box'] = input("Enter training box (%s): " %
-                        prev_training_box) or prev_training_box
-            except:
+                data['box'] = input(
+                        "Enter training box (%s): " % prev_training_box
+                        ) or prev_training_box
+            except json.decoder.JSONDecodeError:
                 print("Something appears to be wrong with %s" % data_file)
                 sys.exit(1)
 
@@ -168,12 +169,12 @@ def request_metadata(mouseID, json_dir):
     return data, mouseID
 
 
-
 def write_data(mouseID, json_dir, data, append_last_entry):
-    """ Write data to JSON file 
+    """ Write data to JSON file
 
-    Looks for json_dir/mouseID and adds the data to it 
-    If append_last_entry, data is merged with the previous entry in the file """
+    Looks for json_dir/mouseID and adds the data to it
+    If append_last_entry,
+        data is merged with the previous entry in the file """
     data_file = join(json_dir, mouseID + '.json')
 
     if data['day'] == 1:
@@ -191,11 +192,11 @@ def write_data(mouseID, json_dir, data, append_last_entry):
             prev_data[-1]['end_time'] = data['end_time']
 
             for item in ('duration', 'trial_count', 'reward_count',
-            'missed_count', 'iti_break_count'):
+                         'missed_count', 'iti_break_count'):
                 prev_data[-1][item] = prev_data[-1][item] + data[item]
 
             for item in ('sponts_pins', 'resets_sides', 'resets_t', 'cue_t',
-                    'touch_t'):
+                         'touch_t'):
                 prev_data[-1][item].append(data[item])
 
         else:

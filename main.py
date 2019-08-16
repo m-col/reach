@@ -3,8 +3,11 @@
 
 import reach
 
+
 def main():
-    session = reach.Session()
+    """ Start a training session """
+    reach.Session()
+
 
 if __name__ == '__main__':
     main()

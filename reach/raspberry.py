@@ -2,7 +2,9 @@
 """ Helper functions and classes """
 
 
-import signal, sys, time
+import signal
+import sys
+import time
 
 try:
     import RPi.GPIO as GPIO
@@ -10,8 +12,7 @@ except ModuleNotFoundError:
     import PPi.GPIO as GPIO
 
 
-
-class Spout(object):
+class Spout():
     """ Handle a single spout with cue, touch sensor and water """
 
     def __init__(self, cue, touch, water):
@@ -33,8 +34,7 @@ class Spout(object):
         GPIO.output(self.water, False)
 
 
-
-class Pi(object):
+class Pi():
     """ An instance of a raspberry pi and its pins """
 
     GPIO.setwarnings(False)
@@ -59,10 +59,10 @@ class Pi(object):
         self.spouts = []
         if spout_count == 1:
             # pins for cue, touch sensor, water dispensor
-            self.spouts.append(Spout(5, 27, 25))     
+            self.spouts.append(Spout(5, 27, 25))
         elif spout_count > 1:
             print("Pins described for only one spout")
-            helpers.clean_exit(1)
+            self.cleanup(1)
 
         signal.signal(
                 signal.SIGINT,
@@ -75,4 +75,3 @@ class Pi(object):
             GPIO.output(spout.water, False)
         GPIO.cleanup()
         sys.exit(signum)
-

@@ -2,15 +2,14 @@
 """ Misc utilities to test the reach rig """
 
 
-from reach.raspberry import Pi
-from time import sleep, time, strftime
+from time import sleep
 import sys
+from reach.raspberry import Pi
 
 try:
     import RPi.GPIO as GPIO
 except ModuleNotFoundError:
     import PPi.GPIO as GPIO
-
 
 
 def use_utility(utility):
@@ -41,7 +40,6 @@ def use_utility(utility):
     sys.exit(0)
 
 
-
 def list_utils():
     """ List available utilities """
     print("Available utilities:")
@@ -49,7 +47,6 @@ def list_utils():
     print("sensors      - test paw and spout touch sensors")
     print("cues         - test spout LEDs")
     print("reward       - dispense water at reward volumes")
-
 
 
 def solenoid():
@@ -87,7 +84,6 @@ def solenoid():
         sleep(1)
 
 
-
 def touch_sensors():
     """ Test paw and spout capacitive touch sensors """
 
@@ -104,17 +100,18 @@ def touch_sensors():
             for i in range(len(pi.spouts)):
                 if pi.spouts[i-1].touch == pin:
                     spout_num = i+1
-                    print("Spout %i:    %s" %
-                            (spout_num,
-                            GPIO.input(pin)))
+                    print("Spout %i:    %s"
+                          % (spout_num, GPIO.input(pin)))
                     break
 
     # listen to touches on paw rests
-    GPIO.add_event_detect(pi.paw_r, GPIO.BOTH,
-        callback=print_touch, bouncetime=10)
+    GPIO.add_event_detect(
+            pi.paw_r, GPIO.BOTH, callback=print_touch, bouncetime=10
+            )
 
-    GPIO.add_event_detect(pi.paw_l, GPIO.BOTH,
-        callback=print_touch, bouncetime=10)
+    GPIO.add_event_detect(
+            pi.paw_l, GPIO.BOTH, callback=print_touch, bouncetime=10
+            )
 
     # listen to touches to spouts
     for spout in pi.spouts:
@@ -126,7 +123,6 @@ def touch_sensors():
     input("Hit enter or Control-C to quit\n")
     while True:
         sleep(1)
-
 
 
 def cues():
@@ -151,11 +147,10 @@ def cues():
         GPIO.output(pi.spouts[spout_num].cue, not state)
 
     GPIO.add_event_detect(pi.start_button, GPIO.FALLING,
-        callback=toggle, bouncetime=300)
-    
+                          callback=toggle, bouncetime=300)
+
     while True:
         sleep(1)
-
 
 
 def reward_vol():
@@ -188,4 +183,3 @@ def reward_vol():
 
     while True:
         sleep(1)
-
