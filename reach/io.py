@@ -13,54 +13,54 @@ def parse_args():
     """ Parse command line arguments """
 
     parser = argparse.ArgumentParser(
-            description='mouse reach behavioural task sequencer'
-            )
+        description='mouse reach behavioural task sequencer'
+    )
 
     parser.add_argument(
-            '-c', '--config',
-            help='Select configuration file',
-            default='',
-            type=str
-            )
+        '-c', '--config',
+        help='Select configuration file',
+        default='',
+        type=str
+    )
 
     parser.add_argument(
-            '-g', '--generate_config',
-            help='Generate a new configuration file',
-            action='store_true'
-            )
+        '-g', '--generate_config',
+        help='Generate a new configuration file',
+        action='store_true'
+    )
 
     parser.add_argument(
-            '-n', '--no-data',
-            help='Disable data collection',
-            action='store_true'
-            )
+        '-n', '--no-data',
+        help='Disable data collection',
+        action='store_true'
+    )
 
     parser.add_argument(
-            '-m', '--mouseID',
-            help='Specify mouseID',
-            default='',
-            type=str
-            )
+        '-m', '--mouseID',
+        help='Specify mouseID',
+        default='',
+        type=str
+    )
 
     parser.add_argument(
-            '-a', '--append',
-            help='Append data saved to last entry in JSON file',
-            action='store_true'
-            )
+        '-a', '--append',
+        help='Append data saved to last entry in JSON file',
+        action='store_true'
+    )
 
     parser.add_argument(
-            '-u', '--utility',
-            help='Use a utility. Pass \'list\' to list options',
-            default='',
-            type=str
-            )
+        '-u', '--utility',
+        help='Use a utility. Pass \'list\' to list options',
+        default='',
+        type=str
+    )
 
     parser.add_argument(
-            '-d', '--debug',
-            help='Run in debugging mode',
-            default='',
-            action='store_true'
-            )
+        '-d', '--debug',
+        help='Run in debugging mode',
+        default='',
+        action='store_true'
+    )
 
     args = parser.parse_args()
     return args
@@ -71,13 +71,13 @@ def default_config():
     config = configparser.RawConfigParser()
 
     config.add_section('Settings')
-    config.set('Settings', 'duration',      '2400')
-    config.set('Settings', 'spout_count',   '1')
-    config.set('Settings', 'reward_ms',     '220')
-    config.set('Settings', 'cue_ms',        '10000')
-    config.set('Settings', 'ITI_min_ms',    '4000')
-    config.set('Settings', 'ITI_max_ms',    '6000')
-    config.set('Settings', 'shaping',       'False')
+    config.set('Settings', 'duration', '2400')
+    config.set('Settings', 'spout_count', '1')
+    config.set('Settings', 'reward_ms', '220')
+    config.set('Settings', 'cue_ms', '10000')
+    config.set('Settings', 'ITI_min_ms', '4000')
+    config.set('Settings', 'ITI_max_ms', '6000')
+    config.set('Settings', 'shaping', 'False')
     config.set('Settings', 'json_dir',
                '/home/pi/CuedBehaviourAnalysis/Data/TrainingJSON')
 
@@ -141,18 +141,18 @@ def request_metadata(mouseID, json_dir):
 
                 prev_trainer = prev_data[-1]['trainer']
                 data['trainer'] = input(
-                        "Enter trainer (%s): " % prev_trainer
-                        ) or prev_trainer
+                    "Enter trainer (%s): " % prev_trainer
+                ) or prev_trainer
 
                 prev_weight = prev_data[-1]['weight']
                 data['weight'] = input(
-                        "Enter weight (%s): " % prev_weight
-                        ) or prev_weight
+                    "Enter weight (%s): " % prev_weight
+                ) or prev_weight
 
                 prev_training_box = prev_data[-1]['box']
                 data['box'] = input(
-                        "Enter training box (%s): " % prev_training_box
-                        ) or prev_training_box
+                    "Enter training box (%s): " % prev_training_box
+                ) or prev_training_box
             except json.decoder.JSONDecodeError:
                 print("Something appears to be wrong with %s" % data_file)
                 sys.exit(1)

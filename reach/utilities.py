@@ -69,16 +69,16 @@ def solenoid():
         """ Set solenoid pin to inverse of start button pin """
         sleep(0.010)
         GPIO.output(
-                pi.spouts[spout_num].water,
-                not GPIO.input(pi.start_button)
-                )
+            pi.spouts[spout_num].water,
+            not GPIO.input(pi.start_button)
+        )
 
     GPIO.add_event_detect(
-            pi.start_button,
-            GPIO.BOTH,
-            callback=toggle,
-            bouncetime=20
-            )
+        pi.start_button,
+        GPIO.BOTH,
+        callback=toggle,
+        bouncetime=20
+    )
 
     while True:
         sleep(1)
@@ -98,27 +98,27 @@ def touch_sensors():
             print("Left:    %i" % GPIO.input(pin))
         else:
             for i in range(len(pi.spouts)):
-                if pi.spouts[i-1].touch == pin:
-                    spout_num = i+1
+                if pi.spouts[i - 1].touch == pin:
+                    spout_num = i + 1
                     print("Spout %i:    %s"
                           % (spout_num, GPIO.input(pin)))
                     break
 
     # listen to touches on paw rests
     GPIO.add_event_detect(
-            pi.paw_r, GPIO.BOTH, callback=print_touch, bouncetime=10
-            )
+        pi.paw_r, GPIO.BOTH, callback=print_touch, bouncetime=10
+    )
 
     GPIO.add_event_detect(
-            pi.paw_l, GPIO.BOTH, callback=print_touch, bouncetime=10
-            )
+        pi.paw_l, GPIO.BOTH, callback=print_touch, bouncetime=10
+    )
 
     # listen to touches to spouts
     for spout in pi.spouts:
         GPIO.add_event_detect(
-                spout.touch, GPIO.BOTH,
-                callback=print_touch, bouncetime=10
-                )
+            spout.touch, GPIO.BOTH,
+            callback=print_touch, bouncetime=10
+        )
 
     input("Hit enter or Control-C to quit\n")
     while True:
@@ -175,11 +175,11 @@ def reward_vol():
         pi.spouts[spout_num].dispense(duration_ms)
 
     GPIO.add_event_detect(
-            pi.start_button,
-            GPIO.FALLING,
-            callback=dispense,
-            bouncetime=1000
-            )
+        pi.start_button,
+        GPIO.FALLING,
+        callback=dispense,
+        bouncetime=1000
+    )
 
     while True:
         sleep(1)

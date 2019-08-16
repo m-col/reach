@@ -38,7 +38,7 @@ class Session():
     signal.signal(
         signal.SIGINT,
         _exit
-        )
+    )
 
     def __init__(self):
         """ Process initial settings from args and config file """
@@ -88,7 +88,7 @@ class Session():
         # Third: initialise data handlers and hardware
         if self.save_data:
             self.data, self.mouseID = io.request_metadata(
-                    self.mouseID, self.json_dir)
+                self.mouseID, self.json_dir)
 
         self.success = False
         self.current_spout = None
@@ -125,7 +125,7 @@ class Session():
             signal.signal(
                 signal.SIGINT,
                 self.cleanup_with_prompt
-                )
+            )
 
         self.start_time = time.time()
         self.end_time = self.start_time + self.duration
@@ -140,7 +140,7 @@ class Session():
             self.success = False
             print("_________________________________________")
             print("# ---- Starting trial #%i -- %4.0f s ---- #"
-                  % (self.trial_count, now-self.start_time))
+                  % (self.trial_count, now - self.start_time))
 
             self.current_spout = random.randint(0, self.spout_count - 1)
             self.iti()
@@ -154,16 +154,16 @@ class Session():
         display_results((
             self.trial_count,
             self.reward_count,
-            100*self.reward_count/self.trial_count,
+            100 * self.reward_count / self.trial_count,
             self.missed_count,
-            100*self.missed_count/self.trial_count,
+            100 * self.missed_count / self.trial_count,
             len(self.sponts_pins),
             self.iti_break_count,
             self.data['resets_sides'].count("l"),
             self.data['resets_sides'].count("r"),
             self.reward_count,
             self.reward_count * 6
-            ))
+        ))
 
         if self.save_data:
             notes = input("\nAdd any notes to save (empty adds none):\n")
@@ -204,7 +204,7 @@ class Session():
                 GPIO.FALLING,
                 callback=self.iti_break,
                 bouncetime=40
-                )
+            )
 
         # start watching for spontaneous reaches to spout
         GPIO.add_event_detect(
@@ -212,7 +212,7 @@ class Session():
             GPIO.RISING,
             callback=self.inc_sponts,
             bouncetime=100
-            )
+        )
 
         # button press reverses shaping boolean for next trial
         GPIO.remove_event_detect(self.pi.start_button)
@@ -222,19 +222,19 @@ class Session():
             GPIO.FALLING,
             callback=self.reverse_shaping,
             bouncetime=500
-            )
+        )
 
         while True:
             print("Waiting for rest... ", end='', flush=True)
             while not all([GPIO.input(self.pi.paw_l),
-                          GPIO.input(self.pi.paw_r)]):
+                           GPIO.input(self.pi.paw_r)]):
                 time.sleep(0.010)
 
             self.iti_broken = False
 
             ITI_duration = random.uniform(
-                    self.ITI_min_ms, self.ITI_max_ms
-                    ) / 1000
+                self.ITI_min_ms, self.ITI_max_ms
+            ) / 1000
 
             print("Counting down %.2fs" % ITI_duration)
             now = time.time()
@@ -268,10 +268,10 @@ class Session():
             GPIO.RISING,
             callback=self.reward,
             bouncetime=1000
-            )
+        )
 
         now = time.time()
-        cue_end = now + self.cue_ms/1000
+        cue_end = now + self.cue_ms / 1000
 
         while not self.success and now < cue_end:
             time.sleep(0.010)
@@ -282,7 +282,7 @@ class Session():
 
         GPIO.remove_event_detect(
             self.pi.spouts[current_spout].touch
-            )
+        )
 
         # Sleep in parallel with reward function, and add a second for drinking
         if self.success:
@@ -301,22 +301,22 @@ class Session():
         self.trial_count = self.reward_count + self.missed_count
 
         self.sponts_pins = [
-                random.randint(1, 2) for x in range(random.randint(1, 10))
-                ]
+            random.randint(1, 2) for x in range(random.randint(1, 10))
+        ]
 
         self.sponts_t = [
-                random.random()*1000 for x in range(len(self.sponts_pins))
-                ].sort()
+            random.random() * 1000 for x in range(len(self.sponts_pins))
+        ].sort()
 
         self.resets_pins = [
-                random.choice([self.pi.paw_l, self.pi.paw_r])
-                for x in range(random.randint(1, 10))
-                ]
+            random.choice([self.pi.paw_l, self.pi.paw_r])
+            for x in range(random.randint(1, 10))
+        ]
 
         self.resets_t = [
-                int(random.random()*1000)
-                for x in range(len(self.resets_pins))
-                ]
+            int(random.random() * 1000)
+            for x in range(len(self.resets_pins))
+        ]
         self.resets_t.sort()
 
     def collate_data(self, interrupted=False):
@@ -331,17 +331,17 @@ class Session():
         touch_t = []
         for idx, spout in enumerate(self.pi.spouts):
             self.sponts_pins = [
-                    idx if x == spout.touch else x for x in self.sponts_pins
-                    ]
+                idx if x == spout.touch else x for x in self.sponts_pins
+            ]
             cue_t.append(spout.cue_t)
             touch_t.append(spout.touch_t)
 
         self.resets_pins = [
-                "l" if x == self.pi.paw_l else x for x in self.resets_pins
-                ]
+            "l" if x == self.pi.paw_l else x for x in self.resets_pins
+        ]
         self.resets_pins = [
-                "r" if x == self.pi.paw_r else x for x in self.resets_pins
-                ]
+            "r" if x == self.pi.paw_r else x for x in self.resets_pins
+        ]
 
         if not self.save_data:
             self.data = {}
@@ -350,12 +350,12 @@ class Session():
         # session parameters
         data['date'] = time.strftime('%Y-%m-%d')
         data['start_time'] = time.strftime(
-                '%H:%M:%S', time.localtime(self.start_time)
-                )
+            '%H:%M:%S', time.localtime(self.start_time)
+        )
         data['end_time'] = time.strftime(
-                '%H:%M:%S',
-                time.localtime(self.end_time)
-                )
+            '%H:%M:%S',
+            time.localtime(self.end_time)
+        )
         data['spout_count'] = self.spout_count
         data['duration'] = self.duration
         data['cue_ms'] = self.cue_ms
@@ -389,8 +389,8 @@ class Session():
         uninitialising the raspberry pi and exiting """
 
         response = input(
-                "\nExiting: Do you want to keep collected data? (N/y) "
-                )
+            "\nExiting: Do you want to keep collected data? (N/y) "
+        )
         if response == "y":
             data = self.collate_data(True)
             notes = input("\nAdd any notes to save (empty adds none):\n")

@@ -43,18 +43,18 @@ class Pi():
     def __init__(self, spout_count):
         self.start_button = 4
         GPIO.setup(
-                self.start_button,
-                GPIO.IN,
-                pull_up_down=GPIO.PUD_UP
-                )
+            self.start_button,
+            GPIO.IN,
+            pull_up_down=GPIO.PUD_UP
+        )
 
         self.paw_l = 17
         self.paw_r = 18
         GPIO.setup(
-                [self.paw_l, self.paw_r],
-                GPIO.IN,
-                pull_up_down=GPIO.PUD_DOWN
-                )
+            [self.paw_l, self.paw_r],
+            GPIO.IN,
+            pull_up_down=GPIO.PUD_DOWN
+        )
 
         self.spouts = []
         if spout_count == 1:
@@ -65,9 +65,9 @@ class Pi():
             self.cleanup(1)
 
         signal.signal(
-                signal.SIGINT,
-                self.cleanup
-                )
+            signal.SIGINT,
+            self.cleanup
+        )
 
     def cleanup(self, signum=0, frame=0):
         """ Unitialise pins for clean exit """
