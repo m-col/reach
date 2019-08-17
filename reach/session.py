@@ -9,20 +9,24 @@ about the session. This includes:
     - a raspberry pi instance that initialises and controls the pins
 """
 
+# pylint: disable=import-error, unused-argument, fixme
 
+from os.path import isfile, join
 import random
 import signal
 import sys
 import time
-from os.path import isfile, join
+try:
+    import RPi.GPIO as GPIO
+except ModuleNotFoundError:
+    pass
+
 from reach.utilities import use_utility
 from reach.raspberry import Pi
 import reach.io as io
 
-try:
-    import RPi.GPIO as GPIO
-except ModuleNotFoundError:
-    import PPi.GPIO as GPIO
+
+random.seed()
 
 
 def _exit(signum, frame):
@@ -46,50 +50,40 @@ class Session():
         # First: parse arguments to decide what to do
         args = io.parse_args()
 
-        self.save_data = not args.no_data
-        self.mouseID = args.mouseID
-        self.debugging = args.debug
+        # TODO: move this entire args chunk out of Session
 
         if args.config:
-            self.config_file = io.enforce_suffix('.ini', args.config)
+            config_file = io.enforce_suffix('.ini', args.config)
         else:
-            self.config_file = 'settings.ini'
-        config_file = self.config_file
+            config_file = 'settings.ini'
 
         if args.utility:
             use_utility(args.utility)
 
         if args.generate_config:
-            io.generate_config(io.default_config(), config_file)
+            io.generate_config(config_file)
             sys.exit(0)
 
         # Second: configure settings for session
-        config = io.default_config()
-
         if not isfile(config_file):
             if config_file == 'settings.ini':
                 print("No config file exists.")
-                io.generate_config(config, config_file)
+                io.generate_config(config_file)
             else:
                 print("Custom config file %s was not found." % config_file)
                 sys.exit(1)
 
-        config = io.read_config(config, config_file)
-
-        self.duration = config.getint('Settings', 'duration')
-        self.spout_count = config.getint('Settings', 'spout_count')
-        self.reward_ms = config.getint('Settings', 'reward_ms')
-        self.cue_ms = config.getint('Settings', 'cue_ms')
-        self.ITI_min_ms = config.getint('Settings', 'ITI_min_ms')
-        self.ITI_max_ms = config.getint('Settings', 'ITI_max_ms')
-        self.shaping = config.getboolean('Settings', 'shaping')
-        self.json_dir = config.get('Settings', 'json_dir')
+        params = io.read_config(config_file)
+        params['mouse_id'] = args.mouse_id
+        params['save_data'] = not args.no_data
 
         # Third: initialise data handlers and hardware
-        if self.save_data:
-            self.data, self.mouseID = io.request_metadata(
-                self.mouseID, self.json_dir)
+        if params['save_data']:
+            self.data, params['mouse_id'] = io.request_metadata(
+                params['mouse_id'], params['json_dir'])
 
+        # TODO: move most of these into dedicated data dict
+        self.water_at_cue_onset = params['shaping']
         self.success = False
         self.current_spout = None
         self.iti_broken = False
@@ -101,47 +95,43 @@ class Session():
         self.sponts_t = []
         self.resets_pins = []
         self.resets_t = []
-
-        random.seed()
-        self.pi = Pi(self.spout_count)
+        self.params = params
+        self.rpi = Pi(params['spout_count'])
 
         print("\n_________________________________\n")
-        if self.save_data:
-            print("Mouse:       %s" % self.mouseID)
-            print("JSON:        %s" % join(self.json_dir, self.mouseID))
-        print("Spouts:      %i" % self.spout_count)
-        print("Duration:    %i min" % self.duration)
-        print("Cue:         %i ms" % self.cue_ms)
-        print("ITI:         %i - %i ms" % (self.ITI_min_ms, self.ITI_max_ms))
-        print("Shaping:     %s" % self.shaping)
+        if params['save_data']:
+            print("Mouse:       %s" % params['mouse_id'])
+            print("JSON:        %s" %
+                  join(params['json_dir'], params['mouse_id']))
+        print("Spouts:      %i" % params['spout_count'])
+        print("Duration:    %i min" % params['duration'])
+        print("Cue:         %i ms" % params['cue_ms'])
+        print("ITI:         %i - %i ms" % params['iti'])
+        print("Shaping:     %s" % params['shaping'])
         print("\n_________________________________\n")
 
         # Fourth: begin session
-        if not self.debugging:
-            print("Hit the start button to begin.")
-            GPIO.wait_for_edge(self.pi.start_button, GPIO.FALLING)
+        print("Hit the start button to begin.")
+        GPIO.wait_for_edge(self.rpi.start_button, GPIO.FALLING)
 
-        if self.save_data:
+        if params['save_data']:
             signal.signal(
                 signal.SIGINT,
                 self.cleanup_with_prompt
             )
 
-        self.start_time = now = time.time()
-        self.end_time = self.start_time + self.duration
+        now = time.time()
+        params['start_time'] = now
+        params['end_time'] = now + params['duration']
 
-        if self.debugging:
-            self.end_time = now - 1
-            self.randomise_data()
-
-        while now < self.end_time:
+        while now < params['end_time']:
             self.trial_count += 1
             self.success = False
             print("_________________________________________")
             print("# ---- Starting trial #%i -- %4.0f s ---- #"
-                  % (self.trial_count, now - self.start_time))
+                  % (self.trial_count, now - params['start_time']))
 
-            self.current_spout = random.randint(0, self.spout_count - 1)
+            self.current_spout = random.randint(0, params['spout_count'] - 1)
             self.iti()
             self.trial()
 
@@ -150,7 +140,7 @@ class Session():
 
         # Fifth: end session
         self.collate_data()
-        display_results((
+        display_results((  # TODO: replace with something not hideous
             self.trial_count,
             self.reward_count,
             100 * self.reward_count / self.trial_count,
@@ -164,14 +154,14 @@ class Session():
             self.reward_count * 6
         ))
 
-        if self.save_data:
+        if self.params['save_data']:
             notes = input("\nAdd any notes to save (empty adds none):\n")
             if notes:
                 self.data["notes"] = notes
-            io.write_data(self.mouseID, self.json_dir, self.data,
+            io.write_data(params['mouse_id'], params['json_dir'], self.data,
                           append_last_entry=args.append)
 
-        self.pi.cleanup()
+        self.rpi.cleanup()
         print('\a')
 
     def iti_break(self, pin):
@@ -188,17 +178,19 @@ class Session():
 
     def reward(self, pin):
         """ Callback for rewarding cued reach """
-        GPIO.output(self.pi.spouts[self.current_spout].cue, False)
-        self.pi.spouts[self.current_spout].touch_t.append(time.time())
+        GPIO.output(self.rpi.spouts[self.current_spout].cue, False)
+        self.rpi.spouts[self.current_spout].touch_t.append(time.time())
         self.success = True
         if not self.water_at_cue_onset:
-            self.pi.spouts[self.current_spout].dispense(self.reward_ms)
+            self.rpi.spouts[self.current_spout].dispense(
+                self.params['reward_ms']
+            )
 
     def iti(self):
         """ Inter-trial interval sequencer """
 
         # start watching for paws moving from rest position
-        for paw_rest in self.pi.paw_r, self.pi.paw_l:
+        for paw_rest in self.rpi.paw_r, self.rpi.paw_l:
             GPIO.add_event_detect(
                 paw_rest,
                 GPIO.FALLING,
@@ -208,17 +200,17 @@ class Session():
 
         # start watching for spontaneous reaches to spout
         GPIO.add_event_detect(
-            self.pi.spouts[self.current_spout].touch,
+            self.rpi.spouts[self.current_spout].touch,
             GPIO.RISING,
             callback=self.inc_sponts,
             bouncetime=100
         )
 
         # button press reverses shaping boolean for next trial
-        GPIO.remove_event_detect(self.pi.start_button)
-        self.water_at_cue_onset = True if self.shaping else False
+        GPIO.remove_event_detect(self.rpi.start_button)
+        self.water_at_cue_onset = self.params['shaping']
         GPIO.add_event_detect(
-            self.pi.start_button,
+            self.rpi.start_button,
             GPIO.FALLING,
             callback=self.reverse_shaping,
             bouncetime=500
@@ -226,20 +218,18 @@ class Session():
 
         while True:
             print("Waiting for rest... ", end='', flush=True)
-            while not all([GPIO.input(self.pi.paw_l),
-                           GPIO.input(self.pi.paw_r)]):
+            while not all([GPIO.input(self.rpi.paw_l),
+                           GPIO.input(self.rpi.paw_r)]):
                 time.sleep(0.020)
 
             self.iti_broken = False
 
-            ITI_duration = random.uniform(
-                self.ITI_min_ms, self.ITI_max_ms
-            ) / 1000
+            iti_duration = random.uniform(*self.params['iti']) / 1000
 
-            print("Counting down %.2fs" % ITI_duration)
+            print("Counting down %.2fs" % iti_duration)
             now = time.time()
             trial_start = now
-            trial_end = trial_start + ITI_duration
+            trial_end = trial_start + iti_duration
 
             while now < trial_end and not self.iti_broken:
                 time.sleep(0.02)
@@ -250,45 +240,47 @@ class Session():
             else:
                 break
 
-        for pin in [self.pi.paw_r, self.pi.paw_l,
-                    self.pi.spouts[self.current_spout].touch]:
+        for pin in [self.rpi.paw_r, self.rpi.paw_l,
+                    self.rpi.spouts[self.current_spout].touch]:
             GPIO.remove_event_detect(pin)
 
     def trial(self):
         """ Single trial sequencer """
         current_spout = self.current_spout
         print("Cue illuminated")
-        self.pi.spouts[current_spout].cue_t.append(time.time())
-        GPIO.output(self.pi.spouts[current_spout].cue, True)
+        self.rpi.spouts[current_spout].cue_t.append(time.time())
+        GPIO.output(self.rpi.spouts[current_spout].cue, True)
         if self.water_at_cue_onset:
-            self.pi.spouts[self.current_spout].dispense(self.reward_ms)
+            self.rpi.spouts[self.current_spout].dispense(
+                self.params['reward_ms']
+            )
 
         GPIO.add_event_detect(
-            self.pi.spouts[current_spout].touch,
+            self.rpi.spouts[current_spout].touch,
             GPIO.RISING,
             callback=self.reward,
             bouncetime=1000
         )
 
         now = time.time()
-        cue_end = now + self.cue_ms / 1000
+        cue_end = now + self.params['cue_ms'] / 1000
 
         while not self.success and now < cue_end:
             time.sleep(0.010)
             now = time.time()
 
-        GPIO.output(self.pi.spouts[current_spout].cue,
+        GPIO.output(self.rpi.spouts[current_spout].cue,
                     False)
 
         GPIO.remove_event_detect(
-            self.pi.spouts[current_spout].touch
+            self.rpi.spouts[current_spout].touch
         )
 
         # Sleep in parallel with reward function, and add a second for drinking
         if self.success:
             print("Successful reach!")
             self.reward_count += 1
-            time.sleep(self.reward_ms / 1000 + 1)
+            time.sleep(self.params['reward_ms'] / 1000 + 1)
         else:
             print("Missed reach")
             self.missed_count += 1
@@ -309,7 +301,7 @@ class Session():
         ].sort()
 
         self.resets_pins = [
-            random.choice([self.pi.paw_l, self.pi.paw_r])
+            random.choice([self.rpi.paw_l, self.rpi.paw_r])
             for x in range(random.randint(1, 10))
         ]
 
@@ -322,14 +314,16 @@ class Session():
     def collate_data(self, interrupted=False):
         """ Organise all metadata and collected data into single structure """
 
+        # TODO: completely rewrite this method
+        params = self.params
         if interrupted:
             # This was called via Control-C callback
-            self.end_time = time.time()
-            self.duration = self.end_time - self.start_time
+            params['end_time'] = time.time()
+            params['duration'] = params['end_time'] - params['start_time']
 
         cue_t = []
         touch_t = []
-        for idx, spout in enumerate(self.pi.spouts):
+        for idx, spout in enumerate(self.rpi.spouts):
             self.sponts_pins = [
                 idx if x == spout.touch else x for x in self.sponts_pins
             ]
@@ -337,32 +331,31 @@ class Session():
             touch_t.append(spout.touch_t)
 
         self.resets_pins = [
-            "l" if x == self.pi.paw_l else x for x in self.resets_pins
+            "l" if x == self.rpi.paw_l else x for x in self.resets_pins
         ]
         self.resets_pins = [
-            "r" if x == self.pi.paw_r else x for x in self.resets_pins
+            "r" if x == self.rpi.paw_r else x for x in self.resets_pins
         ]
 
-        if not self.save_data:
+        if not params['save_data']:
             self.data = {}
         data = self.data
 
         # session parameters
         data['date'] = time.strftime('%Y-%m-%d')
         data['start_time'] = time.strftime(
-            '%H:%M:%S', time.localtime(self.start_time)
+            '%H:%M:%S', time.localtime(self.params['start_time'])
         )
         data['end_time'] = time.strftime(
             '%H:%M:%S',
-            time.localtime(self.end_time)
+            time.localtime(params['end_time'])
         )
-        data['spout_count'] = self.spout_count
-        data['duration'] = self.duration
-        data['cue_ms'] = self.cue_ms
-        data['ITI_min_ms'] = self.ITI_min_ms
-        data['ITI_max_ms'] = self.ITI_max_ms
-        data['reward_ms'] = self.reward_ms
-        data['shaping'] = self.shaping
+        data['spout_count'] = params['spout_count']
+        data['duration'] = params['duration']
+        data['cue_ms'] = params['cue_ms']
+        data['iti'] = params['iti']
+        data['reward_ms'] = params['reward_ms']
+        data['shaping'] = params['shaping']
 
         # behavioural data
         data['trial_count'] = self.trial_count
@@ -378,7 +371,7 @@ class Session():
     def reverse_shaping(self, pin):
         """ Callback to make next trial reverse shaping boolean
         i.e. switch dispensing of water between cue onset and grasp """
-        self.water_at_cue_onset = False if self.water_at_cue_onset else True
+        self.water_at_cue_onset = not self.water_at_cue_onset
         print("For next trial, water at cue onset = %s"
               % self.water_at_cue_onset)
 
@@ -392,13 +385,15 @@ class Session():
             "\nExiting: Do you want to keep collected data? (N/y) "
         )
         if response == "y":
-            data = self.collate_data(True)
+            self.collate_data(True)
             notes = input("\nAdd any notes to save (empty adds none):\n")
             if notes:
-                data["notes"] = notes
-            io.write_data(self.mouseID, self.json_dir, data)
+                self.data["notes"] = notes
+            io.write_data(
+                self.params['mouse_id'], self.params['json_dir'], self.data
+            )
 
-        self.pi.cleanup()
+        self.rpi.cleanup()
 
 
 def display_results(numbers):

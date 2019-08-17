@@ -5,8 +5,8 @@
 import argparse
 import configparser
 import json
-import sys
 from os.path import isfile, join
+import sys
 
 
 def parse_args():
@@ -36,8 +36,8 @@ def parse_args():
     )
 
     parser.add_argument(
-        '-m', '--mouseID',
-        help='Specify mouseID',
+        '-m', '--mouse_id',
+        help='Specify mouse_id',
         default='',
         type=str
     )
@@ -75,8 +75,8 @@ def default_config():
     config.set('Settings', 'spout_count', '1')
     config.set('Settings', 'reward_ms', '220')
     config.set('Settings', 'cue_ms', '10000')
-    config.set('Settings', 'ITI_min_ms', '4000')
-    config.set('Settings', 'ITI_max_ms', '6000')
+    config.set('Settings', 'iti_min_ms', '4000')
+    config.set('Settings', 'iti_max_ms', '6000')
     config.set('Settings', 'shaping', 'False')
     config.set('Settings', 'json_dir',
                '/home/pi/CuedBehaviourAnalysis/Data/TrainingJSON')
@@ -84,19 +84,31 @@ def default_config():
     return config
 
 
-def read_config(config, config_file):
-    """ Read parameters from a config file and error if required """
+def read_config(config_file):
+    """ Read parameters from config file and format into params dict """
+    config = default_config()
+
     try:
         config.read(config_file)
     except configparser.MissingSectionHeaderError:
         print("%s is an invalid config file." % config_file)
         sys.exit(1)
 
-    return config
+    params = {}
+    params['duration'] = config.getint('Settings', 'duration')
+    params['spout_count'] = config.getint('Settings', 'spout_count')
+    params['reward_ms'] = config.getint('Settings', 'reward_ms')
+    params['cue_ms'] = config.getint('Settings', 'cue_ms')
+    params['iti'] = (config.getint('Settings', 'iti_min_ms'),
+                     config.getint('Settings', 'iti_max_ms'))
+    params['shaping'] = config.getboolean('Settings', 'shaping')
+    params['json_dir'] = config.get('Settings', 'json_dir')
+
+    return params
 
 
-def generate_config(config, config_file):
-    """ Write configuration to file  """
+def generate_config(config_file):
+    """ Write default configuration to new file  """
 
     if isfile(config_file):
         print("Config file %s already exists." % config_file)
@@ -105,6 +117,7 @@ def generate_config(config, config_file):
             sys.exit(1)
 
     with open(config_file, 'w') as new_file:
+        config = default_config()
         config.write(new_file)
     print("A new config file has been generated as %s." % config_file)
 
@@ -117,23 +130,23 @@ def enforce_suffix(suffix, string):
     return string
 
 
-def request_metadata(mouseID, json_dir):
+def request_metadata(mouse_id, json_dir):
     """ Request metadata from user and load previous metadata """
 
-    if not mouseID:
-        mouseID = input("Enter mouse ID: ") or 'Mouse'
+    if not mouse_id:
+        mouse_id = input("Enter mouse ID: ") or 'Mouse'
 
-        if not mouseID:
+        if not mouse_id:
             print("Please enter a mouse ID at the prompt")
-            print("or pass -m <mouseID>")
+            print("or pass -m <mouse_id>")
             print("Alternatively pass -n to ignore data")
             sys.exit(1)
 
-    data_file = join(json_dir, mouseID + '.json')
+    data_file = join(json_dir, mouse_id + '.json')
     data = {}
 
     if isfile(data_file):
-        print("Found pre-existing training JSON for %s" % mouseID)
+        print("Found pre-existing training JSON for %s" % mouse_id)
         with open(data_file) as json_file:
             try:
                 prev_data = json.load(json_file)
@@ -158,7 +171,7 @@ def request_metadata(mouseID, json_dir):
                 sys.exit(1)
 
     else:
-        print("This will generate a new training JSON for %s" % mouseID)
+        print("This will generate a new training JSON for %s" % mouse_id)
         data['day'] = 1
         data['trainer'] = input("Enter trainer: ") or 'matt'
         data['weight'] = input("Enter weight: ") or '?'
@@ -166,16 +179,16 @@ def request_metadata(mouseID, json_dir):
 
     data['prewatering'] = input("Enter prewatering volume (0): ") or '0'
 
-    return data, mouseID
+    return data, mouse_id
 
 
-def write_data(mouseID, json_dir, data, append_last_entry=False):
+def write_data(mouse_id, json_dir, data, append_last_entry=False):
     """ Write data to JSON file
 
-    Looks for json_dir/mouseID and adds the data to it
+    Looks for json_dir/mouse_id and adds the data to it
     If append_last_entry,
         data is merged with the previous entry in the file """
-    data_file = join(json_dir, mouseID + '.json')
+    data_file = join(json_dir, mouse_id + '.json')
 
     if data['day'] == 1:
         # creating new JSON

@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """ Misc utilities to test the reach rig """
 
+# pylint: disable=import-error, unused-argument, fixme
 
 from time import sleep
 import sys
-from reach.raspberry import Pi
+import RPi.GPIO as GPIO
 
-try:
-    import RPi.GPIO as GPIO
-except ModuleNotFoundError:
-    import PPi.GPIO as GPIO
+from reach.raspberry import Pi
 
 
 def use_utility(utility):
@@ -54,7 +52,7 @@ def solenoid():
 
     # Add a second spout when the hardware exists
     num_spouts = 1
-    pi = Pi(num_spouts)
+    rpi = Pi(num_spouts)
 
     if num_spouts > 1:
         print("Number of spouts: %s" % num_spouts)
@@ -69,12 +67,12 @@ def solenoid():
         """ Set solenoid pin to inverse of start button pin """
         sleep(0.010)
         GPIO.output(
-            pi.spouts[spout_num].water,
-            not GPIO.input(pi.start_button)
+            rpi.spouts[spout_num].water,
+            not GPIO.input(rpi.start_button)
         )
 
     GPIO.add_event_detect(
-        pi.start_button,
+        rpi.start_button,
         GPIO.BOTH,
         callback=toggle,
         bouncetime=20
@@ -89,16 +87,16 @@ def touch_sensors():
 
     # Add a second spout when the hardware exists
     num_spouts = 1
-    pi = Pi(num_spouts)
+    rpi = Pi(num_spouts)
 
     def print_touch(pin):
-        if pin == pi.paw_r:
+        if pin == rpi.paw_r:
             print("Right:    %i" % GPIO.input(pin))
-        elif pin == pi.paw_l:
+        elif pin == rpi.paw_l:
             print("Left:    %i" % GPIO.input(pin))
         else:
-            for i in range(len(pi.spouts)):
-                if pi.spouts[i - 1].touch == pin:
+            for i in range(len(rpi.spouts)):
+                if rpi.spouts[i - 1].touch == pin:
                     spout_num = i + 1
                     print("Spout %i:    %s"
                           % (spout_num, GPIO.input(pin)))
@@ -106,15 +104,15 @@ def touch_sensors():
 
     # listen to touches on paw rests
     GPIO.add_event_detect(
-        pi.paw_r, GPIO.BOTH, callback=print_touch, bouncetime=10
+        rpi.paw_r, GPIO.BOTH, callback=print_touch, bouncetime=10
     )
 
     GPIO.add_event_detect(
-        pi.paw_l, GPIO.BOTH, callback=print_touch, bouncetime=10
+        rpi.paw_l, GPIO.BOTH, callback=print_touch, bouncetime=10
     )
 
     # listen to touches to spouts
-    for spout in pi.spouts:
+    for spout in rpi.spouts:
         GPIO.add_event_detect(
             spout.touch, GPIO.BOTH,
             callback=print_touch, bouncetime=10
@@ -130,7 +128,7 @@ def cues():
 
     # Add a second spout when the hardware exists
     num_spouts = 1
-    pi = Pi(num_spouts)
+    rpi = Pi(num_spouts)
 
     if num_spouts > 1:
         print("Number of spouts: %s" % num_spouts)
@@ -143,10 +141,10 @@ def cues():
 
     def toggle(pin):
         """ Toggle specified LED """
-        state = GPIO.input(pi.spouts[spout_num].cue)
-        GPIO.output(pi.spouts[spout_num].cue, not state)
+        state = GPIO.input(rpi.spouts[spout_num].cue)
+        GPIO.output(rpi.spouts[spout_num].cue, not state)
 
-    GPIO.add_event_detect(pi.start_button, GPIO.FALLING,
+    GPIO.add_event_detect(rpi.start_button, GPIO.FALLING,
                           callback=toggle, bouncetime=300)
 
     while True:
@@ -158,7 +156,7 @@ def reward_vol():
 
     # Add a second spout when the hardware exists
     num_spouts = 1
-    pi = Pi(num_spouts)
+    rpi = Pi(num_spouts)
 
     if num_spouts > 1:
         print("Number of spouts: %s" % num_spouts)
@@ -172,10 +170,10 @@ def reward_vol():
 
     def dispense(pin):
         """ Set solenoid pin to inverse of start button pin """
-        pi.spouts[spout_num].dispense(duration_ms)
+        rpi.spouts[spout_num].dispense(duration_ms)
 
     GPIO.add_event_detect(
-        pi.start_button,
+        rpi.start_button,
         GPIO.FALLING,
         callback=dispense,
         bouncetime=1000

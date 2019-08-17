@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 """ Helper functions and classes """
 
+# pylint: disable=import-error, unused-argument, fixme
 
 import signal
 import sys
 import time
-
-try:
-    import RPi.GPIO as GPIO
-except ModuleNotFoundError:
-    import PPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 
 class Spout():
     """ Handle a single spout with cue, touch sensor and water """
 
+    # TODO: convert Spout to a method of Pi
     def __init__(self, cue, touch, water):
         """ Set up a spout and initialise its pins """
         self.cue = cue
