@@ -16,10 +16,6 @@ import random
 import signal
 import sys
 import time
-try:
-    import RPi.GPIO as GPIO
-except ModuleNotFoundError:
-    pass
 
 from reach.utilities import use_utility
 from reach.raspberry import Pi
@@ -88,6 +84,8 @@ class Session():
         self.current_spout = None
         self.iti_broken = False
         self.iti_break_count = 0
+        # TODO: remove all 'count' variables completely; only used for printing
+        # results at the end and we can count the data
         self.reward_count = 0
         self.missed_count = 0
         self.trial_count = 0
@@ -111,8 +109,7 @@ class Session():
         print("\n_________________________________\n")
 
         # Fourth: begin session
-        print("Hit the start button to begin.")
-        GPIO.wait_for_edge(self.rpi.start_button, GPIO.FALLING)
+        self.rpi.wait_to_start()
 
         if params['save_data']:
             signal.signal(
@@ -178,54 +175,29 @@ class Session():
 
     def reward(self, pin):
         """ Callback for rewarding cued reach """
-        GPIO.output(self.rpi.spouts[self.current_spout].cue, False)
-        self.rpi.spouts[self.current_spout].touch_t.append(time.time())
+        self.rpi.successful_grasp(self.current_spout)
         self.success = True
         if not self.water_at_cue_onset:
-            self.rpi.spouts[self.current_spout].dispense(
-                self.params['reward_ms']
-            )
+            self.rpi.dispense(self.current_spout,
+                              self.params['reward_ms'])
 
     def iti(self):
         """ Inter-trial interval sequencer """
 
-        # start watching for paws moving from rest position
-        for paw_rest in self.rpi.paw_r, self.rpi.paw_l:
-            GPIO.add_event_detect(
-                paw_rest,
-                GPIO.FALLING,
-                callback=self.iti_break,
-                bouncetime=100
-            )
-
-        # start watching for spontaneous reaches to spout
-        GPIO.add_event_detect(
-            self.rpi.spouts[self.current_spout].touch,
-            GPIO.RISING,
-            callback=self.inc_sponts,
-            bouncetime=100
+        self.rpi.monitor_sensors(
+            self.current_spout,
+            self.iti_break,
+            self.inc_sponts
         )
 
         # button press reverses shaping boolean for next trial
-        GPIO.remove_event_detect(self.rpi.start_button)
+        self.rpi.reset_button_callback(self.reverse_shaping)
         self.water_at_cue_onset = self.params['shaping']
-        GPIO.add_event_detect(
-            self.rpi.start_button,
-            GPIO.FALLING,
-            callback=self.reverse_shaping,
-            bouncetime=500
-        )
 
         while True:
-            print("Waiting for rest... ", end='', flush=True)
-            while not all([GPIO.input(self.rpi.paw_l),
-                           GPIO.input(self.rpi.paw_r)]):
-                time.sleep(0.020)
-
+            self.rpi.wait_for_rest()
             self.iti_broken = False
-
             iti_duration = random.uniform(*self.params['iti']) / 1000
-
             print("Counting down %.2fs" % iti_duration)
             now = time.time()
             trial_start = now
@@ -240,43 +212,26 @@ class Session():
             else:
                 break
 
-        for pin in [self.rpi.paw_r, self.rpi.paw_l,
-                    self.rpi.spouts[self.current_spout].touch]:
-            GPIO.remove_event_detect(pin)
+        self.rpi.disable_sensors(self.current_spout)
 
     def trial(self):
         """ Single trial sequencer """
         current_spout = self.current_spout
-        print("Cue illuminated")
-        self.rpi.spouts[current_spout].cue_t.append(time.time())
-        GPIO.output(self.rpi.spouts[current_spout].cue, True)
-        if self.water_at_cue_onset:
-            self.rpi.spouts[self.current_spout].dispense(
-                self.params['reward_ms']
-            )
+        self.rpi.start_trial(current_spout, self.reward)
 
-        GPIO.add_event_detect(
-            self.rpi.spouts[current_spout].touch,
-            GPIO.RISING,
-            callback=self.reward,
-            bouncetime=1000
-        )
+        if self.water_at_cue_onset:
+            self.rpi.dispense(current_spout, self.params['reward_ms'])
 
         now = time.time()
         cue_end = now + self.params['cue_ms'] / 1000
 
         while not self.success and now < cue_end:
-            time.sleep(0.010)
+            time.sleep(0.008)
             now = time.time()
 
-        GPIO.output(self.rpi.spouts[current_spout].cue,
-                    False)
+        self.rpi.end_trial(current_spout)
 
-        GPIO.remove_event_detect(
-            self.rpi.spouts[current_spout].touch
-        )
-
-        # Sleep in parallel with reward function, and add a second for drinking
+        # Sleep in parallel with reward function, adding a second for drinking
         if self.success:
             print("Successful reach!")
             self.reward_count += 1
@@ -284,32 +239,6 @@ class Session():
         else:
             print("Missed reach")
             self.missed_count += 1
-
-    def randomise_data(self):
-        """ Create random data in all data variables """
-        self.iti_break_count = random.randint(1, 10)
-        self.reward_count = random.randint(1, 10)
-        self.missed_count = random.randint(1, 10)
-        self.trial_count = self.reward_count + self.missed_count
-
-        self.sponts_pins = [
-            random.randint(1, 2) for x in range(random.randint(1, 10))
-        ]
-
-        self.sponts_t = [
-            random.random() * 1000 for x in range(len(self.sponts_pins))
-        ].sort()
-
-        self.resets_pins = [
-            random.choice([self.rpi.paw_l, self.rpi.paw_r])
-            for x in range(random.randint(1, 10))
-        ]
-
-        self.resets_t = [
-            int(random.random() * 1000)
-            for x in range(len(self.resets_pins))
-        ]
-        self.resets_t.sort()
 
     def collate_data(self, interrupted=False):
         """ Organise all metadata and collected data into single structure """
@@ -325,16 +254,17 @@ class Session():
         touch_t = []
         for idx, spout in enumerate(self.rpi.spouts):
             self.sponts_pins = [
-                idx if x == spout.touch else x for x in self.sponts_pins
+                idx if x == spout['touch'] else x for x in self.sponts_pins
             ]
-            cue_t.append(spout.cue_t)
-            touch_t.append(spout.touch_t)
+            cue_t.append(spout['cue_t'])
+            touch_t.append(spout['touch_t'])
 
+        # TODO: can this be written more nicely?
         self.resets_pins = [
-            "l" if x == self.rpi.paw_l else x for x in self.resets_pins
+            "l" if x == self.rpi.paws[0] else x for x in self.resets_pins
         ]
         self.resets_pins = [
-            "r" if x == self.rpi.paw_r else x for x in self.resets_pins
+            "r" if x == self.rpi.paws[1] else x for x in self.resets_pins
         ]
 
         if not params['save_data']:
@@ -374,6 +304,7 @@ class Session():
         self.water_at_cue_onset = not self.water_at_cue_onset
         print("For next trial, water at cue onset = %s"
               % self.water_at_cue_onset)
+        # TODO: fix erroneous reverse_shaping at start of session
 
     def cleanup_with_prompt(self, signum, frame):
         """ Control-C signal handler covering main training period

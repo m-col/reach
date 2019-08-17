@@ -55,15 +55,7 @@ def parse_args():
         type=str
     )
 
-    parser.add_argument(
-        '-d', '--debug',
-        help='Run in debugging mode',
-        default='',
-        action='store_true'
-    )
-
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def default_config():

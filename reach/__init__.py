@@ -1,3 +1,5 @@
-# We only present the Session class to be used
+# pylint: disable=fixme
+# TODO: add docstring
+
 from .session import Session
 __all__ = ['Session', ]

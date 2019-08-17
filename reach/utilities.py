@@ -67,7 +67,7 @@ def solenoid():
         """ Set solenoid pin to inverse of start button pin """
         sleep(0.010)
         GPIO.output(
-            rpi.spouts[spout_num].water,
+            rpi.spouts[spout_num]['solenoid'],
             not GPIO.input(rpi.start_button)
         )
 
@@ -90,32 +90,34 @@ def touch_sensors():
     rpi = Pi(num_spouts)
 
     def print_touch(pin):
-        if pin == rpi.paw_r:
-            print("Right:    %i" % GPIO.input(pin))
-        elif pin == rpi.paw_l:
+        if pin == rpi.paws[0]:
             print("Left:    %i" % GPIO.input(pin))
+        elif pin == rpi.paws[1]:
+            print("Right:    %i" % GPIO.input(pin))
         else:
-            for i in range(len(rpi.spouts)):
-                if rpi.spouts[i - 1].touch == pin:
+            for i in range(num_spouts):
+                if rpi.spouts[i - 1]['touch'] == pin:
                     spout_num = i + 1
                     print("Spout %i:    %s"
                           % (spout_num, GPIO.input(pin)))
                     break
 
     # listen to touches on paw rests
-    GPIO.add_event_detect(
-        rpi.paw_r, GPIO.BOTH, callback=print_touch, bouncetime=10
-    )
-
-    GPIO.add_event_detect(
-        rpi.paw_l, GPIO.BOTH, callback=print_touch, bouncetime=10
-    )
+    for pin in rpi.paws:
+        GPIO.add_event_detect(
+            pin,
+            GPIO.BOTH,
+            callback=print_touch,
+            bouncetime=10
+        )
 
     # listen to touches to spouts
     for spout in rpi.spouts:
         GPIO.add_event_detect(
-            spout.touch, GPIO.BOTH,
-            callback=print_touch, bouncetime=10
+            spout['touch'],
+            GPIO.BOTH,
+            callback=print_touch,
+            bouncetime=10
         )
 
     input("Hit enter or Control-C to quit\n")
@@ -136,16 +138,19 @@ def cues():
     else:
         spout_num = 0
 
-    print("Push button to toggle LED cue")
-    print("Hit Control-C to quit")
-
     def toggle(pin):
         """ Toggle specified LED """
-        state = GPIO.input(rpi.spouts[spout_num].cue)
-        GPIO.output(rpi.spouts[spout_num].cue, not state)
+        state = GPIO.input(rpi.spouts[spout_num]['cue'])
+        GPIO.output(rpi.spouts[spout_num]['cue'], not state)
 
-    GPIO.add_event_detect(rpi.start_button, GPIO.FALLING,
-                          callback=toggle, bouncetime=300)
+    GPIO.add_event_detect(
+        rpi.start_button,
+        GPIO.FALLING,
+        callback=toggle,
+        bouncetime=300)
+
+    print("Push button to toggle LED cue")
+    print("Hit Control-C to quit")
 
     while True:
         sleep(1)
@@ -154,7 +159,6 @@ def cues():
 def reward_vol():
     """ Measure volume of water dispensed during rewards """
 
-    # Add a second spout when the hardware exists
     num_spouts = 1
     rpi = Pi(num_spouts)
 
@@ -170,7 +174,7 @@ def reward_vol():
 
     def dispense(pin):
         """ Set solenoid pin to inverse of start button pin """
-        rpi.spouts[spout_num].dispense(duration_ms)
+        rpi.dispense(spout_num, duration_ms)
 
     GPIO.add_event_detect(
         rpi.start_button,
