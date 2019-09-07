@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument(
         '-m', '--mouse_id',
         help='Specify mouse_id',
-        default='',
+        default=None,
         type=str
     )
 
@@ -42,17 +42,14 @@ def parse_args():
         type=str
     )
 
-    parser.add_argument(
-        '-M', '--merge',
-        help='Merge data with last entry in training JSON',
-        action='store_true'
-    )
-
     settings =  parser.parse_args()
-    return settings.config, settings.mouse_id, settings.json_dir, settings.merge
+    if settings.config == 'None':
+        settings.config = None
+
+    return settings.config, settings.mouse_id, settings.json_dir
 
 
-config_file, mouse_id, json_dir, merge = parse_args()
+config_file, mouse_id, json_dir = parse_args()
 
 
 if os.path.isdir(json_dir):
@@ -65,5 +62,5 @@ mouse = Mouse.init_from_file(
     mouse_id=mouse_id,
     json_path=json_path
 )
-
 mouse.train(config_file)
+mouse.save_data_to_file(json_path)

@@ -20,13 +20,13 @@ def _default_config():
     config = configparser.RawConfigParser()
 
     config.add_section('Settings')
-    config.set('Settings', 'duration', '2400')
-    config.set('Settings', 'spout_count', '1')
-    config.set('Settings', 'reward_ms', '220')
-    config.set('Settings', 'cue_ms', '10000')
-    config.set('Settings', 'iti_min_ms', '4000')
-    config.set('Settings', 'iti_max_ms', '6000')
-    config.set('Settings', 'shaping', 'False')
+    config.set('Settings', 'duration', 2400)
+    config.set('Settings', 'spout_count', 1)
+    config.set('Settings', 'reward_duration_ms', 220)
+    config.set('Settings', 'cue_duration_ms', 10000)
+    config.set('Settings', 'iti_min_ms', 4000)
+    config.set('Settings', 'iti_max_ms', 6000)
+    config.set('Settings', 'shaping', False)
     config.set('Settings', 'json_dir',
                '/home/pi/CuedBehaviourAnalysis/Data/TrainingJSON')
 
@@ -55,13 +55,24 @@ def _write_config(config_file, config=None):
 def _read_config(config_file):
     """
     Read settings from config file and return as dict.
+
+    Parameters
+    ----------
+    config_file : :class:`string` or :class:`None`
+        Path to configuration file containing training settings. Alternatively
+        this can be None, which will make us use default settings.
+
     """
     config = _default_config()
 
-    try:
-        config.read(config_file)
-    except configparser.MissingSectionHeaderError:
-        raise SystemError(f"{config_file} is an invalid config file.")
+    if config_file is not None:
+        if not isfile(config_file):
+            raise SystemError(f"{config_file} config file does not exist.")
+
+        try:
+            config.read(config_file)
+        except configparser.MissingSectionHeaderError:
+            raise SystemError(f"{config_file} is an invalid config file.")
 
     config_dict = dict(config.items('Settings'))
     config_dict['iti'] = (config_dict['iti_min_ms'],
