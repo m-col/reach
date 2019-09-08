@@ -67,9 +67,7 @@ class _RPi:
         """
         self._start_button_pin = _pin_numbers['start_button']
         self._paw_pins = _pin_numbers['paw_sensors']
-        self._spouts = [
-            _pin_numbers['spouts'][:self.spout_count]
-        ]
+        self._spouts = _pin_numbers['spouts'][:spout_count]
 
         self._initialise_pins()
 
@@ -95,7 +93,8 @@ class _RPi:
         try:
             import RPi.GPIO as GPIO
         except ModuleNotFoundError:
-            print('RPi.GPIO not found. Continuing with mock raspberry pi.')
+            print('RPi.GPIO not found.')
+            print('Continuing with mock raspberry pi.')
             return _RPi_Mock(spout_count)
 
         return cls(spout_count)
@@ -124,7 +123,6 @@ class _RPi:
             GPIO.setup(spout['cue'], GPIO.OUT, initial=False)
             GPIO.setup(spout['touch'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
             GPIO.setup(spout['solenoid'], GPIO.OUT, initial=False)
-
             spout['cue_timepoints'] = []
             spout['touch_timepoints'] = []
 
@@ -133,6 +131,7 @@ class _RPi:
         Block the program and wait until the 'start' button is pressed at the
         training box. Once this is pressed, the training session begins.
         """
+        print("Hit the start button to begin.")
         GPIO.wait_for_edge(
             self._start_button_pin,
             GPIO.FALLING
@@ -333,14 +332,15 @@ class _RPi_Mock(_RPi):
         self._pin_states[self._start_button_pin] = 1
 
         for spout in self._spouts:
-            spout['cue_t'] = []
-            spout['touch_t'] = []
+            spout['cue_timepoints'] = []
+            spout['touch_timepoints'] = []
 
     def _wait_to_start(self):
         """
         Instead of blocking execution, simply print a message.
         """
-        print('Mock start button pressed here')
+        print("Hit the start button to begin.")
+        pass
 
     def _monitor_sensors(self, *args, **kwargs):
         """

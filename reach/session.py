@@ -8,12 +8,14 @@ sessions and record data.
 """
 
 
+import functools
 import json
 import random
 import signal
 import time
 
 from reach.raspberry import _RPi
+from reach.utilities import *
 
 
 class Session:
@@ -36,32 +38,85 @@ class Session:
         represent left or right spout.
 
     spont_reach_timepoints : :class:`list` of :class:`ints`
-        This contains the timepoints for all spontaneous reaches.
+        This contains the timepoints (in Unix time) for all spontaneous
+        reaches.
 
-    resets_paw : :class:`list` of :class:`ints`
-        During training this stores pin numbers corresponding to paw touch
-        sensors that detect premature movements during the inter-trial
-        interval, then at the end of training this is converted to 0s and 1s to
-        represent left or right paws.
+    resets_timepoints : :class:`list` of 2 :class:`ints`
+        This list stores two lists, which each stores the timepoints (in Unix
+        time) for all premature movements that reset the inter-trial interval
+        for the left and right paws respectively.
 
-    resets_timepoints : :class:`list` of :class:`ints`
-        This contains the timepoints for all premature movements that reset the
-        inter-trial interval.
+    shaping : :class:`bool`
+        Specifies if this session was a shaping session i.e. water is/was
+        dispensed upon cue onset rather than successful grasp.
+
+    spout_count : :class:`int`
+        The number of target spouts used in this session.
+
+    duration : :class:`int`
+        The duration of the session in seconds.
+
+    start_time and end_time : :class:`int`
+        The start and end times of the session in Unix time.
+
+    date : :class:`str`
+        The date on which the training occurred in %Y-%m-%d format.
+
+    box : :class:`int`
+        The number of the training box which was used for this session.
+
+    trainer : :class:`str`
+        The training who ran this session.
+
+    iti : :class:`tuple` of 2 :class:`int`s
+        The minimum and maximum inter-trial intervals.
+
+    cue_duration_ms : :class:`int`
+        The duration in milliseconds for which the cue is illuminated in this
+        session.
+
+    reward_duration_ms : :class:`int`
+        The duration in milliseconds for which the solenoid is opened when is a
+        reward is given.
+
+    cue_timepoints : :class:`list` of up to 2 :class:`list`s of :class:`int`s
+        The timepoints (in Unix time) at which the nth cue was illuminated at
+        the start of a new trial.
+
+    touch_timepoints : :class:`list` of up to 2 :class:`list`s of :class:`int`s
+        The timepoints (in Unix time) at which the nth reach target was
+        successfully grasped during a cued trial.
+
+    notes : :class:`str`
+        Training notes made during the training session.
+
+    weight : :class:`int`
+        The weight of the mouse at the start of the training session.
 
     """
 
-    def __init__(self, data=None):
+    def __init__(
+            self,
+            data=None,
+            training_box=None,
+            weight=None,
+            trainer=None,
+    ):
+
         if data is None:
-            data = {}
-            data['spont_reach_spouts'] = []
-            data['spont_reach_timepoints'] = []
-            data['resets_paw'] = []
-            data['resets_timepoints'] = []
+            self.data = {}
+            self.data['spont_reach_spouts'] = []
+            self.data['spont_reach_timepoints'] = []
+            self.data['resets_timepoints'] = []
+            self.data['weight'] = weight
+            self.data['training_box'] = training_box
+            self.data['trainer'] = trainer
+
         else:
             self.data = data
 
     @classmethod
-    def _init_all_from_file(cls, json_path):
+    def _init_all_from_file(cls, json_path=None):
         """
         Generate list of Session objects from data stored in Training JSON.
 
@@ -71,6 +126,8 @@ class Session:
             Training JSON to read data from.
 
         """
+        json_path = enforce_suffix(json_path, '.json')
+
         with open(json_path, 'r') as json_file:
             file_data = json.load(json_file)
 
@@ -194,7 +251,7 @@ class Session:
             now = time.time()
             iti_duration = random.uniform(*self.data['iti']) / 1000
             trial_end = now + iti_duration
-            print("Counting down {iti_duration:.2f}s")
+            print(f"Counting down {iti_duration:.2f}s")
 
             while now < trial_end and not self._iti_broken:
                 time.sleep(0.020)
@@ -219,8 +276,9 @@ class Session:
             movement.
         """
         self._iti_broken = True
-        self.data['resets_paws'].append(pin)
-        self.data['resets_timepoints'].append(time.time())
+        self.data['resets_timepoints'][
+            self._rpi._paw_pins.index(pin)
+        ].append(time.time())
 
     def _increase_spont_reaches_callback(self, pin):
         """
@@ -324,9 +382,7 @@ class Session:
         for clean exiting and saving of collected data.
         """
         print("\nExiting.")
-        response = input("Do you want to keep collected data? (N/y) ")
-        if response == "y":
-            self._end_session(manual=True)
+        self._end_session(manual=True)
 
     def _end_session(self, manual=False):
         """
@@ -365,20 +421,25 @@ class Session:
 
         data['cue_timepoints'] = []
         data['touch_timepoints'] = []
+        spont_reach_timepoints = []
 
         for idx, spout in enumerate(self._rpi._spouts):
             data['spont_reach_spouts'] = map(
                 lambda x: idx if x == spout['touch'] else x,
                 data['spont_reach_spouts']
             )
+
+            spont_reach_timepoints[idx].append([
+                b for a, b in zip(
+                    data['spont_reach_spouts'],
+                    data['spont_reach_timepoints']
+                ) if idx
+            ]
+
             data['cue_timepoints'].append(spout['cue_timepoints'])
             data['touch_timepoints'].append(spout['touch_timepoints'])
 
-        for idx, pin in enumerate(self._rpi._paw_pins):
-            data['resets_paw'] = map(
-                lambda x: idx if x == pin else x,
-                data['resets_paw']
-            )
+        data['spont_reach_timepoints'] = spont_reach_timepoints
 
         data['date'] = time.strftime('%Y-%m-%d')
         data['start_time'] = time.strftime(
@@ -387,39 +448,61 @@ class Session:
         data['end_time'] = time.strftime(
             '%H:%M:%S', time.localtime(data['end_time'])
         )
-        data["notes"] = input("\nAdd any notes to save:\n")
 
-    def _display_training_results():
+    def _display_training_results(self):
         """
         Print training results at the end of the session.
         """
         data = self.data
-        trial_count = len(data['cue_timepoints']
+        trial_count = len(data['cue_timepoints'])
         miss_count = trial_count - self._reward_count
         reward_perc = 100 * self._reward_count / trial_count
         miss_perc = 100 * miss_count / trial_count
+        iti_resets = (
+            len(data['resets_timepoints'][0]),
+            len(data['resets_timepoints'][1]),
+        )
 
-        print("\n_________________________________\n")
-        print("# __________ The End __________ #")
-        print("")
-        print("Trials:            {trial_count}")
-        print("Rewarded reaches:  {self._reward_count} ({reward_perc:0.1f}%%)")
-        print("Missed cues:       {miss_count} ({miss_perc:0.1f}%%)")
-        print("Spont. reaches:    {len(data['spont_reach_spouts'])}")
-        print("ITI resets:        {len(data['resets_paw'])}")
-        print("    left paw:      {data['resets_paw'].count(0)}")
-        print("    right paw:     {data['resets_paw'].count(1)}")
-        print("\n# _____________________________ #\n")
-        print("%i rewards * 6uL = %i uL")
+        print(f"\n_________________________________\n")
+        print(f"# __________ The End __________ #")
+        print(f"")
+        print(f"Trials:            {trial_count}")
+        print(f"Rewarded reaches:  {self._reward_count} ({reward_perc:0.1f}%%)")
+        print(f"Missed cues:       {miss_count} ({miss_perc:0.1f}%%)")
+        print(f"Spont. reaches:    {len(data['spont_reach_spouts'])}")
+        print(f"ITI resets:        {sum(iti_resets)}")
+        print(f"    left paw:      {iti_resets[0]}")
+        print(f"    right paw:     {iti_resets[1]}")
+        print(f"\n# _____________________________ #\n")
+        print(f"%i rewards * 6uL = %i uL")
 
-    @property
+    def _prompt_to_add_training_notes(self):
+        """
+        Prompt the user at the end of the training session (and after
+        displaying training results) to ask if they want to add notes to the
+        data.
+        """
+        data["notes"] = input("\nAdd any notes to save:\n")
+
+    @lazy_property
     def reaction_times(self):
         """
         List of reaction times for this training session.
 
         Returns
         -------
-        :class:`List` of :class:`Ints`s
+        :class:`list` of :class:`ints`s
             Chronological list of reaction times in milliseconds.
         """
-        raise NotImplementedError
+        import operator
+        reaction_times = []
+
+        touch_timepoints = [timepoint
+            for spout_list in self.data['touch_timepoints']
+            for timepoint in spout_list]
+
+        cue_timepoints = [timepoint
+            for spout_list in self.data['cue_timepoints']
+            for timepoint in spout_list]
+
+        return list(map(operator.sub, touch_timepoints, cue_timepoints))

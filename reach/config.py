@@ -66,6 +66,8 @@ def _read_config(config_file):
     config = _default_config()
 
     if config_file is not None:
+        config_file = enforce_suffix(config_file, '.ini')
+
         if not isfile(config_file):
             raise SystemError(f"{config_file} config file does not exist.")
 
