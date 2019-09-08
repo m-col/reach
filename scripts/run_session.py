@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """
-
-Run training session
-====================
-
+Run a training session
 """
 
 
@@ -36,7 +33,21 @@ def parse_args():
     )
 
     parser.add_argument(
-        '-j', '--json_dir',
+        '-b', '--training_box',
+        help='Specify training box',
+        default=None,
+        type=int
+    )
+
+    parser.add_argument(
+        '-t', '--trainer',
+        help='Specify trainer',
+        default=None,
+        type=str
+    )
+
+    parser.add_argument(
+        '-j', '--json_path',
         help='Path to folder containing training JSONs',
         default=f'{home}/CuedBehaviourAnalysis/Data/TrainingJSON',
         type=str
@@ -46,21 +57,21 @@ def parse_args():
     if settings.config == 'None':
         settings.config = None
 
-    return settings.config, settings.mouse_id, settings.json_dir
+    return settings
 
 
-config_file, mouse_id, json_dir = parse_args()
-
-
-if os.path.isdir(json_dir):
-    json_path = os.path.join(json_dir, f'{mouse_id}.json')
-else:
-    json_path = json_dir
-
+settings = parse_args()
 
 mouse = Mouse.init_from_file(
     mouse_id=mouse_id,
     json_path=json_path
 )
-mouse.train(config_file)
+
+mouse.train(
+    config_file=config_file,
+    weight=settings.weight,
+    trainer=settings.trainer,
+    training_box=settings.training_box,
+)
+
 mouse.save_data_to_file(json_path)
