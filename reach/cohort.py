@@ -76,28 +76,3 @@ class Cohort(Sequence):
         Allow querying of the size of the cohort.
         """
         return len(self.mice)
-
-    #def plot_reaction_times_across_training(self):
-    #    """
-    #    Plot reaction times vs training sessions for each mouse on one axis.
-    #    """
-
-    #    mice = self.mice
-    #    rts = mice[1].reaction_times
-
-    #    sns.boxplot(
-    #        x="Session",
-    #        y="Reaction time",
-    #        data=rts,
-    #        #whis=np.inf
-    #    )
-
-    #    sns.stripplot(
-    #        x="tip",
-    #        y="day",
-    #        data=tips,
-    #        jitter=True,
-    #        color=".3"
-    #    )
-
-    #    plt.show()
