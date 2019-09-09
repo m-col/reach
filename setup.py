@@ -22,7 +22,7 @@ setuptools.setup(
     description="Visually-guided reaching task for mice",
     keywords=[],
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     url="https://github.com/DuguidLab/reach",
     packages=setuptools.find_packages(),
     install_requires=[
