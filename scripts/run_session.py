@@ -19,7 +19,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        '-c', '--config',
+        '-c', '--config_file',
         help='Select training configuration file',
         default=f'{home}/reach_config.ini',
         type=str
@@ -40,6 +40,13 @@ def parse_args():
     )
 
     parser.add_argument(
+        '-w', '--weight',
+        help='Specify mouse weight',
+        default=None,
+        type=int
+    )
+
+    parser.add_argument(
         '-t', '--trainer',
         help='Specify trainer',
         default=None,
@@ -54,21 +61,24 @@ def parse_args():
     )
 
     settings =  parser.parse_args()
-    if settings.config == 'None':
-        settings.config = None
+    if settings.config_file == 'None':
+        settings.config_file = None
 
     return settings
 
 
 settings = parse_args()
 
-mouse = Mouse.init_from_file(
-    mouse_id=mouse_id,
-    json_path=json_path
-)
+if settings.mouse_id is None:
+    mouse = Mouse()
+else:
+    mouse = Mouse.init_from_file(
+        mouse_id=settings.mouse_id,
+        json_path=settings.json_path
+    )
 
 mouse.train(
-    config_file=config_file,
+    config_file=settings.config_file,
     weight=settings.weight,
     trainer=settings.trainer,
     training_box=settings.training_box,
