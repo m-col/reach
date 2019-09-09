@@ -8,14 +8,14 @@ sessions and record data.
 """
 
 
-import functools
 import json
+import operator
 import random
 import signal
 import time
 
 from reach.raspberry import _RPi
-from reach.utilities import *
+from reach.utilities import enforce_suffix, lazy_property
 
 
 class Session:
@@ -107,7 +107,7 @@ class Session:
             self.data = {}
             self.data['spont_reach_spouts'] = []
             self.data['spont_reach_timepoints'] = []
-            self.data['resets_timepoints'] = []
+            self.data['resets_timepoints'] = [[], []]
             self.data['weight'] = weight
             self.data['training_box'] = training_box
             self.data['trainer'] = trainer
@@ -116,7 +116,7 @@ class Session:
             self.data = data
 
     @classmethod
-    def _init_all_from_file(cls, json_path=None):
+    def init_all_from_file(cls, json_path=None):
         """
         Generate list of Session objects from data stored in Training JSON.
 
@@ -136,7 +136,6 @@ class Session:
         ]
 
         return training_data
-        
 
     def run(self, config):
         """
@@ -179,8 +178,8 @@ class Session:
 
         self._display_training_settings()
 
-        self._rpi = _RPi._init_with_library_check(data['spout_count'])
-        self._rpi._wait_to_start()
+        self._rpi = _RPi(data['spout_count'])
+        self._rpi.wait_to_start()
 
         signal.signal(
             signal.SIGINT,
@@ -235,17 +234,16 @@ class Session:
         using the touch sensors. Shaping can be toggled by pressing the start
         button.
         """
-        self._rpi._monitor_sensors(
-            self._current_spout,
+        self._rpi.monitor_sensors(
             self._reset_iti_callback,
             self._increase_spont_reaches_callback
         )
 
-        self._rpi._set_button_callback(self._reverse_shaping_callback)
+        self._rpi.set_button_callback(self._reverse_shaping_callback)
         self._water_at_cue_onset = self.data['shaping']
 
         while True:
-            self._rpi._wait_for_rest()
+            self._rpi.wait_for_rest()
             self._iti_broken = False
 
             now = time.time()
@@ -262,7 +260,7 @@ class Session:
             else:
                 break
 
-        self._rpi._disable_sensors()
+        self._rpi.disable_sensors()
 
     def _reset_iti_callback(self, pin):
         """
@@ -277,7 +275,7 @@ class Session:
         """
         self._iti_broken = True
         self.data['resets_timepoints'][
-            self._rpi._paw_pins.index(pin)
+            self._rpi.paw_pins.index(pin)
         ].append(time.time())
 
     def _increase_spont_reaches_callback(self, pin):
@@ -313,14 +311,17 @@ class Session:
         Run trial during training session.
         """
         current_spout = self._current_spout
-        self._rpi._start_trial(
+        self._rpi.start_trial(
             current_spout,
             self._reward_callback,
             self._incorrect_grasp_callback
         )
 
         if self._water_at_cue_onset:
-            self._rpi._dispense_water(current_spout, self.data['reward_duration_ms'])
+            self._rpi.dispense_water(
+                current_spout,
+                self.data['reward_duration_ms']
+            )
 
         now = time.time()
         cue_end = now + self.data['cue_duration_ms'] / 1000
@@ -329,7 +330,7 @@ class Session:
             time.sleep(0.008)
             now = time.time()
 
-        self._rpi._end_trial()
+        self._rpi.end_trial()
 
         if self._outcome == 1:
             print("Successful reach!")
@@ -354,10 +355,10 @@ class Session:
             Passed to function by RPi.GPIO event callback; ignored.
 
         """
-        self._rpi._successful_grasp(self._current_spout)
+        self._rpi.successful_grasp(self._current_spout)
         self._outcome = 1
         if not self._water_at_cue_onset:
-            self._rpi._dispense_water(
+            self._rpi.dispense_water(
                 self._current_spout,
                 self.data['reward_duration_ms']
             )
@@ -373,7 +374,7 @@ class Session:
             Passed to function by RPi.GPIO event callback; ignored.
 
         """
-        self._rpi._incorrect_grasp(self._current_spout)
+        self._rpi.incorrect_grasp(self._current_spout)
         self._outcome = 2
 
     def _end_session_manually(self, *args, **kwargs):
@@ -396,7 +397,7 @@ class Session:
             press interrupting a training session.
 
         """
-        self._rpi._cleanup()
+        self._rpi.cleanup()
         self._collate_data(manual=manual)
         self._display_training_results()
         print('\a')
@@ -421,20 +422,20 @@ class Session:
 
         data['cue_timepoints'] = []
         data['touch_timepoints'] = []
-        spont_reach_timepoints = []
+        spont_reach_timepoints = [[], []]
 
-        for idx, spout in enumerate(self._rpi._spouts):
-            data['spont_reach_spouts'] = map(
+        for idx, spout in enumerate(self._rpi.spouts):
+            data['spont_reach_spouts'] = list(map(
                 lambda x: idx if x == spout['touch'] else x,
                 data['spont_reach_spouts']
-            )
+            ))
 
             spont_reach_timepoints[idx].append([
                 b for a, b in zip(
                     data['spont_reach_spouts'],
                     data['spont_reach_timepoints']
                 ) if idx
-            ]
+            ])
 
             data['cue_timepoints'].append(spout['cue_timepoints'])
             data['touch_timepoints'].append(spout['touch_timepoints'])
@@ -467,14 +468,15 @@ class Session:
         print(f"# __________ The End __________ #")
         print(f"")
         print(f"Trials:            {trial_count}")
-        print(f"Rewarded reaches:  {self._reward_count} ({reward_perc:0.1f}%%)")
-        print(f"Missed cues:       {miss_count} ({miss_perc:0.1f}%%)")
+        print(f"Correct reaches:   {self._reward_count} ({reward_perc:0.1f}%)")
+        print(f"Missed cues:       {miss_count} ({miss_perc:0.1f}%)")
         print(f"Spont. reaches:    {len(data['spont_reach_spouts'])}")
         print(f"ITI resets:        {sum(iti_resets)}")
         print(f"    left paw:      {iti_resets[0]}")
         print(f"    right paw:     {iti_resets[1]}")
         print(f"\n# _____________________________ #\n")
-        print(f"%i rewards * 6uL = %i uL")
+        print(f"1000 uL - {self._reward_count} * 6 uL")
+        print(f"        = {1000 - self._reward_count * 6} uL")
 
     def _prompt_to_add_training_notes(self):
         """
@@ -482,7 +484,7 @@ class Session:
         displaying training results) to ask if they want to add notes to the
         data.
         """
-        data["notes"] = input("\nAdd any notes to save:\n")
+        self.data["notes"] = input("\nAdd any notes to save:\n")
 
     @lazy_property
     def reaction_times(self):
@@ -494,15 +496,13 @@ class Session:
         :class:`list` of :class:`ints`s
             Chronological list of reaction times in milliseconds.
         """
-        import operator
-        reaction_times = []
 
-        touch_timepoints = [timepoint
-            for spout_list in self.data['touch_timepoints']
-            for timepoint in spout_list]
+        touch_timepoints = []
+        for sublist in self.data['touch_timepoints']:
+            touch_timepoints.extend(sublist)
 
-        cue_timepoints = [timepoint
-            for spout_list in self.data['cue_timepoints']
-            for timepoint in spout_list]
+        cue_timepoints = []
+        for sublist in self.data['cue_timepoints']:
+            cue_timepoints.extend(sublist)
 
         return list(map(operator.sub, touch_timepoints, cue_timepoints))

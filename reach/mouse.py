@@ -12,9 +12,9 @@ using the :class:`Mouse.train()` method.
 import json
 from os.path import isdir, isfile, join
 
-from reach.config import _read_config
+from reach.config import read_config
 from reach.session import Session
-from reach.utilities import *
+from reach.utilities import lazy_property, enforce_suffix
 
 
 class Mouse:
@@ -45,8 +45,13 @@ class Mouse:
         Initialise Mouse object using pre-existing training data stored within
         a training JSON.
         """
+        if mouse_id is None:
+            raise SystemError(
+                "mouse_id must contain a string to use Mouse.init_from_file"
+            )
+
         if isfile(json_path):
-            training_data = Session._init_all_from_file(
+            training_data = Session.init_all_from_file(
                 json_path=json_path
             )
             return cls(mouse_id=mouse_id, training_data=training_data)
@@ -56,7 +61,7 @@ class Mouse:
             full_path = enforce_suffix(full_path, '.json')
 
             if isfile(full_path):
-                training_data = Session._init_all_from_file(
+                training_data = Session.init_all_from_file(
                     json_path=full_path
                 )
                 return cls(mouse_id=mouse_id, training_data=training_data)
@@ -66,12 +71,12 @@ class Mouse:
         return cls(mouse_id=mouse_id)
 
     def train(
-        self,
-        config_file=None,
-        weight=None,
-        trainer=None,
-        training_box=None,
-    ):
+            self,
+            config_file=None,
+            weight=None,
+            trainer=None,
+            training_box=None,
+        ):
         """
         Start reaching training session and add new data to training data.
 
@@ -85,7 +90,7 @@ class Mouse:
         if self.mouse_id is not None:
             print(f'Training mouse: {self.mouse_id}')
 
-        config = _read_config(config_file)
+        config = read_config(config_file)
         new_session = Session()
         new_session.run(config)
         self._training_data.append(new_session)
