@@ -1,8 +1,10 @@
-# python bytecode
 __pycache__
 *.pyc
 *.pyo
 *.pyd
+
+reach.egg-info
+venv
 
 # config files
 *.ini

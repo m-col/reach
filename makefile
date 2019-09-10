@@ -13,9 +13,8 @@ clean:
 
 TEST_PATHS = \
 	$(shell find ./reach -name '*.py') \
-	./main.py \
-	./setup.py \
-	./tests
+	$(shell find ./tests -name '*.py') \
+	./setup.py
 
 pylint:
 	@echo "Running pylint..."
@@ -23,7 +22,7 @@ pylint:
 
 flake8:
 	@echo "Running flake8..."
-	flake8 $(TEST_PATHS)
+	flake8
 
 pytest:
 	@echo "Running py.test tests..."
