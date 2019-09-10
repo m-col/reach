@@ -1,7 +1,7 @@
 """
 Visually-guided reaching task for mice
 
-This library exports three classes:
+This library exports four classes:
 
 :class:`Session` objects are used to control raspberry pi hardware for a single
 training session of the visually-guided reaching task for mice. They
@@ -18,16 +18,22 @@ intended to be used for post-training analysis of behavioural data in user
 scripts outside of the library. See scripts/plotting/cohort_reaction_times.py
 for an example.
 
+:class:`UtilityPi` contains utilities that are used to perform testing of the
+training box hardware. See scripts/utilities/ for scripts that perform these
+tests.
+
 """
 
-__version__ = '2019.09.08.0'
+__version__ = '2019.09.10.0'
 
 from reach.cohort import Cohort
 from reach.mouse import Mouse
 from reach.session import Session
+from reach.raspberry import UtilityPi
 
 __all__ = [
     'Cohort',
     'Mouse',
     'Session',
+    'UtilityPi',
 ]

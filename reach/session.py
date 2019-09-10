@@ -239,7 +239,7 @@ class Session:
             self._increase_spont_reaches_callback
         )
 
-        self._rpi.set_button_callback(self._reverse_shaping_callback)
+        self._rpi.set_button_callback(0, self._reverse_shaping_callback)
         self._water_at_cue_onset = self.data['shaping']
 
         while True:
