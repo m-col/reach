@@ -10,6 +10,7 @@ using the :class:`Mouse.train()` method.
 
 
 import json
+import textwrap
 from os.path import isdir, isfile, join
 
 from reach.config import read_config
@@ -66,7 +67,10 @@ class Mouse:
                 )
                 return cls(mouse_id=mouse_id, training_data=training_data)
 
-        print(f"File {json_path} not found.")
+            print(f"File {full_path} not found.")
+        else:
+            print(f"File {json_path} not found.")
+
         print("Initialising empty Mouse object.")
         return cls(mouse_id=mouse_id)
 
@@ -104,12 +108,29 @@ class Mouse:
 
         """
 
-        json_path = enforce_suffix(json_path, '.json')
+        if isfile(enforce_suffix(json_path, '.json')):
+            full_path = enforce_suffix(json_path, '.json')
 
-        with open(json_path, 'w') as json_file:
-            json.dump(self._training_data, json_file)
+        elif isdir(json_path):
+            full_path = join(
+                json_path,
+                enforce_suffix(self.mouse_id, '.json')
+            )
 
-        print(f"Data was saved in {json_path}")
+        else:
+            full_path = 'temp_data.json'
+            print(textwrap.dedent(f"""
+            Could not determine correct JSON path from:")
+                json_path: {json_path}
+                mouse_id:  {self.mouse_id}
+            Saved data into {full_path}"""))
+
+        data = [i.data for i in self._training_data]
+
+        with open(full_path, 'w') as json_file:
+            json.dump(data, json_file)
+
+        print(f"Data was saved in {full_path}")
 
     def get_session_reaction_times(self, session_number):
         """

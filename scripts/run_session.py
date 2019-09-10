@@ -95,4 +95,4 @@ mouse.train(
     metadata=metadata
 )
 
-mouse.save_data_to_file(json_path)
+mouse.save_data_to_file(settings.json_path)

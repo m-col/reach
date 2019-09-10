@@ -245,17 +245,18 @@ class Session:
         data = self.data
         iti_min, iti_max = data['iti']
 
-        print(textwrap.dedent(f"""
+        print(textwrap.dedent(
+            f"""
+            _________________________________
 
-        _________________________________
-
-        Spouts:      {data['spout_count']}
-        Duration:    {data['duration']} s
-        Cue:         {data['cue_duration_ms']} ms
-        ITI:         {iti_min} - {iti_max} ms
-        Shaping:     {data['shaping']}
-        _________________________________
-        """))
+            Spouts:      {data['spout_count']}
+            Duration:    {data['duration']} s
+            Cue:         {data['cue_duration_ms']} ms
+            ITI:         {iti_min} - {iti_max} ms
+            Shaping:     {data['shaping']}
+            _________________________________
+            """
+        ))
 
     def _inter_trial_interval(self):
         """
@@ -456,12 +457,13 @@ class Session:
         spont_reach_timepoints = [[], []]
 
         for idx, spout in enumerate(self._rpi.spouts):
+            # pylint: disable=cell-var-from-loop
             data['spont_reach_spouts'] = list(map(
                 lambda x: idx if x == spout['touch'] else x,
                 data['spont_reach_spouts']
             ))
 
-            spont_reach_timepoints[idx].append([
+            spont_reach_timepoints[idx].extend([
                 b for a, b in zip(
                     data['spont_reach_spouts'],
                     data['spont_reach_timepoints']
