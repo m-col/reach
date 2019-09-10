@@ -7,7 +7,7 @@ Run a training session
 import argparse
 import os
 
-from reach import Mouse, Session
+from reach import Mouse
 
 
 home = os.path.expanduser('~')
@@ -43,7 +43,7 @@ def parse_args():
         '-w', '--weight',
         help='Specify mouse weight',
         default=None,
-        type=int
+        type=str
     )
 
     parser.add_argument(
@@ -69,19 +69,30 @@ def parse_args():
 
 settings = parse_args()
 
+
+# add any necessary metadata
+metadata = {}
+for key in ['trainer', 'weight', 'training_box']:
+    if getattr(settings, key):
+        metadata.update({key: getattr(settings, key)})
+
+
 if settings.mouse_id is None:
+    # Instantiate anonymous mouse
     mouse = Mouse()
+
 else:
+    # Instantiate mouse from training JSON
     mouse = Mouse.init_from_file(
         mouse_id=settings.mouse_id,
         json_path=settings.json_path
     )
 
+
+# Begin the training session
 mouse.train(
     config_file=settings.config_file,
-    weight=settings.weight,
-    trainer=settings.trainer,
-    training_box=settings.training_box,
+    metadata=metadata
 )
 
 mouse.save_data_to_file(json_path)

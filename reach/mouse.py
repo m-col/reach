@@ -70,20 +70,17 @@ class Mouse:
         print("Initialising empty Mouse object.")
         return cls(mouse_id=mouse_id)
 
-    def train(
-            self,
-            config_file=None,
-            weight=None,
-            trainer=None,
-            training_box=None,
-        ):
+    def train(self, config_file=None, metadata=None):
         """
         Start reaching training session and add new data to training data.
 
         Parameters
         ----------
-        config_file : :class:`str`
+        config_file : :class:`str`, optional
             Path to the configuration file containing training settings.
+
+        metadata : :class:`dict`, optional
+            Extra metadata that should be saved into the new session's data.
 
         """
 
@@ -91,8 +88,9 @@ class Mouse:
             print(f'Training mouse: {self.mouse_id}')
 
         config = read_config(config_file)
-        new_session = Session()
+        new_session = Session(metadata=metadata)
         new_session.run(config)
+
         self._training_data.append(new_session)
 
     def save_data_to_file(self, json_path):

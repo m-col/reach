@@ -26,11 +26,37 @@ class Session:
     ----------
     data : :class:`dict`
         Stores all training data and metadata that is saved and loaded from the
-        training JSONs. It can be specified as a kwarg to substantiate a past
-        training session. See below for information on keys.
+        training JSONs. See below for information on keys.
 
     data keys
     ---------
+    date : :class:`str`
+        The date on which the training occurred in %Y-%m-%d format.
+
+    start_time and end_time : :class:`int`
+        The start and end times of the session in Unix time.
+
+    duration : :class:`int`
+        The duration of the session in seconds.
+
+    shaping : :class:`bool`
+        Specifies if this session was a shaping session i.e. water is/was
+        dispensed upon cue onset rather than successful grasp.
+
+    spout_count : :class:`int`
+        The number of target spouts used in this session.
+
+    iti : :class:`tuple` of 2 :class:`int`s
+        The minimum and maximum inter-trial intervals.
+
+    cue_duration_ms : :class:`int`
+        The duration in milliseconds for which the cue is illuminated in this
+        session.
+
+    reward_duration_ms : :class:`int`
+        The duration in milliseconds for which the solenoid is opened when is a
+        reward is given.
+
     spont_reach_spouts : :class:`list` of :class:`ints`
         During training this stores pin numbers corresponding to spout touch
         sensors that detect spontaneous reaches during the inter-trial
@@ -46,39 +72,6 @@ class Session:
         time) for all premature movements that reset the inter-trial interval
         for the left and right paws respectively.
 
-    shaping : :class:`bool`
-        Specifies if this session was a shaping session i.e. water is/was
-        dispensed upon cue onset rather than successful grasp.
-
-    spout_count : :class:`int`
-        The number of target spouts used in this session.
-
-    duration : :class:`int`
-        The duration of the session in seconds.
-
-    start_time and end_time : :class:`int`
-        The start and end times of the session in Unix time.
-
-    date : :class:`str`
-        The date on which the training occurred in %Y-%m-%d format.
-
-    box : :class:`int`
-        The number of the training box which was used for this session.
-
-    trainer : :class:`str`
-        The training who ran this session.
-
-    iti : :class:`tuple` of 2 :class:`int`s
-        The minimum and maximum inter-trial intervals.
-
-    cue_duration_ms : :class:`int`
-        The duration in milliseconds for which the cue is illuminated in this
-        session.
-
-    reward_duration_ms : :class:`int`
-        The duration in milliseconds for which the solenoid is opened when is a
-        reward is given.
-
     cue_timepoints : :class:`list` of up to 2 :class:`list`s of :class:`int`s
         The timepoints (in Unix time) at which the nth cue was illuminated at
         the start of a new trial.
@@ -90,30 +83,35 @@ class Session:
     notes : :class:`str`
         Training notes made during the training session.
 
-    weight : :class:`int`
-        The weight of the mouse at the start of the training session.
-
     """
 
-    def __init__(
-            self,
-            data=None,
-            training_box=None,
-            weight=None,
-            trainer=None,
-    ):
+    def __init__(self, data=None, metadata=None):
+        """
+        Instantiate a representation of a training session.
+
+        Parameters
+        ----------
+        data : :class:`dict`, optional
+            Pre-fill the data attribute with data i.e. when we are handling a
+            past session.
+
+        metadata : :class:`dict`, optional
+            Add metadata to the data attribute to save with the new session
+            e.g. trainer, mouse weight, training box number.
+
+        """
 
         if data is None:
             self.data = {}
             self.data['spont_reach_spouts'] = []
             self.data['spont_reach_timepoints'] = []
             self.data['resets_timepoints'] = [[], []]
-            self.data['weight'] = weight
-            self.data['training_box'] = training_box
-            self.data['trainer'] = trainer
 
         else:
             self.data = data
+
+        if metadata is not None:
+            self.data.update(metadata)
 
     @classmethod
     def init_all_from_file(cls, json_path=None):
