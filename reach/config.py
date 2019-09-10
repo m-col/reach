@@ -95,11 +95,15 @@ def read_config(config_file):
     config_dict = {}
     config_dict['duration'] = config.getint('Settings', 'duration')
     config_dict['spout_count'] = config.getint('Settings', 'spout_count')
-    config_dict['reward_duration_ms'] = config.getint('Settings', 'reward_duration_ms')
-    config_dict['cue_duration_ms'] = config.getint('Settings', 'cue_duration_ms')
     config_dict['iti'] = config.get('Settings', 'iti')
     config_dict['iti'] = [int(i) for i in config_dict['iti'].split(',')]
     config_dict['shaping'] = config.getboolean('Settings', 'shaping')
     config_dict['json_dir'] = config.get('Settings', 'json_dir')
+    config_dict['cue_duration_ms'] = config.getint(
+        'Settings', 'cue_duration_ms'
+    )
+    config_dict['reward_duration_ms'] = config.getint(
+        'Settings', 'reward_duration_ms'
+    )
 
     return config_dict

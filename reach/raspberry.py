@@ -13,6 +13,7 @@ Upon import of this module, we check if we can import RPI.GPIO. If we can, we
 export :class:`._RPi` as :class:`._RPiReal`, else as :class:`._RPiMock`.
 
 """
+# pylint: disable=unused-argument,arguments-differ
 
 
 import signal
@@ -20,7 +21,7 @@ import time
 
 _IS_RASPBERRY_PI = True
 try:
-    import RPi.GPIO as GPIO
+    import RPi.GPIO as GPIO  # pylint: disable=import-error
 except ModuleNotFoundError:
     _IS_RASPBERRY_PI = False
 
@@ -292,17 +293,17 @@ class _RPiReal:
             GPIO.output(spout['cue'], False)
             GPIO.remove_event_detect(spout['touch'])
 
-    def cleanup(self, signal_number=0, frame=0):
+    def cleanup(self, signal_number=None, frame=None):
         """
         Clean up and uninitialise pins.
 
         Parameters
         ----------
         signal_number : :class:`int`, optional
-            Passed automatically by signal.signal.
+            Passed to function by signal.signal; ignored.
 
         frame : :class:`int`, optional
-            Passed automatically by signal.signal.
+            Passed to function by signal.signal; ignored.
 
         """
         for spout in self.spouts:
@@ -334,7 +335,7 @@ class _RPiMock(_RPiReal):
         """
         self._pin_states = [0] * 27
         for button in self._button_pins:
-            self._pin_states[button] = 1 
+            self._pin_states[button] = 1
 
         for spout in self.spouts:
             spout['cue_timepoints'] = []
@@ -435,7 +436,9 @@ class _RPiMock(_RPiReal):
         """
 
 
+# pylint: disable=invalid-name
 _RPi = _RPiReal if _IS_RASPBERRY_PI else _RPiMock
+# pylint: enable=invalid-name
 
 
 class UtilityPi(_RPiReal):
@@ -447,19 +450,10 @@ class UtilityPi(_RPiReal):
 
     def __init__(self):
         """
-        This subclass interacts with both spouts so does not need the
-        spout_count parameter that is passed to :class:`_RPi`.
+        This subclass interacts with both spouts so initialises as
+        :class:`_RPi` with two spouts.
         """
-        self._button_pins = _PIN_NUMBERS['buttons']
-        self.paw_pins = _PIN_NUMBERS['paw_sensors']
-        self.spouts = _PIN_NUMBERS['spouts']
-
-        self.initialise_pins()
-
-        signal.signal(
-            signal.SIGINT,
-            self.cleanup
-        )
+        super().__init__(2)
 
     def hold_open_solenoid(self):
         """
@@ -469,7 +463,7 @@ class UtilityPi(_RPiReal):
         print("Hold a button to open the corresponding solenoid.")
 
         def _toggle(pin):
-            sleep(0.010)
+            time.sleep(0.010)
             GPIO.output(
                 self.spouts[self._button_pins.index(pin)]['solenoid'],
                 not GPIO.input(pin)

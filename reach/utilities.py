@@ -10,7 +10,7 @@ Miscellaneous utilities that do not fit into any main class.
 import functools
 
 
-class lazy_property: # pylint: disable=invalid-name,too-few-public-methods
+class lazy_property:  # pylint: disable=invalid-name,too-few-public-methods
     """
     Method decorator that results in property functions being replaced by the
     result of their first call, so future calls do not recalculate the same
