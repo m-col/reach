@@ -12,6 +12,7 @@ import json
 import operator
 import random
 import signal
+import textwrap
 import time
 
 from reach.raspberry import _RPi
@@ -216,13 +217,17 @@ class Session:
         data = self.data
         iti_min, iti_max = data['iti']
 
-        print("\n_________________________________\n")
-        print(f"Spouts:      {data['spout_count']}")
-        print(f"Duration:    {data['duration']} s")
-        print(f"Cue:         {data['cue_duration_ms']} ms")
-        print(f"ITI:         {iti_min} - {iti_max} ms")
-        print(f"Shaping:     {data['shaping']}")
-        print("\n_________________________________\n")
+        print(textwrap.dedent(f"""
+
+        _________________________________
+
+        Spouts:      {data['spout_count']}
+        Duration:    {data['duration']} s
+        Cue:         {data['cue_duration_ms']} ms
+        ITI:         {iti_min} - {iti_max} ms
+        Shaping:     {data['shaping']}
+        _________________________________
+        """))
 
     def _inter_trial_interval(self):
         """
@@ -462,19 +467,22 @@ class Session:
             len(data['resets_timepoints'][1]),
         )
 
-        print(f"\n_________________________________\n")
-        print(f"# __________ The End __________ #")
-        print(f"")
-        print(f"Trials:            {trial_count}")
-        print(f"Correct reaches:   {self._reward_count} ({reward_perc:0.1f}%)")
-        print(f"Missed cues:       {miss_count} ({miss_perc:0.1f}%)")
-        print(f"Spont. reaches:    {len(data['spont_reach_spouts'])}")
-        print(f"ITI resets:        {sum(iti_resets)}")
-        print(f"    left paw:      {iti_resets[0]}")
-        print(f"    right paw:     {iti_resets[1]}")
-        print(f"\n# _____________________________ #\n")
-        print(f"1000 uL - {self._reward_count} * 6 uL")
-        print(f"        = {1000 - self._reward_count * 6} uL")
+        print(textwrap.dedent(f"""
+        _________________________________
+        # __________ The End __________ #
+
+        Trials:            {trial_count}
+        Correct reaches:   {self._reward_count} ({reward_perc:0.1f}%)
+        Missed cues:       {miss_count} ({miss_perc:0.1f}%)
+        Spont. reaches:    {len(data['spont_reach_spouts'])}
+        ITI resets:        {sum(iti_resets)}
+            left paw:      {iti_resets[0]}
+            right paw:     {iti_resets[1]}
+        # _____________________________ #
+
+        1000 uL - {self._reward_count} * 6 uL
+                    = {1000 - self._reward_count * 6} uL
+        """))
 
     def _prompt_to_add_training_notes(self):
         """
