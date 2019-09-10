@@ -29,6 +29,30 @@ class Session:
         Stores all training data and metadata that is saved and loaded from the
         training JSONs. See below for information on keys.
 
+    _outcome : :class:`int`
+        (Used during training) State of current trial. 0=non-action, 1=success,
+        2=incorrect reach made.
+
+    _iti_broken : :class:`bool`
+        (Used during training) State of an inter-trial interval i.e. broken or
+        not. This is updated upon internally-generated movement to reset the
+        ITI.
+
+    _current_spout : :class:`int`
+        (Used during training) The spout number used for the current trial.
+
+    _water_at_cue_onset : :class:`bool`
+        (Used during training) Determines whether water will be dispensed at
+        the next cue onset. In shaping mode, this is the default.
+
+    _rpi : :class:`._RPi`
+        (Used during training) The raspberry pi that controls the training box
+        hardware.
+
+    _reward_count : :class:`int`
+        (Used during training) A count of how many successful cued reaches have
+        been performed during the current session.
+
     data keys
     ---------
     date : :class:`str`
@@ -114,6 +138,14 @@ class Session:
         if metadata is not None:
             self.data.update(metadata)
 
+        # These attributes track state during training
+        self._outcome = 0
+        self._iti_broken = False
+        self._current_spout = None
+        self._water_at_cue_onset = None
+        self._rpi = None
+        self._reward_count = 0
+
     @classmethod
     def init_all_from_file(cls, json_path=None):
         """
@@ -170,9 +202,6 @@ class Session:
         data = self.data
         data.update(config)
 
-        self._outcome = 0
-        self._iti_broken = False
-        self._current_spout = None
         self._water_at_cue_onset = data['shaping']
 
         self._display_training_settings()
@@ -190,7 +219,6 @@ class Session:
         data['end_time'] = now + data['duration']
 
         trial_count = 0
-        self._reward_count = 0
 
         while now < data['end_time']:
             trial_count += 1
@@ -295,7 +323,7 @@ class Session:
         self.data['spont_reach_spouts'].append(pin)
         self.data['spont_reach_timepoints'].append(time.time())
 
-    def _reverse_shaping_callback(self, pin):
+    def _reverse_shaping_callback(self, pin): # pylint: disable=unused-argument
         """
         Callback function applied to start button that reverses the state of
         the shaping boolean i.e. switches water dispensing between cue onset
@@ -347,7 +375,7 @@ class Session:
         else:
             print("Missed reach")
 
-    def _reward_callback(self, pin):
+    def _reward_callback(self, pin): # pylint: disable=unused-argument
         """
         Callback function executed upon successful grasp of illuminated reach
         target during trial.
@@ -366,7 +394,7 @@ class Session:
                 self.data['reward_duration_ms']
             )
 
-    def _incorrect_grasp_callback(self, pin):
+    def _incorrect_grasp_callback(self, pin): # pylint: disable=unused-argument
         """
         Callback function executed upon grasp of incorrect reach target during
         trial.
@@ -380,7 +408,7 @@ class Session:
         self._rpi.incorrect_grasp(self._current_spout)
         self._outcome = 2
 
-    def _end_session_manually(self, *args, **kwargs):
+    def _end_session_manually(self, *args, **kwargs): # pylint: disable=unused-argument
         """
         Control-C signal handler used during live training sessions that allows
         for clean exiting and saving of collected data.

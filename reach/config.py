@@ -56,8 +56,6 @@ def _write_config(config_file, config=None):
 
     if config is None:
         config = _default_config()
-    else:
-        config_dict['iti'] = ','.join([str(i) for i in config_dict['iti']])
 
     with open(config_file, 'w') as new_file:
         config.write(new_file)
@@ -86,8 +84,8 @@ def read_config(config_file):
 
             if response == 'n':
                 raise SystemError
-            else:
-                _write_config(config_file)
+
+            _write_config(config_file)
 
         try:
             config.read(config_file)
@@ -103,9 +101,5 @@ def read_config(config_file):
     config_dict['iti'] = [int(i) for i in config_dict['iti'].split(',')]
     config_dict['shaping'] = config.getboolean('Settings', 'shaping')
     config_dict['json_dir'] = config.get('Settings', 'json_dir')
-
-    #config_dict = dict(config.items('Settings'))
-    #config_dict['iti'] = [int(i) for i in config_dict['iti'].split(',')]
-    
 
     return config_dict
