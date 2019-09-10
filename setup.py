@@ -1,9 +1,14 @@
-import setuptools
+#!/usr/bin/env python
+# pylint: disable=invalid-name,redefined-outer-name,missing-docstring
+
+
 from os.path import join
 import re
+import setuptools
 
 
 def get_version():
+    """ Read version from __init__.py file """
     with open(join('reach', '__init__.py'), 'r') as f:
         content = f.read()
     p = re.compile(r'^__version__ = [\'"]([^\'\"]*)[\'"]', re.M)
@@ -12,7 +17,6 @@ def get_version():
 
 with open("readme.rst", "r") as f:
     long_description = f.read()
-
 
 setuptools.setup(
     name="reach",
@@ -24,7 +28,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/x-rst",
     url="https://github.com/DuguidLab/reach",
-    packages=setuptools.find_packages(),
+    packages=['reach'],
     install_requires=[
         "matplotlib",
         "seaborn",
