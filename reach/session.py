@@ -83,17 +83,17 @@ class Session:
         The duration in milliseconds for which the solenoid is opened when is a
         reward is given.
 
-    spont_reach_spouts : :class:`list` of :class:`ints`
+    spont_reach_spouts : :class:`list` of :class:`int`s
         During training this stores pin numbers corresponding to spout touch
         sensors that detect spontaneous reaches during the inter-trial
         interval, then at the end of training this is converted to 0s and 1s to
         represent left or right spout.
 
-    spont_reach_timepoints : :class:`list` of :class:`ints`
+    spont_reach_timepoints : :class:`list` of :class:`int`s
         This contains the timepoints (in Unix time) for all spontaneous
         reaches.
 
-    resets_timepoints : :class:`list` of 2 :class:`ints`
+    resets_timepoints : :class:`list` of 2 :class:`int`s
         This list stores two lists, which each stores the timepoints (in Unix
         time) for all premature movements that reset the inter-trial interval
         for the left and right paws respectively.
