@@ -17,16 +17,16 @@ from reach.mouse import Mouse
 class Cohort(Sequence):
     """
     Represents a cohort of multiple mice who have undergone behavioural
-    training.
+    training. Cohort can be indexed to easily access a specific mouse.
 
     Attributes
     ----------
-    mouse_ids : :class:`list` of :class:`str`s
-        The list of mouse IDs, which is passed to initialise the instance.
+    mouse_ids : :class:`list` of :class:`str`\s
+        A list of mouse IDs.
 
     mice : :class:`list` of :class:`.Mouse` instances
-        A list containing a :class:`.Mouse` intance for each mouse, storing all
-        of their training data.
+        A list containing a :class:`.Mouse` intance for each mouse in the
+        cohort.
 
     """
 
@@ -40,7 +40,7 @@ class Cohort(Sequence):
             The mice to be included in the cohort, whose data we are going to
             handle.
 
-        mouse_ids : :class:`list` of :class:`str`s
+        mouse_ids : :class:`list` of :class:`str`\s
             List of mouse IDs corresponding to the mice to be handled.
 
         """
@@ -52,6 +52,15 @@ class Cohort(Sequence):
         """
         Initialise the cohort of mice using training JSON files stored within
         the same folder.
+
+        Parameters
+        ----------
+        json_path : :class:`str`
+            Path to the folder containing the training JSONs.
+
+        mouse_ids : :class:`list` of :class:`str`\s
+            IDs for the mice to be handled within the cohort.
+
         """
         mice = []
 
@@ -67,7 +76,7 @@ class Cohort(Sequence):
 
     def __getitem__(self, key):
         """
-        Allow indexing directly, returning the nth :class:`.Mouse`
+        Allow indexing directly, returning the nth :class:`Mouse`
         """
         return self.mice[key]
 

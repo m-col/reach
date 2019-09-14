@@ -27,117 +27,19 @@ class Session:
     Attributes
     ----------
     data : :class:`dict`
-        Stores all training data and metadata that is saved and loaded from the
-        training JSONs. See below for information on keys.
-
-    _outcome : :class:`int`
-        (Used during training) State of current trial. 0=non-action, 1=success,
-        2=incorrect reach made.
-
-    _iti_broken : :class:`bool`
-        (Used during training) State of an inter-trial interval i.e. broken or
-        not. This is updated upon internally-generated movement to reset the
-        ITI.
-
-    _current_spout : :class:`int`
-        (Used during training) The spout number used for the current trial.
-
-    _water_at_cue_onset : :class:`bool`
-        (Used during training) Determines whether water will be dispensed at
-        the next cue onset. In shaping mode, this is the default.
-
-    _rpi : :class:`._RPi`
-        (Used during training) The raspberry pi that controls the training box
-        hardware.
-
-    _reward_count : :class:`int`
-        (Used during training) A count of how many successful cued reaches have
-        been performed during the current session.
-
-    data keys
-    ---------
-    date : :class:`str`
-        The date on which the training occurred in %Y-%m-%d format.
-
-    start_time and end_time : :class:`int`
-        The start and end times of the session in Unix time.
-
-    duration : :class:`int`
-        The duration of the session in seconds.
-
-    shaping : :class:`bool`
-        Specifies if this session was a shaping session i.e. water is/was
-        dispensed upon cue onset rather than successful grasp.
-
-    spout_count : :class:`int`
-        The number of target spouts used in this session.
-
-    iti : :class:`tuple` of 2 :class:`int`s
-        The minimum and maximum inter-trial intervals.
-
-    cue_duration_ms : :class:`int`
-        The duration in milliseconds for which the cue is illuminated in this
-        session.
-
-    reward_duration_ms : :class:`int`
-        The duration in milliseconds for which the solenoid is opened when is a
-        reward is given.
-
-    spont_reach_spouts : :class:`list` of :class:`int`s
-        During training this stores pin numbers corresponding to spout touch
-        sensors that detect spontaneous reaches during the inter-trial
-        interval, then at the end of training this is converted to 0s and 1s to
-        represent left or right spout.
-
-    spont_reach_timepoints : :class:`list` of :class:`int`s
-        This contains the timepoints (in Unix time) for all spontaneous
-        reaches.
-
-    resets_timepoints : :class:`list` of 2 :class:`int`s
-        This list stores two lists, which each stores the timepoints (in Unix
-        time) for all premature movements that reset the inter-trial interval
-        for the left and right paws respectively.
-
-    cue_timepoints : :class:`list` of up to 2 :class:`list`s of :class:`int`s
-        The timepoints (in Unix time) at which the nth cue was illuminated at
-        the start of a new trial.
-
-    touch_timepoints : :class:`list` of up to 2 :class:`list`s of :class:`int`s
-        The timepoints (in Unix time) at which the nth reach target was
-        successfully grasped during a cued trial.
-
-    notes : :class:`str`
-        Training notes made during the training session.
+        Stores all training data that is saved and loaded from the training
+        JSONs. Can be passed as a kwarg to pre-fill entries.
 
     """
 
-    def __init__(self, data=None, metadata=None):
+    def __init__(self, data=None):
         """
         Instantiate a representation of a training session.
-
-        Parameters
-        ----------
-        data : :class:`dict`, optional
-            Pre-fill the data attribute with data i.e. when we are handling a
-            past session.
-
-        metadata : :class:`dict`, optional
-            Add metadata to the data attribute to save with the new session
-            e.g. trainer, mouse weight, training box number.
-
         """
 
-        if data is None:
-            self.data = {}
-            self.data['spont_reach_spouts'] = []
-            self.data['spont_reach_timepoints'] = []
-            self.data['resets_timepoints'] = [[], []]
-
-        else:
-            self.data = data
-
-        if metadata is not None:
-            self.data.update(metadata)
+        self.data = {}
+        if data is not None:
+            self.data.update(data)
 
         # These attributes track state during training
         self._outcome = 0
@@ -150,7 +52,8 @@ class Session:
     @classmethod
     def init_all_from_file(cls, json_path=None):
         """
-        Generate list of Session objects from data stored in Training JSON.
+        Generate a :class:`list` of :class:`Session` objects from data stored
+        in a Training JSON.
 
         Parameters
         ----------
@@ -176,32 +79,22 @@ class Session:
         Parameters
         ----------
         config : :class:`dict`
-            List of configuration parameters.
+            Training settings.
 
-        Attributes
-        ----------
-        _outcome : :class:`int`
-            State of current trial. 0 means non-action, 1 means success, 2
-            means incorrect reach made.
-
-        _iti_broken : :class:`bool`
-            State of an inter-trial interval i.e. broken or not. This is
-            updated upon internally-generated movement to reset the ITI.
-
-        _current_spout : :class:`int`
-            The spout number used for the current trial.
-
-        _water_at_cue_onset : :class:`bool`
-            Determines whether water will be dispensed at the next cue onset.
-
-        _rpi : :class:`.RPi`
-            The raspberry pi that controls the training box hardware.
         """
 
         random.seed()
 
         data = self.data
         data.update(config)
+
+        if 'resets_timepoints' in data:
+            print('resets_timepoints key found in session data.')
+            SystemError('Cancelling.')
+
+        data['spont_reach_spouts'] = []
+        data['spont_reach_timepoints'] = []
+        data['resets_timepoints'] = [[], []]
 
         self._water_at_cue_onset = data['shaping']
 
@@ -446,8 +339,8 @@ class Session:
 
     def _collate_data(self, manual=False):
         """
-        Reorganise collected training data and metadata into the final form
-        saved in training JSONs.
+        Reorganise collected training data into the final form saved in
+        training JSONs.
 
         Parameters
         ----------
@@ -539,8 +432,9 @@ class Session:
 
         Returns
         -------
-        :class:`list` of :class:`ints`s
+        :class:`list` of :class:`float`\s
             Chronological list of reaction times in milliseconds.
+
         """
 
         touch_timepoints = []

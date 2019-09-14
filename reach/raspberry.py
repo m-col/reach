@@ -443,22 +443,21 @@ _RPi = _RPiReal if _IS_RASPBERRY_PI else _RPiMock
 
 class UtilityPi(_RPiReal):
     """
-    A subclass of :class:`_.RPi` that exposes some additional methods that
-    serve as utilities for testing the training hardware.
+    A representation of a Raspberry Pi that exposes methods that serve as
+    utilities for testing the training hardware.
 
     """
 
     def __init__(self):
         """
         This subclass interacts with both spouts so initialises as
-        :class:`_RPi` with two spouts.
+        :class:`._RPi` with two spouts.
         """
         super().__init__(2)
 
     def hold_open_solenoid(self):
         """
-        Hold open a solenoid to continuous while one of the two buttons is
-        held.
+        Hold open a target's solenoid continuous while a button is held.
         """
         print("Hold a button to open the corresponding solenoid.")
 
@@ -479,7 +478,7 @@ class UtilityPi(_RPiReal):
 
     def test_sensors(self):
         """
-        Print message upon contact of any touch sensor.
+        Print a message upon contact of any touch sensor.
         """
         print("Testing all touch sensors.")
 
@@ -504,7 +503,7 @@ class UtilityPi(_RPiReal):
 
     def toggle_spout_leds(self):
         """
-        Toggle the target spout LEDs with the buttons.
+        Toggle the two target spout LEDs with the two buttons.
         """
         print("Push button to toggle corresponding LED.")
 
@@ -525,8 +524,7 @@ class UtilityPi(_RPiReal):
 
     def test_reward_volume(self):
         """
-        Measure volume of water being dispensed for a specified dispense
-        duration.
+        Measure volume of water dispensed by a specified dispense duration.
         """
 
         duration_ms = int(input("Specify duration to dispense in ms: "))
