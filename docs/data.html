@@ -1,0 +1,277 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Data Structure &mdash; reach  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Training Box Construction" href="construction.html" />
+    <link rel="prev" title="Behavioural Training" href="training.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> reach
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Library API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training.html">Behavioural Training</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#keys">Keys</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="construction.html">Training Box Construction</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">reach</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Data Structure</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/data.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="data-structure">
+<h1>Data Structure<a class="headerlink" href="#data-structure" title="Permalink to this headline">¶</a></h1>
+<p>Each <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> object contains an attribute named <code class="xref py py-class docutils literal notranslate"><span class="pre">data</span></code>, which
+unsurprisingly stores data for that training session. This includes behavioural
+timepoints that record events during training, settings used for the session,
+and any arbitrary metadata specified during training.</p>
+<p>The behavioural timepoint data can then be used to analyse the mouse’s
+performance.</p>
+<div class="section" id="keys">
+<h2>Keys<a class="headerlink" href="#keys" title="Permalink to this headline">¶</a></h2>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Session.data</span></code> is a <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>. Below lists the basic keys contained
+within:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 75%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>date (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>)</p></td>
+<td><p>The date on which the training occurred in %Y-%m-%d format.</p></td>
+</tr>
+<tr class="row-even"><td><p>start_time (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>)</p></td>
+<td><p>The start time of the session in Unix time.</p></td>
+</tr>
+<tr class="row-odd"><td><p>end_time (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>)</p></td>
+<td><p>The end time of the session in Unix time.</p></td>
+</tr>
+<tr class="row-even"><td><p>duration (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
+<td><p>The duration of the session in seconds.</p></td>
+</tr>
+<tr class="row-odd"><td><p>shaping (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>)</p></td>
+<td><p>Specifies if this session was a shaping session i.e. water is/was
+dispensed upon cue onset rather than successful grasp.</p></td>
+</tr>
+<tr class="row-even"><td><p>spout_count (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
+<td><p>The number of target spouts used in this session.</p></td>
+</tr>
+<tr class="row-odd"><td><p>iti (<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code> of 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
+<td><p>The minimum and maximum inter-trial intervals.</p></td>
+</tr>
+<tr class="row-even"><td><p>cue_duration_ms (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
+<td><p>The duration in milliseconds for which the cue is illuminated in this
+session.</p></td>
+</tr>
+<tr class="row-odd"><td><p>reward_duration_ms (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
+<td><p>The duration in milliseconds for which the solenoid is opened when is a
+reward is given.</p></td>
+</tr>
+<tr class="row-even"><td><p>spont_reach_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
+<td><p>This contains the timepoints (in Unix time) for all spontaneous reaches.</p></td>
+</tr>
+<tr class="row-odd"><td><p>resets_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
+<td><p>This list stores two lists, which each stores the timepoints (in Unix
+time) for all premature movements that reset the inter-trial interval
+for the left and right paws respectively.</p></td>
+</tr>
+<tr class="row-even"><td><p>cue_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of 1-2 <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>s of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
+<td><p>The timepoints (in Unix time) at which the nth cue was illuminated at
+the start of a new trial.</p></td>
+</tr>
+<tr class="row-odd"><td><p>touch_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of up to 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>s of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
+<td><p>The timepoints (in Unix time) at which the nth reach target was
+successfully grasped during a cued trial.</p></td>
+</tr>
+<tr class="row-even"><td><p>notes (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>)</p></td>
+<td><p>Training notes made during the training session.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="construction.html" class="btn btn-neutral float-right" title="Training Box Construction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="training.html" class="btn btn-neutral float-left" title="Behavioural Training" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Matt Colligan
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

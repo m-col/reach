@@ -7,7 +7,7 @@ reach.egg-info
 venv
 dist
 build
-docs/_build
+docsrc/_build
 
 temp_data.json
 

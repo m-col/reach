@@ -1,0 +1,295 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Training Box Construction &mdash; reach  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Data Structure" href="data.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> reach
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Library API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training.html">Behavioural Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Structure</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Training Box Construction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parts-list">Parts list</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#d-printed-parts">3D printed parts:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#raspberry-pi">Raspberry Pi:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#circuitry">Circuitry:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#misc">Misc:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#steps">Steps</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">reach</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Training Box Construction</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/construction.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="training-box-construction">
+<h1>Training Box Construction<a class="headerlink" href="#training-box-construction" title="Permalink to this headline">¶</a></h1>
+<p>This page describes how to construct a single training box, which looks like
+this:</p>
+<a class="reference internal image-reference" href="_static/images/training_box.png"><img alt="_static/images/training_box.png" src="_static/images/training_box.png" style="width: 420pt;" /></a>
+<p>The base holds a Raspberry Pi which runs the reach code and operates the
+training box hardware.</p>
+<p>The circuit design was done in <a class="reference external" href="https://fritzing.org/home">fritzing</a>. The
+design file is <a class="reference download internal" download="" href="_downloads/5cfe4daa679270a6e321234215567067/pi_hat_circuit.fzz"><code class="xref download docutils literal notranslate"><span class="pre">here</span></code></a> to be used as
+reference during construction.</p>
+<div class="section" id="parts-list">
+<h2>Parts list<a class="headerlink" href="#parts-list" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="d-printed-parts">
+<h3>3D printed parts:<a class="headerlink" href="#d-printed-parts" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>base</p></li>
+<li><p>2x RIVETS head bars</p></li>
+<li><p>LED case per target spout</p></li>
+<li><p>button box</p></li>
+</ul>
+</div>
+<div class="section" id="raspberry-pi">
+<h3>Raspberry Pi:<a class="headerlink" href="#raspberry-pi" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>power supply</p></li>
+<li><p>SD card flashed with raspbian lite</p></li>
+<li><p>ethernet cable</p></li>
+</ul>
+</div>
+<div class="section" id="circuitry">
+<h3>Circuitry:<a class="headerlink" href="#circuitry" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Adafrauit Perma-Proto HAT for Pi</p></li>
+<li><p>4x touch sensors (proto-pic part #PPAC0012)</p></li>
+<li><p>100 uF capacitor</p></li>
+<li><p>2x momentary push buttons to fit button box</p></li>
+<li><p>2x small solenoid valves</p></li>
+<li><p>2x 1N4001 diodes</p></li>
+<li><p>2x 2N2222 transistors</p></li>
+<li><p>2x 3.9 KOhm resistor</p></li>
+<li><p>2x 100 Ohm resistors</p></li>
+<li><p>2x white LEDs</p></li>
+<li><p>4x 2x1 wire sockets</p></li>
+<li><p>2x 50 ml syringe</p></li>
+<li><p>3.2 mm x 1.6 mm x 3M silicon tubing</p></li>
+<li><p>2x 1.1 x 40 mm (19G) syringe needle</p></li>
+<li><p>conductive foil tape</p></li>
+<li><p>plenty of wire</p></li>
+</ul>
+</div>
+<div class="section" id="misc">
+<h3>Misc:<a class="headerlink" href="#misc" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>2x RIVETS bar thumb screws</p></li>
+<li><p>USB camera</p></li>
+<li><p>three axis coarse manipulator or something else to mount the spouts</p></li>
+<li><p>optic fibres</p></li>
+<li><p>superglue</p></li>
+<li><p>a box to cover the rig during training</p></li>
+<li><p>black paint (optional)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="steps">
+<h2>Steps<a class="headerlink" href="#steps" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Download this git repository onto the Raspberry Pi.</p></li>
+<li><p>Add these lines to /boot/config.txt to disable LEDs:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dtparam</span><span class="o">=</span><span class="n">eth_led0</span><span class="o">=</span><span class="mi">14</span>
+<span class="n">dtparam</span><span class="o">=</span><span class="n">eth_led1</span><span class="o">=</span><span class="mi">14</span>
+<span class="n">dtparam</span><span class="o">=</span><span class="n">pwr_led_trigger</span><span class="o">=</span><span class="n">none</span>
+<span class="n">dtparam</span><span class="o">=</span><span class="n">pwr_led_activelow</span><span class="o">=</span><span class="n">off</span>
+<span class="n">dtparam</span><span class="o">=</span><span class="n">act_led_trigger</span><span class="o">=</span><span class="n">none</span>
+<span class="n">dtparam</span><span class="o">=</span><span class="n">act_led_activelow</span><span class="o">=</span><span class="n">off</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="3">
+<li><p>text</p></li>
+<li><p>text</p></li>
+</ol>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="data.html" class="btn btn-neutral float-left" title="Data Structure" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Matt Colligan
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
