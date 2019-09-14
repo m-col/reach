@@ -10,65 +10,62 @@ and any arbitrary metadata specified during training.
 The behavioural timepoint data can then be used to analyse the mouse's
 performance.
 
-Data keys
----------
+
+Keys
+----
 
 :class:`Session.data` is a :class:`dict`. Below lists the basic keys contained
 within:
 
 
-date : :class:`str`
-    The date on which the training occurred in %Y-%m-%d format.
+.. list-table::
+   :widths: 25 75
 
-start_time and end_time : :class:`int`
-    The start and end times of the session in Unix time.
+   * - date (:class:`str`)
+     - The date on which the training occurred in %Y-%m-%d format.
 
-duration : :class:`int`
-    The duration of the session in seconds.
+   * - start_time (:class:`float`)
+     - The start time of the session in Unix time.
 
-shaping : :class:`bool`
-    Specifies if this session was a shaping session i.e. water is/was
-    dispensed upon cue onset rather than successful grasp.
+   * - end_time (:class:`float`)
+     - The end time of the session in Unix time.
 
-spout_count : :class:`int`
-    The number of target spouts used in this session.
+   * - duration (:class:`int`)
+     - The duration of the session in seconds.
 
-iti : :class:`tuple` of 2 :class:`int`\s
-    The minimum and maximum inter-trial intervals.
+   * - shaping (:class:`bool`)
+     - Specifies if this session was a shaping session i.e. water is/was
+       dispensed upon cue onset rather than successful grasp.
 
-cue_duration_ms : :class:`int`
-    The duration in milliseconds for which the cue is illuminated in this
-    session.
+   * - spout_count (:class:`int`)
+     - The number of target spouts used in this session.
 
-reward_duration_ms : :class:`int`
-    The duration in milliseconds for which the solenoid is opened when is a
-    reward is given.
+   * - iti (:class:`tuple` of 2 :class:`int`\s)
+     - The minimum and maximum inter-trial intervals.
 
-spont_reach_spouts : :class:`list` of :class:`int`\s
-    During training this stores pin numbers corresponding to spout touch
-    sensors that detect spontaneous reaches during the inter-trial
-    interval, then at the end of training this is converted to 0s and 1s to
-    represent left or right spout.
+   * - cue_duration_ms (:class:`int`)
+     - The duration in milliseconds for which the cue is illuminated in this
+       session.
 
-spont_reach_timepoints : :class:`list` of :class:`int`\s
-    This contains the timepoints (in Unix time) for all spontaneous
-    reaches.
+   * - reward_duration_ms (:class:`int`)
+     - The duration in milliseconds for which the solenoid is opened when is a
+       reward is given.
 
-resets_timepoints : :class:`list` of 2 :class:`int`\s
-    This list stores two lists, which each stores the timepoints (in Unix
-    time) for all premature movements that reset the inter-trial interval
-    for the left and right paws respectively.
+   * - spont_reach_timepoints (:class:`list` of :class:`int`\s)
+     - This contains the timepoints (in Unix time) for all spontaneous reaches.
 
-cue_timepoints : :class:`list` of up to 2 :class:`list`\s of
-:class:`int`\s
-    The timepoints (in Unix time) at which the nth cue was illuminated
-    at the start of a new trial.
+   * - resets_timepoints (:class:`list` of 2 :class:`int`\s)
+     - This list stores two lists, which each stores the timepoints (in Unix
+       time) for all premature movements that reset the inter-trial interval
+       for the left and right paws respectively.
 
-touch_timepoints : :class:`list` of up to 2 :class:`list`\s of
-:class:`int`\s
-    The timepoints (in Unix time) at which the nth reach target was
-    successfully grasped during a cued trial.
+   * - cue_timepoints (:class:`list` of 1-2 :class:`list`\s of :class:`int`\s)
+     - The timepoints (in Unix time) at which the nth cue was illuminated at
+       the start of a new trial.
 
-notes : :class:`str`
-    Training notes made during the training session.
+   * - touch_timepoints (:class:`list` of up to 2 :class:`list`\s of :class:`int`\s)
+     - The timepoints (in Unix time) at which the nth reach target was
+       successfully grasped during a cued trial.
 
+   * - notes (:class:`str`)
+     - Training notes made during the training session.
