@@ -2,15 +2,29 @@
 Library API
 ===========
 
-.. automodule:: reach.Session
-   :members:
+Structure
+---------
+
+.. automodule:: reach
+   :no-members:
+
+reach.Session
+-------------
+
+.. autoclass:: reach.Session
+
+reach.Mouse
+-----------
+
+.. autoclass:: reach.Mouse
+
+reach.Cohort
+------------
+
+.. autoclass:: reach.Cohort
    :show-inheritance:
 
-.. automodule:: reach.Mouse
-   :members:
-   :show-inheritance:
+reach.UtilityPi
+---------------
 
-.. automodule:: reach.Cohort
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. autoclass:: reach.UtilityPi
