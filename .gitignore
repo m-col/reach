@@ -9,5 +9,7 @@ dist
 build
 docs/_build
 
+temp_data.json
+
 # training configs
 *.ini
