@@ -2,15 +2,14 @@
 Raspberry Pis
 =============
 
-The :class:`._RPiReal` object represents a raspberry pi and directly controls
-GPIO pins used to operate the training box hardware during behavioural
-training.
+The _RPiReal object represents a raspberry pi and directly controls GPIO pins
+used to operate the training box hardware during behavioural training.
 
-The :class:`._RPiMock` object represents the same as :class:`._RPi` except
-never handles any hardware, acting as a mock raspberry pi.
+The _RPiMock object represents the same as _RPi except never handles any
+hardware, acting as a mock raspberry pi.
 
 Upon import of this module, we check if we can import RPI.GPIO. If we can, we
-export :class:`._RPi` as :class:`._RPiReal`, else as :class:`._RPiMock`.
+export _RPi as _RPiReal, else as _RPiMock.
 
 """
 # pylint: disable=unused-argument,arguments-differ
@@ -50,18 +49,18 @@ class _RPiReal:
 
     Parameters
     ----------
-    spout_count : :class:`int`
+    spout_count : int
         The number of spouts to be used for the current training session.
 
     Attributes
     ----------
-    _button_pins : :class:`list` of 2 :class:`int`
+    _button_pins : list of 2 ints
         The pin numbers that listen to the left and right buttons.
 
-    paw_pins : :class:`list` of 2 :class:`ints`
+    paw_pins : list of 2 ints
         The pin numbers that listen to the left and right paw rests.
 
-    spouts : :class:`list` of :class:`dicts`
+    spouts : list of dicts
         List containing, for len(spouts) spouts, dicts listing the pin numbers
         for each spout's cue, touch and solenoid pins.
 
@@ -73,7 +72,7 @@ class _RPiReal:
 
         Parameters
         ----------
-        spout_count : :class:`int`
+        spout_count : int
             The number of spouts to be used for the current training session.
 
         """
@@ -133,10 +132,10 @@ class _RPiReal:
 
         Parameters
         ----------
-        reset_iti : :class:`func`
+        reset_iti : func
             Callback function executed upon lift of either paw.
 
-        increase_spont_reaches : :class:`func`
+        increase_spont_reaches : func
             Callback function executed upon contact with any spout touch
             sensors.
 
@@ -163,10 +162,10 @@ class _RPiReal:
 
         Parameters
         ----------
-        button : :class:`int`
+        button : int
             The index of the button to assign the function to.
 
-        callback_function : :class:`func`
+        callback_function : func
             Function to be executed upon button press.
 
         """
@@ -208,14 +207,14 @@ class _RPiReal:
 
         Parameters
         ----------
-        spout_number : :class:`int`
+        spout_number : int
             The spout number corresponding to this trial's reach target.
 
-        reward_func : :class:`func`
+        reward_func : func
             Callback function to be executed upon successful grasp of target
             spout.
 
-        incorrect_func : :class:`func`
+        incorrect_func : func
             Callback function to be executed upon incorrect grasp of non-target
             spout.
 
@@ -246,7 +245,7 @@ class _RPiReal:
 
         Parameters
         ----------
-        spout_number : :class:`int`
+        spout_number : int
             The spout number corresponding to this trial's reach target.
 
         """
@@ -260,7 +259,7 @@ class _RPiReal:
 
         Parameters
         ----------
-        spout_number : :class:`int`
+        spout_number : int
             The spout number corresponding to this trial's reach target.
 
         """
@@ -273,10 +272,10 @@ class _RPiReal:
 
         Parameters
         ----------
-        spout_number : :class:`int`
+        spout_number : int
             The spout number to dispense water from i.e. 0=left, 1=right.
 
-        duration_ms : :class:`int`
+        duration_ms : int
             The duration in milliseconds to open the solenoid.
 
         """
@@ -299,10 +298,10 @@ class _RPiReal:
 
         Parameters
         ----------
-        signal_number : :class:`int`, optional
+        signal_number : int, optional
             Passed to function by signal.signal; ignored.
 
-        frame : :class:`int`, optional
+        frame : int, optional
             Passed to function by signal.signal; ignored.
 
         """
@@ -322,10 +321,10 @@ class _RPiMock(_RPiReal):
 
     Attributes
     ----------
-    _pin_states : :class:`list` of 27 :class:`int`s
+    _pin_states : list of 27 ints
         This stores the state of all 27 raspberry pi GPIO pins. This way, each
         pin can be indexed using the inherited pin number attributes to read or
-        change state.
+        change state. (Not implemented yet)
 
     """
 
@@ -376,7 +375,7 @@ class _RPiMock(_RPiReal):
 
         Parameters
         ----------
-        spout_number : :class:`int`
+        spout_number : int
             The spout number corresponding to this trial's hypothetical reach
             target.
 
@@ -391,7 +390,7 @@ class _RPiMock(_RPiReal):
 
         Parameters
         ----------
-        spout_number : :class:`int`
+        spout_number : int
             The spout number corresponding to this trial's reach target.
 
         """
@@ -403,7 +402,7 @@ class _RPiMock(_RPiReal):
 
         Parameters
         ----------
-        spout_number : :class:`int`
+        spout_number : int
             The spout number corresponding to this trial's reach target.
 
         """
@@ -415,10 +414,10 @@ class _RPiMock(_RPiReal):
 
         Parameters
         ----------
-        spout_number : :class:`int`
+        spout_number : int
             The spout number that would dispense water if this were real.
 
-        duration_ms : :class:`int`
+        duration_ms : int
             The duration in milliseconds to wait pretending to dispense.
 
         """

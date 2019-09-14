@@ -2,9 +2,9 @@
 Mice
 ====
 
-:class:`.Mouse` objects store and handle training sessions and collected data
-for a single experimental mouse. They were used to start training sessions
-using the :class:`Mouse.train()` method.
+Mouse objects store and handle training sessions and collected data for a
+single experimental mouse. They are used to start training sessions using the
+Mouse.train() method.
 
 """
 
@@ -131,9 +131,9 @@ class Mouse:
             )
 
         else:
-            full_path = 'temp_data.json'
+            full_path = './temp_data.json'
             print(textwrap.dedent(f"""
-            Could not determine correct JSON path from:")
+            Could not determine correct JSON path from:
                 json_path: {json_path}
                 mouse_id:  {self.mouse_id}
             Saved data into {full_path}"""))

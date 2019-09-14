@@ -92,7 +92,7 @@ class Session:
             print('resets_timepoints key found in session data.')
             SystemError('Cancelling.')
 
-        data['spont_reach_spouts'] = []
+        self.spont_reach_spouts = []
         data['spont_reach_timepoints'] = []
         data['resets_timepoints'] = [[], []]
 
@@ -159,6 +159,7 @@ class Session:
         During the inter-trial interval we start listening for mouse movements
         using the touch sensors. Shaping can be toggled by pressing the start
         button.
+
         """
         self._rpi.monitor_sensors(
             self._reset_iti_callback,
@@ -195,9 +196,10 @@ class Session:
 
         Parameters
         ----------
-        pin : :class:`int`
+        pin : int
             Pin number listening to the touch sensor that detected the
             movement.
+
         """
         self._iti_broken = True
         self.data['resets_timepoints'][
@@ -211,11 +213,12 @@ class Session:
 
         Parameters
         ----------
-        pin : :class:`int`
+        pin : int
             Pin number listening to the touch sensor that detected the
             spontaneous reach.
+
         """
-        self.data['spont_reach_spouts'].append(pin)
+        self.spont_reach_spouts.append(pin)
         self.data['spont_reach_timepoints'].append(time.time())
 
     def _reverse_shaping_callback(self, pin):
@@ -226,7 +229,7 @@ class Session:
 
         Parameters
         ----------
-        pin : :class:`int`
+        pin : int
             Passed to function by RPi.GPIO event callback; ignored.
 
         """
@@ -277,7 +280,7 @@ class Session:
 
         Parameters
         ----------
-        pin : :class:`int`
+        pin : int
             Passed to function by RPi.GPIO event callback; ignored.
 
         """
@@ -296,7 +299,7 @@ class Session:
 
         Parameters
         ----------
-        pin : :class:`int`
+        pin : int
             Passed to function by RPi.GPIO event callback; ignored.
 
         """
@@ -310,10 +313,10 @@ class Session:
 
         Parameters
         ----------
-        signal_number : :class:`int`, optional
+        signal_number : int, optional
             Passed to function by signal.signal; ignored.
 
-        frame : :class:`int`, optional
+        frame : int, optional
             Passed to function by signal.signal; ignored.
 
         """
@@ -327,7 +330,7 @@ class Session:
 
         Parameters
         ----------
-        manual : :class:`bool`, optional
+        manual : bool, optional
             Specifies whether this function call was the result of a Ctrl-C
             press interrupting a training session.
 
@@ -344,7 +347,7 @@ class Session:
 
         Parameters
         ----------
-        manual : :class:`bool`, optional
+        manual : bool, optional
             Specifies whether the session was ended by a Ctrl-C press
             interrupting the training session.
 
@@ -361,14 +364,14 @@ class Session:
 
         for idx, spout in enumerate(self._rpi.spouts):
             # pylint: disable=cell-var-from-loop
-            data['spont_reach_spouts'] = list(map(
+            self.spont_reach_spouts = list(map(
                 lambda x: idx if x == spout['touch'] else x,
-                data['spont_reach_spouts']
+                self.spont_reach_spouts
             ))
 
             spont_reach_timepoints[idx].extend([
                 b for a, b in zip(
-                    data['spont_reach_spouts'],
+                    self.spont_reach_spouts,
                     data['spont_reach_timepoints']
                 ) if idx
             ])
@@ -407,7 +410,7 @@ class Session:
         Trials:            {trial_count}
         Correct reaches:   {self._reward_count} ({reward_perc:0.1f}%)
         Missed cues:       {miss_count} ({miss_perc:0.1f}%)
-        Spont. reaches:    {len(data['spont_reach_spouts'])}
+        Spont. reaches:    {len(self.spont_reach_spouts)}
         ITI resets:        {sum(iti_resets)}
             left paw:      {iti_resets[0]}
             right paw:     {iti_resets[1]}

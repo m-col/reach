@@ -2,8 +2,7 @@
 Training Configuration files
 ============================
 
-:class:`.Config` objects handle training session configuration through config
-files.
+Config objects handle training session configuration through config files.
 
 """
 
@@ -39,10 +38,10 @@ def _write_config(config_file, config=None):
 
     Parameters
     ----------
-    config_file : :class:`string`
+    config_file : string
         Path to file where config will be stored.
 
-    config : :class:``, optional
+    config : optional
         The configuration settings that will be stored. Default settings will
         be stored if this is not given.
 
@@ -68,7 +67,7 @@ def read_config(config_file):
 
     Parameters
     ----------
-    config_file : :class:`string` or :class:`None`
+    config_file : string or None
         Path to configuration file containing training settings. Alternatively
         this can be None, which will make us use default settings.
 
