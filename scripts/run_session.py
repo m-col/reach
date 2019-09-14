@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """
-Run a training session
+Run a training session.
+=======================
+
+argparse is used to provide extra information about the Session before
+beginning training.
+
 """
 
 
@@ -60,7 +65,7 @@ def parse_args():
         type=str
     )
 
-    settings =  parser.parse_args()
+    settings = parser.parse_args()
     if settings.config_file == 'None':
         settings.config_file = None
 
@@ -70,11 +75,11 @@ def parse_args():
 settings = parse_args()
 
 
-# add any necessary metadata
-metadata = {}
+# add any necessary data
+data = {}
 for key in ['trainer', 'weight', 'training_box']:
     if getattr(settings, key):
-        metadata.update({key: getattr(settings, key)})
+        data.update({key: getattr(settings, key)})
 
 
 if settings.mouse_id is None:
@@ -92,7 +97,7 @@ else:
 # Begin the training session
 mouse.train(
     config_file=settings.config_file,
-    metadata=metadata
+    data=data
 )
 
 mouse.save_data_to_file(settings.json_path)

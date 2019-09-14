@@ -27,8 +27,8 @@ class Mouse:
     mouse_id : :class:`str`
         The mouse's ID. Can be specified as a kwarg.
 
-    _training_data : :class:`list` of :class:`.Session` instances.
-        This mouse's training data. Can be specified as a kwarg.
+    training_data : :class:`list` of :class:`.Session` instances.
+        This mouse's training data. Can be specified as a kwarg to pre-fill.
 
     """
 
@@ -38,13 +38,24 @@ class Mouse:
             training_data = []
 
         self.mouse_id = mouse_id
-        self._training_data = training_data
+        self.training_data = training_data
 
     @classmethod
     def init_from_file(cls, json_path=None, mouse_id=None):
         """
         Initialise Mouse object using pre-existing training data stored within
         a training JSON.
+
+        Parameters
+        ----------
+
+        json_path : :class:`str`
+            Path to training JSON (or containing folder) to read data from.
+
+        mouse_id : :class:`str`
+            Mouse ID to pass to :class:`Mouse` instance. Will be used to find
+            JSON if json_path is a folder.
+
         """
         if mouse_id is None:
             raise SystemError(
@@ -74,17 +85,19 @@ class Mouse:
         print("Initialising empty Mouse object.")
         return cls(mouse_id=mouse_id)
 
-    def train(self, config_file=None, metadata=None):
+    def train(self, config_file=None, data=None):
         """
         Start reaching training session and add new data to training data.
 
         Parameters
         ----------
         config_file : :class:`str`, optional
-            Path to the configuration file containing training settings.
+            Path to the configuration file containing training settings. If not
+            provided, default settings will be used. If the file does not
+            exist, the user is prompted to generate the file.
 
-        metadata : :class:`dict`, optional
-            Extra metadata that should be saved into the new session's data.
+        data : :class:`dict`, optional
+            Extra data that should be saved into the new session's data.
 
         """
 
@@ -92,10 +105,10 @@ class Mouse:
             print(f'Training mouse: {self.mouse_id}')
 
         config = read_config(config_file)
-        new_session = Session(metadata=metadata)
+        new_session = Session(data=data)
         new_session.run(config)
 
-        self._training_data.append(new_session)
+        self.training_data.append(new_session)
 
     def save_data_to_file(self, json_path):
         """
@@ -125,7 +138,7 @@ class Mouse:
                 mouse_id:  {self.mouse_id}
             Saved data into {full_path}"""))
 
-        data = [i.data for i in self._training_data]
+        data = [i.data for i in self.training_data]
 
         with open(full_path, 'w') as json_file:
             json.dump(data, json_file)
@@ -139,15 +152,15 @@ class Mouse:
         Parameters
         ----------
         session_number : :class:`int`
-            The session number for the session we are want RTs for.
+            The session number for the session we are want reaction times for.
 
         Returns
         -------
-        :class:`list` of :class:`ints`s
+        :class:`list` of :class:`ints`\s
             Chronological list of reaction times in milliseconds.
 
         """
-        session = self._training_data[session_number]
+        session = self.training_data[session_number]
         return session.reaction_times
 
     @lazy_property
@@ -157,14 +170,14 @@ class Mouse:
 
         Returns
         -------
-        :class:`list` of :class:`list`s of :class:`int`s
-            Each list contains chronological list of reaction times in
-            milliseconds for the nth training session.
+        :class:`list` of :class:`list`\s of :class:`float`\s
+            List containing one list of reaction times per session in
+            milliseconds.
 
         """
         reaction_times = []
 
-        for session in self._training_data:
+        for session in self.training_data:
             reaction_times.append(session.reaction_times)
 
         return reaction_times
