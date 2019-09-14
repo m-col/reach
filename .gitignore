@@ -6,6 +6,7 @@ __pycache__
 reach.egg-info
 venv
 dist
+build
 docs/_build
 
 # training configs
