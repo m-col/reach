@@ -26,7 +26,7 @@ except ModuleNotFoundError:
 
 
 _PIN_NUMBERS = {
-    'buttons': [4, 0],
+    'buttons': [4, 13],
     'paw_sensors': [17, 18],
     'spouts': [
         {
@@ -35,9 +35,9 @@ _PIN_NUMBERS = {
             'solenoid': 25,
         },
         {
-            'cue': 0,
-            'touch': 0,
-            'solenoid': 0,
+            'cue': 22,
+            'touch': 23,
+            'solenoid': 24,
         },
     ],
 }
@@ -489,7 +489,7 @@ class UtilityPi(_RPiReal):
             elif pin == self.paw_pins[1]:
                 print(f"Right:   {GPIO.input(pin)}")
             else:
-                print("Spout %s:    {GPIO.input(pin)}" %
+                print(f"Spout %s:    {GPIO.input(pin)}" %
                       spout_pins.index(pin))
 
         for pin in self.paw_pins + spout_pins:
@@ -535,9 +535,10 @@ class UtilityPi(_RPiReal):
                 duration_ms
             )
 
-        GPIO.add_event_detect(
-            self._button_pins,
-            GPIO.FALLING,
-            callback=_dispense,
-            bouncetime=1000
-        )
+        for pin in self._button_pins:
+            GPIO.add_event_detect(
+                pin,
+                GPIO.FALLING,
+                callback=_dispense,
+                bouncetime=1000
+            )
