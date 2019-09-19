@@ -198,7 +198,7 @@ dispensed upon cue onset rather than successful grasp.</p></td>
 session.</p></td>
 </tr>
 <tr class="row-odd"><td><p>reward_duration_ms (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
-<td><p>The duration in milliseconds for which the solenoid is opened when is a
+<td><p>The duration in milliseconds for which the solenoid was opened when a
 reward is given.</p></td>
 </tr>
 <tr class="row-even"><td><p>spont_reach_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
@@ -210,14 +210,18 @@ time) for all premature movements that reset the inter-trial interval
 for the left and right paws respectively.</p></td>
 </tr>
 <tr class="row-even"><td><p>cue_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of 1-2 <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>s of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
-<td><p>The timepoints (in Unix time) at which the nth cue was illuminated at
-the start of a new trial.</p></td>
+<td><p>The timepoints (in Unix time) at which the cue was illuminated at the
+start of a new trial.</p></td>
 </tr>
-<tr class="row-odd"><td><p>touch_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of up to 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>s of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
-<td><p>The timepoints (in Unix time) at which the nth reach target was
-successfully grasped during a cued trial.</p></td>
+<tr class="row-odd"><td><p>cued_lift_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>s of <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>s)</p></td>
+<td><p>The timepoints (in Unix time) at which the left and right paws were
+lifted from the paw rests following cue onset.</p></td>
 </tr>
-<tr class="row-even"><td><p>notes (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>)</p></td>
+<tr class="row-even"><td><p>touch_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of up to 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>s of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
+<td><p>The timepoints (in Unix time) at which the reach target was successfully
+grasped during a cued trial.</p></td>
+</tr>
+<tr class="row-odd"><td><p>notes (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>)</p></td>
 <td><p>Training notes made during the training session.</p></td>
 </tr>
 </tbody>

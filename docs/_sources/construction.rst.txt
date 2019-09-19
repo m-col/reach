@@ -12,8 +12,8 @@ The base holds a Raspberry Pi which runs the reach code and operates the
 training box hardware.
 
 The circuit design was done in `fritzing <https://fritzing.org/home>`_. The
-design file is :download:`here </_static/pi_hat_circuit.fzz>` to be used as
-reference during construction.
+design file is :download:`here </pi_hat_circuit.fzz>` to be used as reference
+during construction.
 
 
 Parts list
