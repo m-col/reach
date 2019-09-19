@@ -381,6 +381,8 @@ class Session:
 
         data['spont_reach_timepoints'] = spont_reach_timepoints
 
+        data['cued_lift_timepoints'] = self._rpi.lift_timepoints
+
         data['date'] = time.strftime('%Y-%m-%d')
         data['start_time'] = time.strftime(
             '%H:%M:%S', time.localtime(data['start_time'])

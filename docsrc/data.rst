@@ -48,7 +48,7 @@ within:
        session.
 
    * - reward_duration_ms (:class:`int`)
-     - The duration in milliseconds for which the solenoid is opened when is a
+     - The duration in milliseconds for which the solenoid was opened when a
        reward is given.
 
    * - spont_reach_timepoints (:class:`list` of :class:`int`\s)
@@ -60,12 +60,16 @@ within:
        for the left and right paws respectively.
 
    * - cue_timepoints (:class:`list` of 1-2 :class:`list`\s of :class:`int`\s)
-     - The timepoints (in Unix time) at which the nth cue was illuminated at
-       the start of a new trial.
+     - The timepoints (in Unix time) at which the cue was illuminated at the
+       start of a new trial.
+
+   * - cued_lift_timepoints (:class:`list` of 2 :class:`list`\s of :class:`float`\s)
+     - The timepoints (in Unix time) at which the left and right paws were
+       lifted from the paw rests following cue onset.
 
    * - touch_timepoints (:class:`list` of up to 2 :class:`list`\s of :class:`int`\s)
-     - The timepoints (in Unix time) at which the nth reach target was
-       successfully grasped during a cued trial.
+     - The timepoints (in Unix time) at which the reach target was successfully
+       grasped during a cued trial.
 
    * - notes (:class:`str`)
      - Training notes made during the training session.

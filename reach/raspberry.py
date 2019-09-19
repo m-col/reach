@@ -64,6 +64,10 @@ class _RPiReal:
         List containing, for len(spouts) spouts, dicts listing the pin numbers
         for each spout's cue, touch and solenoid pins.
 
+    lift_timepoints : list of 2 lists of floats
+        Two lists storing timepoints of when the left or right paw were lifted
+        from the paw rests following cue onset.
+
     """
 
     def __init__(self, spout_count):
@@ -81,6 +85,8 @@ class _RPiReal:
         self.spouts = _PIN_NUMBERS['spouts'][:spout_count]
 
         self.initialise_pins()
+
+        self.lift_timepoints = [[], []]
 
         signal.signal(
             signal.SIGINT,
@@ -188,7 +194,7 @@ class _RPiReal:
         )
         while not all([GPIO.input(self.paw_pins[0]),
                        GPIO.input(self.paw_pins[1])]):
-            time.sleep(0.020)
+            time.sleep(0.010)
 
     def disable_sensors(self):
         """
@@ -197,6 +203,7 @@ class _RPiReal:
         """
         for paw_pin in self.paw_pins:
             GPIO.remove_event_detect(paw_pin)
+
         for spout in self.spouts:
             GPIO.remove_event_detect(spout['touch'])
 
@@ -223,6 +230,14 @@ class _RPiReal:
         self.spouts[spout_number]['cue_timepoints'].append(time.time())
         GPIO.output(self.spouts[spout_number]['cue'], True)
 
+        for paw_pin in self.paw_pins:
+            GPIO.add_event_detect(
+                paw_pin,
+                GPIO.FALLING,
+                callback=self.record_lift_timepoints,
+                bouncetime=50
+            )
+
         GPIO.add_event_detect(
             self.spouts[spout_number]['touch'],
             GPIO.RISING,
@@ -237,6 +252,19 @@ class _RPiReal:
                 callback=incorrect_func,
                 bouncetime=1000
             )
+
+    def record_lift_timepoints(self, pin):
+        """
+        Record timepoint of paw list during trials.
+
+        Parameters
+        ----------
+        pin : int
+            Pin number listening to the touch sensor that detected the
+            movement.
+
+        """
+        self.lift_timepoints[self.paw_pins.index(pin)].append(time.time())
 
     def successful_grasp(self, spout_number):
         """
@@ -288,9 +316,9 @@ class _RPiReal:
         Disable target spout LED and remove spout touch sensors event
         callbacks.
         """
+        self.disable_sensors()
         for spout in self.spouts:
             GPIO.output(spout['cue'], False)
-            GPIO.remove_event_detect(spout['touch'])
 
     def cleanup(self, signal_number=None, frame=None):
         """
