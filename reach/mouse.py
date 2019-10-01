@@ -85,7 +85,7 @@ class Mouse:
         print("Initialising empty Mouse object.")
         return cls(mouse_id=mouse_id)
 
-    def train(self, config_file=None, data=None):
+    def train(self, config_file=None, data=None, curses=False):
         """
         Start reaching training session and add new data to training data.
 
@@ -99,6 +99,10 @@ class Mouse:
         data : :class:`dict`, optional
             Extra data that should be saved into the new session's data.
 
+        curses : :class:`bool`, optional
+            Run a virtual training session using a curses interface rather than
+            real hardware.
+
         """
 
         if self.mouse_id is not None:
@@ -106,7 +110,11 @@ class Mouse:
 
         config = read_config(config_file)
         new_session = Session(data=data)
-        new_session.run(config)
+
+        new_session.run(
+            config,
+            curses=curses
+        )
 
         self.training_data.append(new_session)
 

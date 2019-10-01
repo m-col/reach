@@ -2,14 +2,14 @@
 Raspberry Pis
 =============
 
-The _RPiReal object represents a raspberry pi and directly controls GPIO pins
+The RPiReal object represents a raspberry pi and directly controls GPIO pins
 used to operate the training box hardware during behavioural training.
 
-The _RPiMock object represents the same as _RPi except never handles any
+The _RPiMock object represents the same as RPiReal except never handles any
 hardware, acting as a mock raspberry pi.
 
 Upon import of this module, we check if we can import RPI.GPIO. If we can, we
-export _RPi as _RPiReal, else as _RPiMock.
+export RPi as RPiReal, else as _RPiMock.
 
 """
 # pylint: disable=unused-argument,arguments-differ
@@ -43,7 +43,7 @@ _PIN_NUMBERS = {
 }
 
 
-class _RPiReal:
+class RPiReal:
     """
     An instance of a raspberry pi and its GPIO pins.
 
@@ -339,10 +339,10 @@ class _RPiReal:
         GPIO.cleanup()
 
 
-class _RPiMock(_RPiReal):
+class _RPiMock(RPiReal):
     """
     A mock instance of a raspberry pi and its GPIO pins. This class is a
-    fallback for ._RPiReal when the RPi.GPIO library cannot be loaded, which
+    fallback for .RPiReal when the RPi.GPIO library cannot be loaded, which
     assumes that we are working on a non-raspberry pi machine.
 
     This subclass overrides most methods to replace all calls to RPi.GPIO to
@@ -356,6 +356,7 @@ class _RPiMock(_RPiReal):
         change state. (Not implemented yet)
 
     """
+    is_real = False
 
     def _initialise_pins(self):
         """
@@ -465,10 +466,10 @@ class _RPiMock(_RPiReal):
 
 
 
-_RPi = _RPiReal if _IS_RASPBERRY_PI else _RPiMock
+RPi = RPiReal if _IS_RASPBERRY_PI else _RPiMock
 
 
-class UtilityPi(_RPiReal):
+class UtilityPi(RPiReal):
     """
     A representation of a Raspberry Pi that exposes methods that serve as
     utilities for testing the training hardware.
