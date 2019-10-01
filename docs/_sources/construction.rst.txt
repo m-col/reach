@@ -5,7 +5,7 @@ Training Box Construction
 This page describes how to construct a single training box, which looks like
 this:
 
-.. image:: /_static/images/training_box.png
+.. image:: /_static/training_box.png
     :width: 420pt
 
 The base holds a Raspberry Pi which runs the reach code and operates the
