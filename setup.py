@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# pylint: disable=invalid-name,redefined-outer-name,missing-docstring
+# pylint: disable=redefined-outer-name,missing-docstring
 
 
 from os.path import join

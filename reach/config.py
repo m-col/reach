@@ -2,7 +2,7 @@
 Training Configuration files
 ============================
 
-Config objects handle training session configuration through config files.
+Config files handle training session configuration through config files.
 
 """
 

@@ -16,7 +16,8 @@ import signal
 import textwrap
 import time
 
-from reach.raspberry import _RPi
+from reach.curses import RPiCurses
+from reach.raspberry import RPi
 from reach.utilities import enforce_suffix, lazy_property
 
 
@@ -48,6 +49,7 @@ class Session:
         self._water_at_cue_onset = None
         self._rpi = None
         self._reward_count = 0
+        self._message = print
 
     @classmethod
     def init_all_from_file(cls, json_path=None):
@@ -72,7 +74,7 @@ class Session:
 
         return training_data
 
-    def run(self, config):
+    def run(self, config, curses=False):
         """
         Begin a training session.
 
@@ -80,6 +82,10 @@ class Session:
         ----------
         config : :class:`dict`
             Training settings.
+
+        curses: :class:'bool' (optional)
+            Specify whether to use curses interface, and therefore mock
+            raspberry pi, for a test training session.
 
         """
 
@@ -89,7 +95,7 @@ class Session:
         data.update(config)
 
         if 'resets_timepoints' in data:
-            print('resets_timepoints key found in session data.')
+            self._message('resets_timepoints key found in session data.')
             SystemError('Cancelling.')
 
         self.spont_reach_spouts = []
@@ -98,9 +104,14 @@ class Session:
 
         self._water_at_cue_onset = data['shaping']
 
+        if curses:
+            self._rpi = RPiCurses(data['spout_count'])
+            self._message = self._rpi.print_to_feed
+        else:
+            self._rpi = RPi(data['spout_count'])
+
         self._display_training_settings()
 
-        self._rpi = _RPi(data['spout_count'])
         self._rpi.wait_to_start()
 
         signal.signal(
@@ -118,15 +129,15 @@ class Session:
             trial_count += 1
             self._outcome = 0
 
-            print("_________________________________________")
-            print("# ---- Starting trial #%i -- %4.0f s ---- #"
-                  % (trial_count, now - data['start_time']))
+            self._message("_________________________________________")
+            self._message("# ---- Starting trial #%i -- %4.0f s ---- #"
+                         % (trial_count, now - data['start_time']))
 
             self._current_spout = random.randint(0, data['spout_count'] - 1)
             self._inter_trial_interval()
             self._trial()
 
-            print(f"Total rewards: {self._reward_count}")
+            self._message(f"Total rewards: {self._reward_count}")
             now = time.time()
 
         self._end_session()
@@ -139,7 +150,7 @@ class Session:
         data = self.data
         iti_min, iti_max = data['iti']
 
-        print(textwrap.dedent(
+        self._message(textwrap.dedent(
             f"""
             _________________________________
 
@@ -149,6 +160,7 @@ class Session:
             ITI:         {iti_min} - {iti_max} ms
             Shaping:     {data['shaping']}
             _________________________________
+
             """
         ))
 
@@ -176,7 +188,7 @@ class Session:
             now = time.time()
             iti_duration = random.uniform(*self.data['iti']) / 1000
             trial_end = now + iti_duration
-            print(f"Counting down {iti_duration:.2f}s")
+            self._message(f"Counting down {iti_duration:.2f}s")
 
             while now < trial_end and not self._iti_broken:
                 time.sleep(0.020)
@@ -262,16 +274,16 @@ class Session:
         self._rpi.end_trial()
 
         if self._outcome == 1:
-            print("Successful reach!")
+            self._message("Successful reach!")
             self._reward_count += 1
             time.sleep(self.data['reward_duration_ms'] / 1000)
 
         elif self._outcome == 2:
-            print("Incorrect reach!")
+            self._message("Incorrect reach!")
             time.sleep(self.data['reward_duration_ms'] / 1000)
 
         else:
-            print("Missed reach")
+            self._message("Missed reach")
 
     def _reward_callback(self, pin):
         """
@@ -320,7 +332,7 @@ class Session:
             Passed to function by signal.signal; ignored.
 
         """
-        print("\nExiting.")
+        self._message("\nExiting.")
         self._end_session(manual=True)
 
     def _end_session(self, manual=False):
@@ -405,7 +417,7 @@ class Session:
             len(data['resets_timepoints'][1]),
         )
 
-        print(textwrap.dedent(f"""
+        self._message(textwrap.dedent(f"""
         _________________________________
         # __________ The End __________ #
 
