@@ -69,6 +69,7 @@ class _RPiReal:
         from the paw rests following cue onset.
 
     """
+    is_real = True
 
     def __init__(self, spout_count):
         """
@@ -84,7 +85,7 @@ class _RPiReal:
         self.paw_pins = _PIN_NUMBERS['paw_sensors']
         self.spouts = _PIN_NUMBERS['spouts'][:spout_count]
 
-        self.initialise_pins()
+        self._initialise_pins()
 
         self.lift_timepoints = [[], []]
 
@@ -93,7 +94,7 @@ class _RPiReal:
             self.cleanup
         )
 
-    def initialise_pins(self):
+    def _initialise_pins(self):
         """
         Set initial state of pins.
         """
@@ -133,8 +134,8 @@ class _RPiReal:
 
     def monitor_sensors(self, reset_iti, increase_spont_reaches):
         """
-        Monitor touch during the inter-trial interval to execute callback
-        functions upon movement events.
+        Monitor touch sensors during the inter-trial interval to execute
+        callback functions upon movement events.
 
         Parameters
         ----------
@@ -341,8 +342,8 @@ class _RPiReal:
 class _RPiMock(_RPiReal):
     """
     A mock instance of a raspberry pi and its GPIO pins. This class is a
-    fallback for :class:`_.RPi` when the RPi.GPIO library cannot be loaded,
-    which assumes that we are working on a non-raspberry pi machine.
+    fallback for ._RPiReal when the RPi.GPIO library cannot be loaded, which
+    assumes that we are working on a non-raspberry pi machine.
 
     This subclass overrides most methods to replace all calls to RPi.GPIO to
     instead keep track of hypothetical pin state changes.
@@ -356,7 +357,7 @@ class _RPiMock(_RPiReal):
 
     """
 
-    def initialise_pins(self):
+    def _initialise_pins(self):
         """
         Set initial state of the mock pins.
         """
@@ -463,9 +464,8 @@ class _RPiMock(_RPiReal):
         """
 
 
-# pylint: disable=invalid-name
+
 _RPi = _RPiReal if _IS_RASPBERRY_PI else _RPiMock
-# pylint: enable=invalid-name
 
 
 class UtilityPi(_RPiReal):
