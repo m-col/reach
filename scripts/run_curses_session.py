@@ -6,6 +6,9 @@ Run a mock session using the curses interface.
 
 
 import os
+import sys
+
+sys.path.append('..')
 from reach import Mouse
 
 
