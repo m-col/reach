@@ -461,7 +461,6 @@ class _RPiMock(RPiReal):
         """
 
 
-
 RPi = RPiReal if _IS_RASPBERRY_PI else _RPiMock
 
 

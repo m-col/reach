@@ -1,5 +1,5 @@
 """
-Drawings 
+Drawings
 ========
 
 This file contains ASCII drawings such as those used to create the curses

@@ -27,7 +27,7 @@ setuptools.setup(
     keywords=[],
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    url="https://github.com/DuguidLab/reach",
+    url="https://github.com/m-col/reach",
     packages=['reach'],
     install_requires=[
         "matplotlib",

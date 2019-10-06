@@ -133,7 +133,7 @@ class Session:
 
             self._message("_____________________________________")
             self._message("# -- Starting trial #%i -- %4.0f s -- #"
-                         % (trial_count, now - data['start_time']))
+                          % (trial_count, now - data['start_time']))
 
             self._current_spout = random.randint(0, data['spout_count'] - 1)
             self._inter_trial_interval()
