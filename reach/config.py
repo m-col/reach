@@ -8,6 +8,7 @@ Config files handle training session configuration through config files.
 
 
 import configparser
+import sys
 from os.path import isfile
 
 from reach.utilities import enforce_suffix
@@ -51,7 +52,8 @@ def _write_config(config_file, config=None):
         print(f"Config file {config_file} already exists.")
         confirm = input('Overwrite? (y/N) ')
         if confirm not in ['y', 'Y']:
-            raise SystemError('Cancelled')
+            print('Cancelled')
+            sys.exit(1)
 
     if config is None:
         config = _default_config()
@@ -82,14 +84,15 @@ def read_config(config_file):
             response = input("Generate a new one? [Y/n] ")
 
             if response == 'n':
-                raise SystemError
+                sys.exit(1)
 
             _write_config(config_file)
 
         try:
             config.read(config_file)
         except configparser.MissingSectionHeaderError:
-            raise SystemError(f"{config_file} is an invalid config file.")
+            print(f"{config_file} is an invalid config file.")
+            sys.exit(1)
 
     config_dict = {}
     config_dict['duration'] = config.getint('Settings', 'duration')

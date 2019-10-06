@@ -10,6 +10,7 @@ Mouse.train() method.
 
 
 import json
+import sys
 import textwrap
 from os.path import isdir, isfile, join
 
@@ -58,9 +59,8 @@ class Mouse:
 
         """
         if mouse_id is None:
-            raise SystemError(
-                "mouse_id must contain a string to use Mouse.init_from_file"
-            )
+            print("mouse_id must contain a string to use Mouse.init_from_file")
+            sys.exit(1)
 
         if isfile(json_path):
             training_data = Session.init_all_from_file(

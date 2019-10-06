@@ -13,6 +13,7 @@ import json
 import operator
 import random
 import signal
+import sys
 import textwrap
 import time
 
@@ -96,7 +97,8 @@ class Session:
 
         if 'resets_timepoints' in data:
             self._message('resets_timepoints key found in session data.')
-            SystemError('Cancelling.')
+            self._message('Cancelling.')
+            sys.exit(1)
 
         self.spont_reach_spouts = []
         data['spont_reach_timepoints'] = []
@@ -350,7 +352,6 @@ class Session:
         self._rpi.cleanup()
         self._collate_data(manual=manual)
         self._display_training_results()
-        print('\a')
 
     def _collate_data(self, manual=False):
         """
