@@ -131,8 +131,8 @@ class Session:
             trial_count += 1
             self._outcome = 0
 
-            self._message("_________________________________________")
-            self._message("# ---- Starting trial #%i -- %4.0f s ---- #"
+            self._message("_____________________________________")
+            self._message("# -- Starting trial #%i -- %4.0f s -- #"
                          % (trial_count, now - data['start_time']))
 
             self._current_spout = random.randint(0, data['spout_count'] - 1)

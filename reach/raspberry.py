@@ -69,8 +69,6 @@ class RPiReal:
         from the paw rests following cue onset.
 
     """
-    is_real = True
-
     def __init__(self, spout_count):
         """
         Initialise the pi and set initial pin states.
@@ -235,7 +233,7 @@ class RPiReal:
             GPIO.add_event_detect(
                 paw_pin,
                 GPIO.FALLING,
-                callback=self.record_lift_timepoints,
+                callback=self._record_lift_timepoints,
                 bouncetime=50
             )
 
@@ -254,7 +252,7 @@ class RPiReal:
                 bouncetime=1000
             )
 
-    def record_lift_timepoints(self, pin):
+    def _record_lift_timepoints(self, pin):
         """
         Record timepoint of paw list during trials.
 
@@ -356,8 +354,6 @@ class _RPiMock(RPiReal):
         change state. (Not implemented yet)
 
     """
-    is_real = False
-
     def _initialise_pins(self):
         """
         Set initial state of the mock pins.
