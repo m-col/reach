@@ -66,6 +66,8 @@ def _initialise_curses():
 
     curses.start_color()
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLUE)
+
     curses.curs_set(0)
     curses.cbreak()
     curses.noecho()
@@ -90,11 +92,8 @@ class RPiCurses(RPiReal):
     _stdscr : curses.window object
         This is the screen window object returned from curses.initscr().
 
-    _height : int
-        Height in lines of the _stdscr screen.
-
-    _width : int
-        Width in columns of the _stdscr screen.
+    _dimensions : Tuple of two ints
+        (height, width) of the stdscr window.
 
     _feed : curses.window object
         This window displays a feed of information during the training session.
@@ -122,17 +121,14 @@ class RPiCurses(RPiReal):
         super().__init__(spout_count)
 
         self._stdscr = _initialise_curses()
-
-        height, width = self._stdscr.getmaxyx()
-        self._height = height
-        self._width = width
+        self._dimensions = self._stdscr.getmaxyx()
 
         self._feed = curses.newwin(
-            height - 18, width,
+            self._dimensions[0] - 18, self._dimensions[1],
             0, 0,
         )
         self._feed.border()
-        self._feed_text = [''] * (width - 2)
+        self._feed_text = [''] * (self._dimensions[1] - 2)
 
         self._rig, rig_x_pos = self._draw_rig()
 
@@ -141,11 +137,16 @@ class RPiCurses(RPiReal):
             [7, rig_x_pos + 12],
         )
 
+        self._water_pos = (
+            [8, rig_x_pos + 5],
+            [8, rig_x_pos + 12],
+        )
+
         self._draw_mouse()
         self._feed.refresh()
         self._rig.refresh()
 
-        self._button_callbacks = [lambda _: None] * 2
+        self._button_callbacks = [lambda: None] * 2
         self._monitor = None
         self._monitoring = False
 
@@ -166,13 +167,13 @@ class RPiCurses(RPiReal):
         Draw curses version of training rig.
         """
         rig = curses.newwin(
-            17, self._width,
-            int(self._height - 18), 0,
+            17, self._dimensions[1],
+            int(self._dimensions[0] - 18), 0,
         )
         rig.border()
 
         _, rig_width = _get_str_dims(drawings.RIG_TEMPLATE)
-        rig_x_pos = int(self._width / 2 - rig_width / 2)
+        rig_x_pos = int(self._dimensions[1] / 2 - rig_width / 2)
         _addstr_multiline(rig, 2, rig_x_pos, drawings.RIG_TEMPLATE)
         _addstr_multiline(rig, 11, 3, drawings.BUTTONS)
 
@@ -185,7 +186,7 @@ class RPiCurses(RPiReal):
         mouse = random.choice(drawings.MICE)
         dims = [i + 2 for i in _get_str_dims(mouse)]
         y_pos = int(17 - dims[0])
-        x_pos = self._width - dims[1]
+        x_pos = self._dimensions[1] - dims[1]
 
         for y, line in enumerate(mouse.splitlines()):
             self._rig.addstr(
@@ -200,10 +201,12 @@ class RPiCurses(RPiReal):
         """
         for line in string.splitlines():
             self._feed_text.extend(
-                textwrap.wrap(line, width=self._width - 6) or ['']
+                textwrap.wrap(line, width=self._dimensions[0] - 6) or ['']
             )
 
-        for y, line in enumerate(self._feed_text[-(self._height - 22):]):
+        for y, line in enumerate(
+                self._feed_text[-(self._dimensions[0] - 22):]
+        ):
             self._feed.addstr(y + 2, 3, line)
             self._feed.clrtoeol()
 
@@ -225,14 +228,13 @@ class RPiCurses(RPiReal):
         """
         Run the main sensor monitoring function asynchronously.
         """
-        self._monitoring = True
         self._monitor = threading.Thread(
-            target=self._monitor_sensors_thread,
+            target=self._monitor_iti,
             args=(reset_iti, increase_spont_reaches),
         )
         self._monitor.start()
 
-    def _monitor_sensors_thread(self, reset_iti, increase_spont_reaches):
+    def _monitor_iti(self, reset_iti, increase_spont_reaches):
         """
         This is function asynchronously monitors the virtual touch sensors (key
         presses of the letters v, n, g & h.
@@ -248,9 +250,12 @@ class RPiCurses(RPiReal):
 
         """
         curses.flushinp()
+        self._monitoring = True
 
-        while self._monitoring:
+        while True:
             key = self._feed.getkey()
+            if not self._monitoring:
+                return
             if key == 'v':
                 reset_iti(self.paw_pins[0])
             elif key == 'n':
@@ -260,7 +265,9 @@ class RPiCurses(RPiReal):
             elif key == 'h':
                 increase_spont_reaches(self.spouts[1]['touch'])
             elif key == '1':
-                self._button_callbacks[0](0)
+                self._button_callbacks[0]()
+            elif key == '2':
+                self._button_callbacks[1]()
 
     def set_button_callback(self, button, func):
         """
@@ -275,14 +282,14 @@ class RPiCurses(RPiReal):
             Function to be executed upon button press.
 
         """
-        self._button_callbacks[button] = func
+        self._button_callbacks[button] = lambda: func(button)
 
     def wait_for_rest(self):
         """
         Block execution and wait until both paw sensors are held.
         """
         self.print_to_feed("Waiting for rest... ")
-        time.sleep(0.5)  # TODO: try curses.getstring or similar for 'vn' or 'nv'
+        time.sleep(0.200)
 
     def disable_sensors(self):
         """
@@ -313,7 +320,6 @@ class RPiCurses(RPiReal):
             spout.
 
         """
-        self.print_to_feed("Cue illuminated")
         self.spouts[spout_number]['cue_timepoints'].append(time.time())
 
         _addstr_multiline(
@@ -323,31 +329,72 @@ class RPiCurses(RPiReal):
             attr=curses.color_pair(1),
         )
         self._rig.refresh()
+        self.print_to_feed("Cue illuminated")
 
-        """
-        for paw_pin in self.paw_pins:
-            GPIO.add_event_detect(
-                paw_pin,
-                GPIO.FALLING,
-                callback=self.record_lift_timepoints,
-                bouncetime=50
-            )
-
-        GPIO.add_event_detect(
-            self.spouts[spout_number]['touch'],
-            GPIO.RISING,
-            callback=reward_func,
-            bouncetime=1000
+        self._monitor = threading.Thread(
+            target=self._monitor_trial,
+            args=(spout_number, reward_func, incorrect_func),
         )
+        self._monitor.start()
 
-        if len(self.spouts) > 1:
-            GPIO.add_event_detect(
-                self.spouts[1 - spout_number]['touch'],
-                GPIO.RISING,
-                callback=incorrect_func,
-                bouncetime=1000
-            )
+    def _monitor_trial(self, spout_number, reward_func, incorrect_func):
         """
+        This is function asynchronously monitors the virtual touch sensors (key
+        presses of the letters v, n, g & h.
+
+        Parameters
+        ----------
+        spout_number : int
+            The spout number corresponding to this trial's reach target.
+
+        reward_func : func
+            Callback function to be executed upon successful grasp of target
+            spout.
+
+        incorrect_func : func
+            Callback function to be executed upon incorrect grasp of non-target
+            spout.
+
+        """
+        if spout_number == 0:
+            correct_key = 'g'
+            incorrect_key = 'h'
+        elif spout_number == 1:
+            correct_key = 'h'
+            incorrect_key = 'g'
+
+        curses.flushinp()
+        self._monitoring = True
+
+        while True:
+            key = self._feed.getkey()
+            self.print_to_feed(f'TRIAL: Pressed {key}')
+            if not self._monitoring:
+                self.print_to_feed(f'TRIAL: RETURNING')
+                return
+            if key == 'v':
+                self._record_lift_timepoints(self.paw_pins[0])
+            elif key == 'n':
+                self._record_lift_timepoints(self.paw_pins[1])
+            elif key == correct_key:
+                reward_func(spout_number)
+                time.sleep(1)
+            elif key == incorrect_key:
+                incorrect_func(abs(spout_number - 1))
+                time.sleep(1)
+
+    def _record_lift_timepoints(self, pin):
+        """
+        Record timepoint of paw lifts during trials.
+
+        Parameters
+        ----------
+        pin : int
+            Pin number listening to the touch sensor that detected the
+            movement.
+
+        """
+        self.lift_timepoints[self.paw_pins.index(pin)].append(time.time())
 
     def successful_grasp(self, spout_number):
         """
@@ -387,13 +434,19 @@ class RPiCurses(RPiReal):
             The duration in milliseconds to wait pretending to dispense.
 
         """
-        time.sleep(duration_ms / 1000)
+        self._rig.addstr(
+            *self._water_pos[spout_number],
+            drawings.WATER,
+            curses.color_pair(2),
+        )
+        self._rig.refresh()
 
     def end_trial(self):
         """
         Pretend to disable target spout LED and remove spout touch sensors
         event callbacks.
         """
+        self.disable_sensors()
         for target in self._target_pos:
             _addstr_multiline(
                 self._rig,
@@ -412,4 +465,4 @@ class RPiCurses(RPiReal):
         curses.nocbreak()
         curses.echo()
         curses.endwin()
-        raise SystemError
+        curses.nl()

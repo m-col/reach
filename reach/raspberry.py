@@ -254,7 +254,7 @@ class RPiReal:
 
     def _record_lift_timepoints(self, pin):
         """
-        Record timepoint of paw list during trials.
+        Record timepoint of paw lifts during trials.
 
         Parameters
         ----------

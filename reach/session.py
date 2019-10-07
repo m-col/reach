@@ -349,9 +349,12 @@ class Session:
             press interrupting a training session.
 
         """
+        self._message = print
         self._rpi.cleanup()
         self._collate_data(manual=manual)
         self._display_training_results()
+        self._prompt_to_add_training_notes()
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
 
     def _collate_data(self, manual=False):
         """
@@ -441,7 +444,8 @@ class Session:
         displaying training results) to ask if they want to add notes to the
         data.
         """
-        self.data["notes"] = input("\nAdd any notes to save:\n")
+        self._message('Add any notes to save:')
+        self.data["notes"] = input()
 
     @lazy_property
     def reaction_times(self):
