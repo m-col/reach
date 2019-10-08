@@ -114,11 +114,13 @@ class Session:
 
         self._display_training_settings()
 
-        self._rpi.wait_to_start()
+        if not self._rpi.wait_to_start():
+            # Ctrl-C hit while waiting.
+            sys.exit(1)
 
         signal.signal(
             signal.SIGINT,
-            self._end_session_manually
+            self._end_session,
         )
 
         now = time.time()
@@ -141,6 +143,9 @@ class Session:
 
             self._message(f"Total rewards: {self._reward_count}")
             now = time.time()
+
+            if self._outcome == 3:
+                return
 
         self._end_session()
 
@@ -275,7 +280,10 @@ class Session:
 
         self._rpi.end_trial()
 
-        if self._outcome == 1:
+        if self._outcome == 0:
+            self._message("Missed reach")
+
+        elif self._outcome == 1:
             self._message("Successful reach!")
             self._reward_count += 1
             time.sleep(self.data['reward_duration_ms'] / 1000)
@@ -284,8 +292,8 @@ class Session:
             self._message("Incorrect reach!")
             time.sleep(self.data['reward_duration_ms'] / 1000)
 
-        else:
-            self._message("Missed reach")
+        elif self._outcome == 3:
+            return
 
     def _reward_callback(self, pin):
         """
@@ -320,10 +328,11 @@ class Session:
         self._rpi.incorrect_grasp(self._current_spout)
         self._outcome = 2
 
-    def _end_session_manually(self, signal_number=None, frame=None):
+    def _end_session(self, signal_number=None, frame=None):
         """
-        Control-C signal handler used during live training sessions that allows
-        for clean exiting and saving of collected data.
+        End the current training session: uninitialise the raspberry pi,
+        reorganise collected data, and display final training results. This
+        function serves as the main session Ctrl-C signal handler.
 
         Parameters
         ----------
@@ -334,45 +343,27 @@ class Session:
             Passed to function by signal.signal; ignored.
 
         """
-        self._message("\nExiting.")
-        self._end_session(manual=True)
-
-    def _end_session(self, manual=False):
-        """
-        End the current training session: uninitialise the raspberry pi GPIO
-        pins, reorganise collected data, and display final training results.
-
-        Parameters
-        ----------
-        manual : bool, optional
-            Specifies whether this function call was the result of a Ctrl-C
-            press interrupting a training session.
-
-        """
         self._message = print
+        self._outcome = 3
+
         self._rpi.cleanup()
-        self._collate_data(manual=manual)
-        self._display_training_results()
-        self._prompt_to_add_training_notes()
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-    def _collate_data(self, manual=False):
+        self._collate_data()
+        self._display_training_results()
+
+        self._message('Add any notes to save:')
+        self.data["notes"] = input()
+
+    def _collate_data(self):
         """
         Reorganise collected training data into the final form saved in
         training JSONs.
-
-        Parameters
-        ----------
-        manual : bool, optional
-            Specifies whether the session was ended by a Ctrl-C press
-            interrupting the training session.
-
         """
         data = self.data
 
-        if manual:
-            data['end_time'] = time.time()
-            data['duration'] = data['end_time'] - data['start_time']
+        data['end_time'] = time.time()
+        data['duration'] = data['end_time'] - data['start_time']
 
         data['cue_timepoints'] = []
         data['touch_timepoints'] = []
@@ -437,15 +428,6 @@ class Session:
         1000 uL - {self._reward_count} * 6 uL
                     = {1000 - self._reward_count * 6} uL
         """))
-
-    def _prompt_to_add_training_notes(self):
-        """
-        Prompt the user at the end of the training session (and after
-        displaying training results) to ask if they want to add notes to the
-        data.
-        """
-        self._message('Add any notes to save:')
-        self.data["notes"] = input()
 
     @lazy_property
     def reaction_times(self):

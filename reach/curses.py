@@ -252,10 +252,15 @@ class RPiCurses(RPiReal):
         """
         self.print_to_feed("Hit button 1 to begin.")
 
-        while True:
-            key = self._feed.getkey()
-            if key == '1':
-                return
+        try:
+            while True:
+                key = self._feed.getkey()
+                if key == '1':
+                    return True
+
+        except curses.error:
+            # Ctrl-C hit
+            return False
 
     def monitor_sensors(self, reset_iti, increase_spont_reaches):
         """
@@ -430,6 +435,9 @@ class RPiCurses(RPiReal):
         """
         Restore terminal state.
         """
+        if self._monitor:
+            self.disable_sensors()
+
         self._stdscr.keypad(False)
         curses.curs_set(1)
         curses.nocbreak()
