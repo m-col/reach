@@ -10,8 +10,7 @@ clean:
 	find reach -depth -name __pycache__ -type d -exec rm -r -- {} \;
 
 TEST_PATHS = \
-	reach \
-	./setup.py
+	reach
 
 pylint:
 	@echo "Running pylint..."

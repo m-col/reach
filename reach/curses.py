@@ -4,11 +4,9 @@ Curses Interface
 
 The RPiCurses object is a child class of reach.RPiReal that mimics a real
 raspberry pi, but unlike the reach._RPiMock mock pi, _RPiCurses provides a
-curses interface that can be used to perform the task in a terminal. This
-allows for testing of new code that depends on interactivity of the task.
-
-This file provides some additional functions to help manage the curses
-interface.
+curses interface that can be used to emulate the task in a terminal. This
+allows for testing of new code that depends on interactivity of the task
+without using the hardware.
 
 """
 
@@ -19,8 +17,8 @@ import threading
 import time
 import random
 
-from reach.raspberry import RPiReal
 import reach.drawings as drawings
+from reach.raspberry import RPiReal
 
 
 def _get_str_dims(string):
@@ -76,6 +74,41 @@ def _initialise_curses():
     return stdscr
 
 
+class _KeyMonitor(threading.Thread):
+    """
+    Thread subclass used for monitoring curses key presses in place of touch
+    sensors during the inter-trial interval.
+
+    Parameters
+    ----------
+    win : curses.window object
+        The curses window used to grab key events.
+
+    callbacks : dict
+        Dictionary linking keys to callable objects. These callables are
+        executed when their respective key is pressed.
+
+    """
+    def __init__(self, win, callbacks):
+        threading.Thread.__init__(self)
+        self.event = threading.Event()
+        self._win = win
+        self._callbacks = callbacks
+
+    def run(self):
+        self._win.timeout(400)
+        curses.flushinp()
+
+        while True:
+            key = self._win.getch()
+            if self.event.is_set():
+                return
+            if key > -1:
+                key = chr(key)
+                if key in self._callbacks:
+                    self._callbacks[key]()
+
+
 class RPiCurses(RPiReal):
     """
     A mock instance of a raspberry pi and its GPIO pins. This class is a
@@ -101,13 +134,18 @@ class RPiCurses(RPiReal):
     _rig : curses.window object
         This window displays the virtual training rig.
 
-    _monitor : threading.Thread object
-        Thread that monitors key presses and executes callback functions to
-        emulate touch sensor activity.
+    _target_pos : typle of two lists
+        Two lists storing x positions of the two target spouts in the self._rig
+        curses window.
 
-    _monitoring : boolean
-        True when we are monitoring key presses, falsifed to stop monitoring at
-        the end of the inter-trial interval..
+    _water_pos : typle of two lists
+        Two lists storing x positions of water rewards from the two target
+        spouts in the self._rig curses window.
+
+    _monitor : _KeyMonitor object
+        Thread that monitors key presses and executes callback functions to
+        emulate touch sensor activity, during either the inter-trial interval
+        of the trial..
 
     _button_callbacks : list of two functions
         Stores functions that will be executed when the virtual buttons are
@@ -146,18 +184,13 @@ class RPiCurses(RPiReal):
         self._feed.refresh()
         self._rig.refresh()
 
-        self._button_callbacks = [lambda: None] * 2
         self._monitor = None
-        self._monitoring = False
+        self._button_callbacks = [lambda: None] * 2
 
     def _initialise_pins(self):
         """
         Set initial state of mock pins and virtual rig.
         """
-        self._pin_states = [0] * 27
-        for button in self._button_pins:
-            self._pin_states[button] = 1
-
         for spout in self.spouts:
             spout['cue_timepoints'] = []
             spout['touch_timepoints'] = []
@@ -228,46 +261,18 @@ class RPiCurses(RPiReal):
         """
         Run the main sensor monitoring function asynchronously.
         """
-        self._monitor = threading.Thread(
-            target=self._monitor_iti,
-            args=(reset_iti, increase_spont_reaches),
+        self._monitor = _KeyMonitor(
+            self._feed,
+            dict([
+                ('v', lambda: reset_iti(self.paw_pins[0])),
+                ('n', lambda: reset_iti(self.paw_pins[1])),
+                ('g', lambda: increase_spont_reaches(self.spouts[0]['touch'])),
+                ('h', lambda: increase_spont_reaches(self.spouts[1]['touch'])),
+                ('1', self._button_callbacks[0]),
+                ('2', self._button_callbacks[0]),
+            ]),
         )
         self._monitor.start()
-
-    def _monitor_iti(self, reset_iti, increase_spont_reaches):
-        """
-        This is function asynchronously monitors the virtual touch sensors (key
-        presses of the letters v, n, g & h.
-
-        Parameters
-        ----------
-        reset_iti : func
-            Callback function executed upon lift of either paw.
-
-        increase_spont_reaches : func
-            Callback function executed upon contact with any spout touch
-            sensors.
-
-        """
-        curses.flushinp()
-        self._monitoring = True
-
-        while True:
-            key = self._feed.getkey()
-            if not self._monitoring:
-                return
-            if key == 'v':
-                reset_iti(self.paw_pins[0])
-            elif key == 'n':
-                reset_iti(self.paw_pins[1])
-            elif key == 'g':
-                increase_spont_reaches(self.spouts[0]['touch'])
-            elif key == 'h':
-                increase_spont_reaches(self.spouts[1]['touch'])
-            elif key == '1':
-                self._button_callbacks[0]()
-            elif key == '2':
-                self._button_callbacks[1]()
 
     def set_button_callback(self, button, func):
         """
@@ -296,8 +301,7 @@ class RPiCurses(RPiReal):
         Pretend to remove event detection from all touch sensors at the end of
         the inter-trial interval.
         """
-        self._monitoring = False
-        curses.ungetch('x')
+        self._monitor.event.set()
 
     def start_trial(self, spout_number, reward_func, incorrect_func):
         """
@@ -331,31 +335,6 @@ class RPiCurses(RPiReal):
         self._rig.refresh()
         self.print_to_feed("Cue illuminated")
 
-        self._monitor = threading.Thread(
-            target=self._monitor_trial,
-            args=(spout_number, reward_func, incorrect_func),
-        )
-        self._monitor.start()
-
-    def _monitor_trial(self, spout_number, reward_func, incorrect_func):
-        """
-        This is function asynchronously monitors the virtual touch sensors (key
-        presses of the letters v, n, g & h.
-
-        Parameters
-        ----------
-        spout_number : int
-            The spout number corresponding to this trial's reach target.
-
-        reward_func : func
-            Callback function to be executed upon successful grasp of target
-            spout.
-
-        incorrect_func : func
-            Callback function to be executed upon incorrect grasp of non-target
-            spout.
-
-        """
         if spout_number == 0:
             correct_key = 'g'
             incorrect_key = 'h'
@@ -363,25 +342,16 @@ class RPiCurses(RPiReal):
             correct_key = 'h'
             incorrect_key = 'g'
 
-        curses.flushinp()
-        self._monitoring = True
-
-        while True:
-            key = self._feed.getkey()
-            self.print_to_feed(f'TRIAL: Pressed {key}')
-            if not self._monitoring:
-                self.print_to_feed(f'TRIAL: RETURNING')
-                return
-            if key == 'v':
-                self._record_lift_timepoints(self.paw_pins[0])
-            elif key == 'n':
-                self._record_lift_timepoints(self.paw_pins[1])
-            elif key == correct_key:
-                reward_func(spout_number)
-                time.sleep(1)
-            elif key == incorrect_key:
-                incorrect_func(abs(spout_number - 1))
-                time.sleep(1)
+        self._monitor = _KeyMonitor(
+            self._feed,
+            dict([
+                ('v', lambda: self._record_lift_timepoints(self.paw_pins[0])),
+                ('n', lambda: self._record_lift_timepoints(self.paw_pins[1])),
+                (correct_key, lambda: reward_func(spout_number)),
+                (incorrect_key, lambda: incorrect_func(abs(spout_number - 1))),
+            ]),
+        )
+        self._monitor.start()
 
     def _record_lift_timepoints(self, pin):
         """
@@ -464,5 +434,5 @@ class RPiCurses(RPiReal):
         curses.curs_set(1)
         curses.nocbreak()
         curses.echo()
-        curses.endwin()
         curses.nl()
+        curses.endwin()
