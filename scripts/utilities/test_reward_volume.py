@@ -11,4 +11,4 @@ rpi = UtilityPi()
 rpi.test_reward_volume()
 
 
-input("Hit enter to finish.")
+input("Hit enter to finish.\n")

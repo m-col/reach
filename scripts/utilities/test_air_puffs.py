@@ -11,5 +11,4 @@ rpi = UtilityPi()
 rpi.test_air_puffs()
 
 
-input("Hit enter to finish.")
-
+input("Hit enter to finish.\n")

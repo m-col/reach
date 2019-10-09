@@ -26,19 +26,19 @@ except ModuleNotFoundError:
 
 
 _PIN_NUMBERS = {
-    'buttons': [4, 13],
-    'paw_sensors': [17, 18],
-    'air_puff': 25,
+    'buttons': [3, 2],
+    'paw_sensors': [5, 6],
+    'air_puff': 18,
     'spouts': [
         {
-            'cue': 5,
-            'touch': 27,
-            'solenoid': 25,
+            'cue': 23,
+            'touch': 14,
+            'solenoid': 16,
         },
         {
             'cue': 22,
-            'touch': 23,
-            'solenoid': 24,
+            'touch': 15,
+            'solenoid': 21,
         },
     ],
 }
@@ -323,6 +323,7 @@ class RPiReal:
         Trigger air puff to remove non-collected water at the end of a missed
         trial.
         """
+        print("PUFFING")
         GPIO.output(self._air_puff, True)
         time.sleep(duration_ms / 1000)
         GPIO.output(self._air_puff, False)
@@ -536,8 +537,9 @@ class UtilityPi(RPiReal):
             elif pin == self.paw_pins[1]:
                 print(f"Right:   {GPIO.input(pin)}")
             else:
-                print(f"Spout %s:    {GPIO.input(pin)}" %
-                      spout_pins.index(pin))
+                print(
+                    f"Spout {spout_pins.index(pin) + 1}:    {GPIO.input(pin)}"
+                )
 
         for pin in self.paw_pins + spout_pins:
             GPIO.add_event_detect(
@@ -565,7 +567,7 @@ class UtilityPi(RPiReal):
                 pin,
                 GPIO.FALLING,
                 callback=_toggle,
-                bouncetime=300
+                bouncetime=500
             )
 
     def test_reward_volume(self):
@@ -586,7 +588,7 @@ class UtilityPi(RPiReal):
                 pin,
                 GPIO.FALLING,
                 callback=_dispense,
-                bouncetime=1000
+                bouncetime=500
             )
 
     def test_air_puffs(self):
@@ -600,6 +602,23 @@ class UtilityPi(RPiReal):
             self._button_pins[0],
             GPIO.FALLING,
             callback=lambda _: self.miss_trial(duration_ms=duration_ms),
-            bouncetime=1000,
+            bouncetime=500,
         )
+
+    def test_buttons(self):
+        """
+        When either button is pressed, print its number.
+        """
+        print("Press the two buttons to print their corresponding numbers.")
+
+        def _print_number(pin):
+            print(f'You pressed button: {self._button_pins.index(pin) + 1}')
+
+        for pin in self._button_pins:
+            GPIO.add_event_detect(
+                pin,
+                GPIO.FALLING,
+                callback=_print_number,
+                bouncetime=500
+            )
 

@@ -11,4 +11,4 @@ rpi = UtilityPi()
 rpi.toggle_spout_leds()
 
 
-input("Hit enter to finish.")
+input("Hit enter to finish.\n")

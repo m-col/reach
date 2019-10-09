@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Control the two solenoids using the two buttons.
+Trigger air puffs upon press of button 1.
 """
 
 
@@ -8,7 +8,7 @@ from reach.raspberry import UtilityPi
 
 
 rpi = UtilityPi()
-rpi.test_sensors()
+rpi.test_buttons()
 
 
 input("Hit enter to finish.\n")
