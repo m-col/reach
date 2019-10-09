@@ -282,6 +282,7 @@ class Session:
 
         if self._outcome == 0:
             self._message("Missed reach")
+            self._rpi.miss_trial()
 
         elif self._outcome == 1:
             self._message("Successful reach!")

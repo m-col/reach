@@ -28,6 +28,7 @@ except ModuleNotFoundError:
 _PIN_NUMBERS = {
     'buttons': [4, 13],
     'paw_sensors': [17, 18],
+    'air_puff': 25,
     'spouts': [
         {
             'cue': 5,
@@ -82,6 +83,7 @@ class RPiReal:
         self._button_pins = _PIN_NUMBERS['buttons']
         self.paw_pins = _PIN_NUMBERS['paw_sensors']
         self.spouts = _PIN_NUMBERS['spouts'][:spout_count]
+        self._air_puff = _PIN_NUMBERS['air_puff']
 
         self._initialise_pins()
 
@@ -103,13 +105,19 @@ class RPiReal:
         GPIO.setup(
             self._button_pins,
             GPIO.IN,
-            pull_up_down=GPIO.PUD_UP
+            pull_up_down=GPIO.PUD_UP,
         )
 
         GPIO.setup(
             self.paw_pins,
             GPIO.IN,
-            pull_up_down=GPIO.PUD_DOWN
+            pull_up_down=GPIO.PUD_DOWN,
+        )
+
+        GPIO.setup(
+            self._air_puff,
+            GPIO.OUT,
+            initial=False,
         )
 
         for spout in self.spouts:
@@ -310,6 +318,15 @@ class RPiReal:
         time.sleep(duration_ms / 1000)
         GPIO.output(self.spouts[spout_number]['solenoid'], False)
 
+    def miss_trial(self, duration_ms=30):
+        """
+        Trigger air puff to remove non-collected water at the end of a missed
+        trial.
+        """
+        GPIO.output(self._air_puff, True)
+        time.sleep(duration_ms / 1000)
+        GPIO.output(self._air_puff, False)
+
     def end_trial(self):
         """
         Disable target spout LED and remove spout touch sensors event
@@ -449,6 +466,12 @@ class _RPiMock(RPiReal):
         """
         time.sleep(duration_ms / 1000)
 
+    def miss_trial(self):
+        """
+        Wait during air puff period.
+        """
+        time.sleep(0.030)
+
     def end_trial(self):
         """
         Pretend to disable target spout LED and remove spout touch sensors
@@ -549,7 +572,6 @@ class UtilityPi(RPiReal):
         """
         Measure volume of water dispensed by a specified dispense duration.
         """
-
         duration_ms = int(input("Specify duration to dispense in ms: "))
         print("Press button to dispense from corresponding spout.")
 
@@ -566,3 +588,18 @@ class UtilityPi(RPiReal):
                 callback=_dispense,
                 bouncetime=1000
             )
+
+    def test_air_puffs(self):
+        """
+        Trigger air puffs upon press of button 1.
+        """
+        duration_ms = int(input("Specify duration to puff air in ms: "))
+        print("Press button 1 to trigger air puff.")
+
+        GPIO.add_event_detect(
+            self._button_pins[0],
+            GPIO.FALLING,
+            callback=lambda _: self.miss_trial(duration_ms=duration_ms),
+            bouncetime=1000,
+        )
+
