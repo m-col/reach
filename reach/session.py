@@ -266,6 +266,8 @@ class Session:
         Run trial during training session.
         """
         current_spout = self._current_spout
+        reward_duration = self.data['reward_duration_ms'][current_spout]
+
         self._rpi.start_trial(
             current_spout,
             self._reward_callback,
@@ -275,7 +277,7 @@ class Session:
         if self._water_at_cue_onset:
             self._rpi.dispense_water(
                 current_spout,
-                self.data['reward_duration_ms']
+                reward_duration,
             )
 
         now = time.time()
@@ -294,11 +296,11 @@ class Session:
         elif self._outcome == 1:
             self._message("Successful reach!")
             self._reward_count += 1
-            time.sleep(self.data['reward_duration_ms'] / 1000)
+            time.sleep(reward_duration / 1000)
 
         elif self._outcome == 2:
             self._message("Incorrect reach!")
-            time.sleep(self.data['reward_duration_ms'] / 1000)
+            time.sleep(reward_duration / 1000)
 
         elif self._outcome == 3:
             return
@@ -319,7 +321,7 @@ class Session:
         if not self._water_at_cue_onset:
             self._rpi.dispense_water(
                 self._current_spout,
-                self.data['reward_duration_ms']
+                self.data['reward_duration_ms'][self._current_spout],
             )
 
     def _incorrect_grasp_callback(self, pin):

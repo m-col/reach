@@ -2,8 +2,5 @@ todo list
 =========
 
 [ ] Record when mice rest paws (for IGM durations)
-[ ] Allow selecting function to call upon missed cue
-    [ ] Add PuffAdder blow _RPi Method
-    [ ] Add servo movement (e.g. with cotton bud) _RPi Method
 [ ] Implement adaptive cue durations (based on what calculations?)
 [ ] is it possible to reduce callback-handling code by using lambdas?

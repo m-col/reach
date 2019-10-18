@@ -8,6 +8,7 @@ Config files handle training session configuration through config files.
 
 
 import configparser
+import json
 import sys
 from os.path import isfile
 
@@ -23,9 +24,9 @@ def _default_config():
     config.add_section('Settings')
     config.set('Settings', 'duration', 2400)
     config.set('Settings', 'spout_count', 1)
-    config.set('Settings', 'reward_duration_ms', 220)
+    config.set('Settings', 'reward_duration_ms', '[100, 100]')
     config.set('Settings', 'cue_duration_ms', 10000)
-    config.set('Settings', 'iti', '4000, 6000')
+    config.set('Settings', 'iti', '[4000, 6000]')
     config.set('Settings', 'shaping', False)
     config.set('Settings', 'json_dir',
                '/home/pi/CuedBehaviourAnalysis/Data/TrainingJSON')
@@ -97,15 +98,14 @@ def read_config(config_file):
     config_dict = {}
     config_dict['duration'] = config.getint('Settings', 'duration')
     config_dict['spout_count'] = config.getint('Settings', 'spout_count')
-    config_dict['iti'] = config.get('Settings', 'iti')
-    config_dict['iti'] = [int(i) for i in config_dict['iti'].split(',')]
+    config_dict['iti'] = json.loads(config.get('Settings', 'iti'))
     config_dict['shaping'] = config.getboolean('Settings', 'shaping')
     config_dict['json_dir'] = config.get('Settings', 'json_dir')
     config_dict['cue_duration_ms'] = config.getint(
         'Settings', 'cue_duration_ms'
     )
-    config_dict['reward_duration_ms'] = config.getint(
-        'Settings', 'reward_duration_ms'
+    config_dict['reward_duration_ms'] = json.loads(
+        config.get('Settings', 'reward_duration_ms')
     )
 
     return config_dict
