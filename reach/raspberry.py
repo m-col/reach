@@ -189,11 +189,7 @@ class RPiReal:
         """
         Block execution and wait until both paw sensors are held.
         """
-        print(
-            "Waiting for rest... ",
-            end="",
-            flush=True
-        )
+        print("Waiting for rest... ")
         try:
             while not all([GPIO.input(self.paw_pins[0]),
                            GPIO.input(self.paw_pins[1])]):
