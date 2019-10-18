@@ -89,11 +89,6 @@ class RPiReal:
 
         self.lift_timepoints = [[], []]
 
-        signal.signal(
-            signal.SIGINT,
-            self.cleanup
-        )
-
     def _initialise_pins(self):
         """
         Set initial state of pins.
@@ -132,13 +127,11 @@ class RPiReal:
         Block the program and wait until the left hand button is pressed at the
         training box. Once this is pressed, the training session begins.
         """
-        print("Hit button 1 to begin.")
-        GPIO.wait_for_edge(
-            self._button_pins[0],
-            GPIO.FALLING
-        )
-
-        return True
+        try:
+            input("Press enter to begin.\n")
+            return True
+        except KeyboardInterrupt:
+            return False
 
     def monitor_sensors(self, reset_iti, increase_spont_reaches):
         """
@@ -201,9 +194,13 @@ class RPiReal:
             end="",
             flush=True
         )
-        while not all([GPIO.input(self.paw_pins[0]),
-                       GPIO.input(self.paw_pins[1])]):
-            time.sleep(0.010)
+        try:
+            while not all([GPIO.input(self.paw_pins[0]),
+                           GPIO.input(self.paw_pins[1])]):
+                time.sleep(0.010)
+        except RuntimeError:
+            # Ignore GPIO error when Ctrl-C cancels training
+            pass
 
     def disable_sensors(self):
         """
@@ -325,7 +322,6 @@ class RPiReal:
         Trigger air puff to remove non-collected water at the end of a missed
         trial.
         """
-        print("PUFFING")
         GPIO.output(self._air_puff, True)
         time.sleep(duration_ms / 1000)
         GPIO.output(self._air_puff, False)

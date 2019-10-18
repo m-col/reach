@@ -116,6 +116,8 @@ class Session:
 
         if not self._rpi.wait_to_start():
             # Ctrl-C hit while waiting.
+            self._rpi.cleanup()
+            print('Cancelled..')
             sys.exit(1)
 
         signal.signal(
@@ -138,8 +140,8 @@ class Session:
                           % (trial_count, now - data['start_time']))
 
             self._current_spout = random.randint(0, data['spout_count'] - 1)
-            self._inter_trial_interval()
-            self._trial()
+            if self._inter_trial_interval():
+                self._trial()
 
             self._message(f"Total rewards: {self._reward_count}")
             now = time.time()
@@ -198,6 +200,9 @@ class Session:
             self._message(f"Counting down {iti_duration:.2f}s")
 
             while now < trial_end and not self._iti_broken:
+                if self._outcome == 3:
+                    return False
+
                 time.sleep(0.020)
                 now = time.time()
 
@@ -207,6 +212,7 @@ class Session:
                 break
 
         self._rpi.disable_sensors()
+        return True
 
     def _reset_iti_callback(self, pin):
         """
