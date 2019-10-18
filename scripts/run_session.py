@@ -84,22 +84,24 @@ for key in ['trainer', 'weight', 'training_box']:
         data.update({key: getattr(settings, key)})
 
 
-if settings.mouse_id is None:
-    # Instantiate anonymous mouse
-    mouse = Mouse()
-
-else:
+if settings.mouse_id:
     # Instantiate mouse from training JSON
     mouse = Mouse.init_from_file(
         mouse_id=settings.mouse_id,
         json_path=settings.json_path
     )
 
+else:
+    # Instantiate anonymous mouse
+    mouse = Mouse()
+
 
 # Begin the training session
 mouse.train(
     config_file=settings.config_file,
-    data=data
+    data=data,
+    save_notes=True if settings.mouse_id else False,
 )
 
-mouse.save_data_to_file(settings.json_path)
+if settings.mouse_id is not None:
+    mouse.save_data_to_file(settings.json_path)

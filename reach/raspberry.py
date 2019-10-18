@@ -132,11 +132,13 @@ class RPiReal:
         Block the program and wait until the left hand button is pressed at the
         training box. Once this is pressed, the training session begins.
         """
-        print("Hit the left button to begin.")
+        print("Hit button 1 to begin.")
         GPIO.wait_for_edge(
             self._button_pins[0],
             GPIO.FALLING
         )
+
+        return True
 
     def monitor_sensors(self, reset_iti, increase_spont_reaches):
         """
@@ -621,4 +623,3 @@ class UtilityPi(RPiReal):
                 callback=_print_number,
                 bouncetime=500
             )
-

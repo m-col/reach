@@ -239,6 +239,7 @@ class Session:
         """
         self.spont_reach_spouts.append(pin)
         self.data['spont_reach_timepoints'].append(time.time())
+        self._message('Spontaneous reach made!')
 
     def _reverse_shaping_callback(self, pin):
         """
@@ -353,9 +354,6 @@ class Session:
         self._collate_data()
         self._display_training_results()
 
-        self._message('Add any notes to save:')
-        self.data["notes"] = input()
-
     def _collate_data(self):
         """
         Reorganise collected training data into the final form saved in
@@ -429,6 +427,14 @@ class Session:
         1000 uL - {self._reward_count} * 6 uL
                     = {1000 - self._reward_count * 6} uL
         """))
+
+    def add_training_notes(self):
+        """
+        Add arbitrary training notes to this session's data dictionary.
+        """
+
+        self._message('Add any notes to save:')
+        self.data["notes"] = input()
 
     @lazy_property
     def reaction_times(self):
