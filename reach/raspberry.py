@@ -591,12 +591,28 @@ class UtilityPi(RPiReal):
         """
         duration_ms = int(input("Specify duration to puff air in ms: "))
         print("Press button 1 to trigger air puff.")
+        print("Press button 2 to open solenoids.")
 
         GPIO.add_event_detect(
             self._button_pins[0],
             GPIO.FALLING,
             callback=lambda _: self.miss_trial(duration_ms=duration_ms),
             bouncetime=500,
+        )
+
+        def _toggle(pin):
+            time.sleep(0.010)
+            for spout in self.spouts:
+                GPIO.output(
+                    spout['solenoid'],
+                    not GPIO.input(pin)
+                )
+
+        GPIO.add_event_detect(
+            self._button_pins[1],
+            GPIO.BOTH,
+            callback=_toggle,
+            bouncetime=20
         )
 
     def test_buttons(self):
