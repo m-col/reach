@@ -410,7 +410,7 @@ class Session:
         Print training results at the end of the session.
         """
         data = self.data
-        trial_count = len(data['cue_timepoints'])
+        trial_count = sum([len(inner) for inner in data['cue_timepoints']])
         miss_count = trial_count - self._reward_count
         reward_perc = 100 * self._reward_count / trial_count
         miss_perc = 100 * miss_count / trial_count
