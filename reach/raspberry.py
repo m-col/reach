@@ -615,6 +615,37 @@ class UtilityPi(RPiReal):
             bouncetime=20
         )
 
+    def test_reward_volume_with_air_puffs(self):
+        """
+        Trigger air puffs upon press of button 1 with specified water volume
+        dispensed to both spouts upon press of button 2.
+        """
+        puff_duration_ms = int(input("Specify duration to puff air in ms: "))
+        dispense_duration_ms = int(input("Specify duration to dispense in ms: "))
+        print("Press button 1 to trigger air puff.")
+        print(f"Press button 2 to dispense water for {dispense_duration_ms} ms.")
+
+        GPIO.add_event_detect(
+            self._button_pins[0],
+            GPIO.FALLING,
+            callback=lambda _: self.miss_trial(duration_ms=puff_duration_ms),
+            bouncetime=500,
+        )
+
+        def _dispense(pin):
+            for spout_num in range(0, 2):
+                self.dispense_water(
+                    spout_num,
+                    dispense_duration_ms
+                )
+
+        GPIO.add_event_detect(
+            self._button_pins[1],
+            GPIO.FALLING,
+            callback=_dispense,
+            bouncetime=500
+        )
+
     def test_buttons(self):
         """
         When either button is pressed, print its number.
