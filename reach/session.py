@@ -260,6 +260,7 @@ class Session:
 
         """
         self._water_at_cue_onset = not self._water_at_cue_onset
+        self._message(f'Water at cue onset: {str(self._water_at_cue_onset)}')
 
     def _trial(self):
         """
