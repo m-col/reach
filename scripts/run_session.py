@@ -13,11 +13,10 @@ import argparse
 import os
 import sys
 
-sys.path.append('..')
 from reach import Mouse
 
 
-home = os.path.expanduser('~')
+HOME = os.path.expanduser('~')
 
 
 def parse_args():
@@ -28,7 +27,7 @@ def parse_args():
     parser.add_argument(
         '-c', '--config_file',
         help='Select training configuration file',
-        default=f'{home}/reach_config.ini',
+        default=f'{HOME}/reach_config.ini',
         type=str
     )
 
@@ -63,7 +62,7 @@ def parse_args():
     parser.add_argument(
         '-j', '--json_path',
         help='Path to folder containing training JSONs',
-        default=f'{home}/CuedBehaviourAnalysis/Data/TrainingJSON',
+        default=f'{HOME}/CuedBehaviourAnalysis/Data/TrainingJSON',
         type=str
     )
 

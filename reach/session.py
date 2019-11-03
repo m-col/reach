@@ -417,6 +417,10 @@ class Session:
         """
         data = self.data
         trial_count = sum([len(inner) for inner in data['cue_timepoints']])
+
+        if trial_count == 0:
+            return
+
         miss_count = trial_count - self._reward_count
         reward_perc = 100 * self._reward_count / trial_count
         miss_perc = 100 * miss_count / trial_count
