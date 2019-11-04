@@ -171,15 +171,15 @@ class RPiReal:
         Parameters
         ----------
         button : int
-            The index of the button to assign the function to.
+            The number of the button to assign the function to.
 
         callback_function : func
             Function to be executed upon button press.
 
         """
-        GPIO.remove_event_detect(self._button_pins[button])
+        GPIO.remove_event_detect(self._button_pins[button - 1])
         GPIO.add_event_detect(
-            self._button_pins[button],
+            self._button_pins[button - 1],
             GPIO.FALLING,
             callback=func,
             bouncetime=500

@@ -48,7 +48,6 @@ class Session:
         if data is not None:
             self.data.update(data)
 
-
         # These attributes track state during training
         self.reward_count = 0
         self._outcome = 0
@@ -57,6 +56,7 @@ class Session:
         self._water_at_cue_onset = None
         self._rpi = None
         self._message = print
+        self._extended_trial = False
 
     @classmethod
     def init_all_from_file(cls, json_path=None):
@@ -193,8 +193,11 @@ class Session:
             self._increase_spont_reaches_callback,
         )
 
-        self._rpi.set_button_callback(0, self._reverse_shaping_callback)
+        self._rpi.set_button_callback(1, self._reverse_shaping_callback)
         self._water_at_cue_onset = self.data['shaping']
+
+        self._rpi.set_button_callback(2, self._extend_trial)
+        self._extended_trial = False
 
         while True:
             self._rpi.wait_for_rest()
@@ -288,7 +291,10 @@ class Session:
             )
 
         now = time.time()
-        cue_end = now + self.data['cue_duration_ms'] / 1000
+        if self._extended_trial:
+            cue_end = self.data['end_time']
+        else:
+            cue_end = now + self.data['cue_duration_ms'] / 1000
 
         while not self._outcome and now < cue_end:
             time.sleep(0.008)
@@ -346,6 +352,14 @@ class Session:
         self._outcome = 2
         if self._water_at_cue_onset:
             self._rpi.miss_trial()
+
+    def _extend_trial(self, pin):
+        """
+        Callback function assigned to a button that will stop the next trial
+        from timing out, instead leaving the cue illuminated until grasped.
+        """
+        self._extended_trial = True
+        print('Next trial will be an extended trial')
 
     def _end_session(self, signal_number=None, frame=None):
         """
