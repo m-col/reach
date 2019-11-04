@@ -278,7 +278,7 @@ class Session:
         self._rpi.start_trial(
             current_spout,
             self._reward_callback,
-            self._incorrect_grasp_callback
+            self._incorrect_grasp_callback,
         )
 
         if self._water_at_cue_onset:
@@ -344,6 +344,8 @@ class Session:
         """
         self._rpi.incorrect_grasp(self._current_spout)
         self._outcome = 2
+        if self._water_at_cue_onset:
+            self._rpi.miss_trial()
 
     def _end_session(self, signal_number=None, frame=None):
         """
