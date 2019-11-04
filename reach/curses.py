@@ -301,7 +301,7 @@ class RPiCurses(RPiReal):
         self.print_to_feed("Waiting for rest... ")
         time.sleep(0.200)
 
-    def disable_sensors(self):
+    def disable_callbacks(self):
         """
         Pretend to remove event detection from all touch sensors at the end of
         the inter-trial interval.
@@ -421,7 +421,7 @@ class RPiCurses(RPiReal):
         Pretend to disable target spout LED and remove spout touch sensors
         event callbacks.
         """
-        self.disable_sensors()
+        self.disable_callbacks()
         for target in self._target_pos:
             _addstr_multiline(
                 self._rig,
@@ -436,7 +436,7 @@ class RPiCurses(RPiReal):
         Restore terminal state.
         """
         if self._monitor:
-            self.disable_sensors()
+            self.disable_callbacks()
 
         self._stdscr.keypad(False)
         curses.curs_set(1)

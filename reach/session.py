@@ -215,7 +215,7 @@ class Session:
             else:
                 break
 
-        self._rpi.disable_sensors()
+        self._rpi.disable_callbacks()
         return True
 
     def _reset_iti_callback(self, pin):

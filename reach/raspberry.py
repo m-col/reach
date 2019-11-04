@@ -26,7 +26,7 @@ except ModuleNotFoundError:
 
 
 _PIN_NUMBERS = {
-    'buttons': [3, 2],
+    'buttons': [2, 3, 4],
     'paw_sensors': [5, 6],
     'air_puff': 18,
     'spouts': [
@@ -198,13 +198,16 @@ class RPiReal:
             # Ignore GPIO error when Ctrl-C cancels training
             pass
 
-    def disable_sensors(self):
+    def disable_callbacks(self):
         """
         Remove event detection from all touch sensors at the end of the
         inter-trial interval.
         """
-        for paw_pin in self.paw_pins:
-            GPIO.remove_event_detect(paw_pin)
+        for pin in self.paw_pins:
+            GPIO.remove_event_detect(pin)
+
+        for pin in self._button_pins:
+            GPIO.remove_event_detect(pin)
 
         for spout in self.spouts:
             GPIO.remove_event_detect(spout['touch'])
@@ -327,7 +330,7 @@ class RPiReal:
         Disable target spout LED and remove spout touch sensors event
         callbacks.
         """
-        self.disable_sensors()
+        self.disable_callbacks()
         for spout in self.spouts:
             GPIO.output(spout['cue'], False)
 
@@ -401,7 +404,7 @@ class _RPiMock(RPiReal):
         print("Waiting for rest... ", end='', flush=True)
         time.sleep(1)
 
-    def disable_sensors(self):
+    def disable_callbacks(self):
         """
         Pretend to remove event detection from all touch sensors at the end of
         the inter-trial interval.
@@ -506,7 +509,7 @@ class UtilityPi(RPiReal):
             time.sleep(0.010)
             GPIO.output(
                 self.spouts[self._button_pins.index(pin)]['solenoid'],
-                not GPIO.input(pin)
+                not GPIO.input(pin),
             )
 
         for pin in self._button_pins:
@@ -514,7 +517,7 @@ class UtilityPi(RPiReal):
                 pin,
                 GPIO.BOTH,
                 callback=_toggle,
-                bouncetime=20
+                bouncetime=20,
             )
 
     def test_sensors(self):
@@ -561,7 +564,7 @@ class UtilityPi(RPiReal):
                 pin,
                 GPIO.FALLING,
                 callback=_toggle,
-                bouncetime=500
+                bouncetime=500,
             )
 
     def test_reward_volume(self):
@@ -574,7 +577,7 @@ class UtilityPi(RPiReal):
         def _dispense(pin):
             self.dispense_water(
                 self._button_pins.index(pin),
-                duration_ms
+                duration_ms,
             )
 
         for pin in self._button_pins:
@@ -582,7 +585,7 @@ class UtilityPi(RPiReal):
                 pin,
                 GPIO.FALLING,
                 callback=_dispense,
-                bouncetime=500
+                bouncetime=500,
             )
 
     def test_air_puffs(self):
@@ -605,7 +608,7 @@ class UtilityPi(RPiReal):
             for spout in self.spouts:
                 GPIO.output(
                     spout['solenoid'],
-                    not GPIO.input(pin)
+                    not GPIO.input(pin),
                 )
 
         GPIO.add_event_detect(
@@ -633,6 +636,7 @@ class UtilityPi(RPiReal):
         )
 
         def _dispense(pin):
+            time.sleep(0.010)
             for spout_num in range(0, 2):
                 self.dispense_water(
                     spout_num,
@@ -653,12 +657,15 @@ class UtilityPi(RPiReal):
         print("Press the two buttons to print their corresponding numbers.")
 
         def _print_number(pin):
-            print(f'You pressed button: {self._button_pins.index(pin) + 1}')
+            if GPIO.input(pin):
+                print(f'You released button: {self._button_pins.index(pin) + 1}')
+            else:
+                print(f'You pressed button: {self._button_pins.index(pin) + 1}')
 
         for pin in self._button_pins:
             GPIO.add_event_detect(
                 pin,
-                GPIO.FALLING,
+                GPIO.BOTH,
                 callback=_print_number,
                 bouncetime=500
             )
