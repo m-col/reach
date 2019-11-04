@@ -356,27 +356,12 @@ class _RPiMock(RPiReal):
     """
     A mock instance of a raspberry pi and its GPIO pins. This class is a
     fallback for .RPiReal when the RPi.GPIO library cannot be loaded, which
-    assumes that we are working on a non-raspberry pi machine.
+    assumes that we are working on a non-raspberry pi machine for development.
 
-    This subclass overrides most methods to replace all calls to RPi.GPIO to
-    instead keep track of hypothetical pin state changes.
-
-    Attributes
-    ----------
-    _pin_states : list of 27 ints
-        This stores the state of all 27 raspberry pi GPIO pins. This way, each
-        pin can be indexed using the inherited pin number attributes to read or
-        change state. (Not implemented yet)
-
+    This subclass overrides most methods to replace all calls to RPi.GPIO that
+    the superclass would otherwise execute.
     """
     def _initialise_pins(self):
-        """
-        Set initial state of the mock pins.
-        """
-        self._pin_states = [0] * 27
-        for button in self._button_pins:
-            self._pin_states[button] = 1
-
         for spout in self.spouts:
             spout['cue_timepoints'] = []
             spout['touch_timepoints'] = []
