@@ -57,7 +57,6 @@ class Session:
         self._water_at_cue_onset = None
         self._rpi = None
         self._message = print
-        self._rested_this_trial = False
 
     @classmethod
     def init_all_from_file(cls, json_path=None):
@@ -189,11 +188,9 @@ class Session:
         button.
 
         """
-        self._rested_this_trial = False
-
         self._rpi.monitor_sensors(
             self._reset_iti_callback,
-            self._increase_spont_reaches_callback
+            self._increase_spont_reaches_callback,
         )
 
         self._rpi.set_button_callback(0, self._reverse_shaping_callback)
@@ -201,7 +198,6 @@ class Session:
 
         while True:
             self._rpi.wait_for_rest()
-            self._rested_this_trial = True
             self._iti_broken = False
 
             now = time.time()
@@ -253,10 +249,9 @@ class Session:
             spontaneous reach.
 
         """
-        if self._rested_this_trial:
-            self.spont_reach_spouts.append(pin)
-            self.data['spont_reach_timepoints'].append(time.time())
-            self._message('Spontaneous reach made!')
+        self.spont_reach_spouts.append(pin)
+        self.data['spont_reach_timepoints'].append(time.time())
+        self._message('Spontaneous reach made!')
 
     def _reverse_shaping_callback(self, pin):
         """

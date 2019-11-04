@@ -104,11 +104,12 @@ mouse.train(
 
 
 # Ignore this session's data if we pass 'rm' into the notes
-notes = mouse.training_data[-1].data['notes']
-if notes == 'rm':
-    print('Not saving new training data.')
-elif: settings.mouse_id is not None:
-    mouse.save_data_to_file(settings.json_path)
+if settings.mouse_id is not None:
+    notes = mouse.training_data[-1].data['notes']
+    if notes == 'rm':
+        print('Not saving new training data.')
+    else:
+        mouse.save_data_to_file(settings.json_path)
 
 
 # Print remaining water that mouse requires

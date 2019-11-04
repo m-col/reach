@@ -161,7 +161,7 @@ class RPiReal:
                 spout['touch'],
                 GPIO.RISING,
                 callback=increase_spont_reaches,
-                bouncetime=1000
+                bouncetime=100
             )
 
     def set_button_callback(self, button, func):
