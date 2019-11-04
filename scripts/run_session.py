@@ -102,9 +102,15 @@ mouse.train(
     save_notes=True if settings.mouse_id else False,
 )
 
-if settings.mouse_id is not None:
+
+# Ignore this session's data if we pass 'rm' into the notes
+notes = mouse.training_data[-1].data['notes']
+if notes == 'rm':
+    print('Not saving new training data.')
+elif: settings.mouse_id is not None:
     mouse.save_data_to_file(settings.json_path)
 
-reward_count = mouse.training_data[-1].reward_count
 
+# Print remaining water that mouse requires
+reward_count = mouse.training_data[-1].reward_count
 print(f'\n1000 uL - {reward_count} * 6 uL = {1000 - reward_count * 6} uL')
