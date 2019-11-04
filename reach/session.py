@@ -32,6 +32,11 @@ class Session:
         Stores all training data that is saved and loaded from the training
         JSONs. Can be passed as a kwarg to pre-fill entries.
 
+    reward_count : int
+        The number of rewarded trials in this session. This is exposed so
+        scripts can calculate and display how much water to give a mouse after
+        a session.
+
     """
 
     def __init__(self, data=None):
@@ -43,13 +48,14 @@ class Session:
         if data is not None:
             self.data.update(data)
 
+
         # These attributes track state during training
+        self.reward_count = 0
         self._outcome = 0
         self._iti_broken = False
         self._current_spout = None
         self._water_at_cue_onset = None
         self._rpi = None
-        self._reward_count = 0
         self._message = print
         self._rested_this_trial = False
 
@@ -144,7 +150,7 @@ class Session:
             if self._inter_trial_interval():
                 self._trial()
 
-            self._message(f"Total rewards: {self._reward_count}")
+            self._message(f"Total rewards: {self.reward_count}")
             now = time.time()
 
             if self._outcome == 3:
@@ -301,7 +307,7 @@ class Session:
 
         elif self._outcome == 1:
             self._message("Successful reach!")
-            self._reward_count += 1
+            self.reward_count += 1
             time.sleep(reward_duration / 1000)
 
         elif self._outcome == 2:
@@ -421,8 +427,8 @@ class Session:
         if trial_count == 0:
             return
 
-        miss_count = trial_count - self._reward_count
-        reward_perc = 100 * self._reward_count / trial_count
+        miss_count = trial_count - self.reward_count
+        reward_perc = 100 * self.reward_count / trial_count
         miss_perc = 100 * miss_count / trial_count
         iti_resets = (
             len(data['resets_timepoints'][0]),
@@ -434,16 +440,13 @@ class Session:
         # __________ The End __________ #
 
         Trials:            {trial_count}
-        Correct reaches:   {self._reward_count} ({reward_perc:0.1f}%)
+        Correct reaches:   {self.reward_count} ({reward_perc:0.1f}%)
         Missed cues:       {miss_count} ({miss_perc:0.1f}%)
         Spont. reaches:    {len(self.spont_reach_spouts)}
         ITI resets:        {sum(iti_resets)}
             left paw:      {iti_resets[0]}
             right paw:     {iti_resets[1]}
         # _____________________________ #
-
-        1000 uL - {self._reward_count} * 6 uL
-                    = {1000 - self._reward_count * 6} uL
         """))
 
     def add_training_notes(self):

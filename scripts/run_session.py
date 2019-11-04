@@ -104,3 +104,7 @@ mouse.train(
 
 if settings.mouse_id is not None:
     mouse.save_data_to_file(settings.json_path)
+
+reward_count = mouse.training_data[-1].reward_count
+
+print(f'\n1000 uL - {reward_count} * 6 uL = {1000 - reward_count * 6} uL')
