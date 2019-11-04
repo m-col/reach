@@ -41,6 +41,18 @@ class Mouse:
         self.mouse_id = mouse_id
         self.training_data = training_data
 
+    def __getitem__(self, key):
+        """
+        Allow indexing directly, returning the nth :class:`Session`
+        """
+        return self.training_data[key]
+
+    def __len__(self):
+        """
+        Allow querying of the number of training days completed.
+        """
+        return len(self.training_data)
+
     @classmethod
     def init_from_file(cls, json_path=None, mouse_id=None):
         """
@@ -125,7 +137,7 @@ class Mouse:
 
         self.training_data.append(new_session)
 
-    def save_data_to_file(self, json_path):
+    def save_data_to_file(self, json_path=''):
         """
         Save all training data to training JSON file.
 
