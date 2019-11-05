@@ -73,45 +73,47 @@ def parse_args():
     return settings
 
 
-settings = parse_args()
+def main():
+    settings = parse_args()
 
+    # add any additional metadata
+    data = {}
+    for key in ['trainer', 'weight', 'training_box']:
+        if getattr(settings, key):
+            data.update({key: getattr(settings, key)})
 
-# add any necessary data
-data = {}
-for key in ['trainer', 'weight', 'training_box']:
-    if getattr(settings, key):
-        data.update({key: getattr(settings, key)})
+    if settings.mouse_id:
+        # instantiate mouse from training JSON
+        mouse = Mouse.init_from_file(
+            mouse_id=settings.mouse_id,
+            json_path=settings.json_path
+        )
 
+        mouse.train(
+            config_file=settings.config_file,
+            data=data,
+            save_notes=True,
+        )
 
-if settings.mouse_id:
-    # Instantiate mouse from training JSON
-    mouse = Mouse.init_from_file(
-        mouse_id=settings.mouse_id,
-        json_path=settings.json_path
-    )
+        # ignore this session's data if we pass 'rm' into the notes
+        notes = mouse[-1].data['notes']
+        if notes == 'rm':
+            print('Not saving new training data.')
+        else:
+            mouse.save_data_to_file(settings.json_path)
 
-else:
-    # Instantiate anonymous mouse
-    mouse = Mouse()
-
-
-# Begin the training session
-mouse.train(
-    config_file=settings.config_file,
-    data=data,
-    save_notes=True if settings.mouse_id else False,
-)
-
-
-# Ignore this session's data if we pass 'rm' into the notes
-if settings.mouse_id is not None:
-    notes = mouse.training_data[-1].data['notes']
-    if notes == 'rm':
-        print('Not saving new training data.')
     else:
-        mouse.save_data_to_file(settings.json_path)
+        # train anonymous mouse
+        mouse = Mouse()
+        mouse.train(
+            config_file=settings.config_file,
+            save_notes=False,
+        )
+
+    # Print remaining water that mouse requires
+    reward_count = mouse[-1].reward_count
+    print(f'\n1000 uL - {reward_count} * 6 uL = {1000 - reward_count * 6} uL')
 
 
-# Print remaining water that mouse requires
-reward_count = mouse.training_data[-1].reward_count
-print(f'\n1000 uL - {reward_count} * 6 uL = {1000 - reward_count * 6} uL')
+if __name__ == '__main__':
+    main()
