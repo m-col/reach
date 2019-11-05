@@ -371,6 +371,7 @@ class _RPiMock(RPiReal):
         Instead of blocking execution, simply print a message.
         """
         print("Hit the start button to begin.")
+        return True
 
     def monitor_sensors(self, *args, **kwargs):
         """

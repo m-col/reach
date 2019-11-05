@@ -286,13 +286,13 @@ class RPiCurses(RPiReal):
         Parameters
         ----------
         button : int
-            The index of the button to assign the function to.
+            The number of the button to assign the function to.
 
         callback_function : func
             Function to be executed upon button press.
 
         """
-        self._button_callbacks[button] = lambda: func(button)
+        self._button_callbacks[button - 1] = lambda: func(button - 1)
 
     def wait_for_rest(self):
         """
