@@ -15,7 +15,6 @@ export RPi as RPiReal, else as _RPiMock.
 # pylint: disable=unused-argument,arguments-differ
 
 
-import signal
 import time
 
 _IS_RASPBERRY_PI = True
@@ -609,8 +608,12 @@ class UtilityPi(RPiReal):
         Trigger air puffs upon press of button 1 with specified water volume
         dispensed to both spouts upon press of button 2.
         """
-        puff_duration_ms = int(input("Specify duration to puff air in ms: "))
-        dispense_duration_ms = int(input("Specify duration to dispense in ms: "))
+        puff_duration_ms = int(input(
+            "Specify duration to puff air in ms: "
+        ))
+        dispense_duration_ms = int(input(
+            "Specify duration to dispense in ms: "
+        ))
         print("Press button 1 to trigger air puff.")
         print(f"Press button 2 to dispense water for {dispense_duration_ms} ms.")
 
@@ -640,7 +643,7 @@ class UtilityPi(RPiReal):
         """
         When either button is pressed, print its number.
         """
-        print("Press the two buttons to print their corresponding numbers.")
+        print("Press the buttons to print their corresponding numbers.")
 
         def _print_number(pin):
             if GPIO.input(pin):

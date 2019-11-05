@@ -1,6 +1,21 @@
 todo list
 =========
 
+core code
+---------
+
 [ ] Record when mice rest paws (for IGM durations)
 [ ] Implement adaptive cue durations (based on what calculations?)
-[ ] is it possible to reduce callback-handling code by using lambdas?
+[ ] Implement automatic probe trials (based on what calculations?)
+
+extra code
+----------
+
+[ ] write tests for each class
+[ ] write tests for raspberry methods
+
+
+rig hardware
+------------
+
+
