@@ -90,7 +90,7 @@ class Session:
         config : :class:`dict`
             Training settings.
 
-        curses: :class:'bool' (optional)
+        curses: :class:`bool` (optional)
             Specify whether to use curses interface, and therefore mock
             raspberry pi, for a test training session.
 
@@ -146,14 +146,15 @@ class Session:
                           % (trial_count, now - data['start_time']))
 
             self._current_spout = random.randint(0, data['spout_count'] - 1)
-            if self._inter_trial_interval():
-                self._trial()
-
-            self._message(f"Total rewards: {self.reward_count}")
-            now = time.time()
-
-            if self._outcome == 3:
+            if not self._inter_trial_interval():
                 return
+
+            self._trial()
+            self._message(f"Total rewards: {self.reward_count}")
+
+            self._adapt_settings()
+
+            now = time.time()
 
         self._end_session()
 
@@ -315,9 +316,6 @@ class Session:
             self._message("Incorrect reach!")
             time.sleep(reward_duration / 1000)
 
-        elif self._outcome == 3:
-            return
-
     def _reward_callback(self, pin):
         """
         Callback function executed upon successful grasp of illuminated reach
@@ -360,6 +358,15 @@ class Session:
         """
         self._extended_trial = True
         print('Next trial will be an extended trial')
+
+    def _adapt_settings(self):
+        """
+        Adapt live training settings based on behavioural performance.
+        """
+        pass
+        # TODO: modify spout distance
+        # TODO: determine next trial water_at_cue_onset
+        # TODO: modify cue duration
 
     def _end_session(self, signal_number=None, frame=None):
         """

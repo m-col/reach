@@ -33,14 +33,55 @@ _PIN_NUMBERS = {
             'cue': 23,
             'touch': 14,
             'solenoid': 16,
+            'actuator': 0,
         },
         {
             'cue': 22,
             'touch': 15,
             'solenoid': 21,
+            'actuator': 0,
         },
     ],
 }
+
+
+class Spout:
+    """
+    This object represents and controls a single target spout.
+
+    Parameters
+    ----------
+    spout_number : int
+        The spout number assigned to this spout (either 0 or 1).
+
+    """
+    def __init__(self, spout_number):
+        pin_numbers = _PIN_NUMBERS['spouts'][spout_number]
+        self.cue = pin_numbers['cue']
+        self.touch = pin_numbers['touch']
+        self.solenoid = pin_numbers['solenoid']
+        self.actuator = pin_numbers['actuator']
+
+        GPIO.setup(self.cue, GPIO.OUT, initial=False)
+        GPIO.setup(self.touch, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.solenoid, GPIO.OUT, initial=False)
+
+        self.position = 0
+
+        self.cue_timepoints = []
+        self.touch_timepoints = []
+
+    def advance(self):
+        """
+        Move spout toward mouse by 0.5 mm.
+        """
+        raise NotImplementedError
+
+    def retract(self):
+        """
+        Move spout away from mouse by 0.5 mm.
+        """
+        raise NotImplementedError
 
 
 class RPiReal:
@@ -62,7 +103,11 @@ class RPiReal:
 
     spouts : list of dicts
         List containing, for len(spouts) spouts, dicts listing the pin numbers
-        for each spout's cue, touch and solenoid pins.
+        for each spout's cue, touch and solenoid pins, and spout position in mm
+        from mouse.
+
+    _air_puff : int
+        Pin number that controls the air puff solenoid.
 
     lift_timepoints : list of 2 lists of floats
         Two lists storing timepoints of when the left or right paw were lifted
@@ -81,9 +126,9 @@ class RPiReal:
         """
         self._button_pins = _PIN_NUMBERS['buttons']
         self.paw_pins = _PIN_NUMBERS['paw_sensors']
-        self.spouts = _PIN_NUMBERS['spouts'][:spout_count]
         self._air_puff = _PIN_NUMBERS['air_puff']
 
+        self.spouts = []
         self._initialise_pins()
 
         self.lift_timepoints = [[], []]
@@ -114,12 +159,8 @@ class RPiReal:
             initial=False,
         )
 
-        for spout in self.spouts:
-            GPIO.setup(spout['cue'], GPIO.OUT, initial=False)
-            GPIO.setup(spout['touch'], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-            GPIO.setup(spout['solenoid'], GPIO.OUT, initial=False)
-            spout['cue_timepoints'] = []
-            spout['touch_timepoints'] = []
+        self.spouts[0] = Spout(0)
+        self.spouts[1] = Spout(1)
 
     def wait_to_start(self):
         """
@@ -152,15 +193,15 @@ class RPiReal:
                 paw,
                 GPIO.FALLING,
                 callback=reset_iti,
-                bouncetime=100
+                bouncetime=100,
             )
 
         for spout in self.spouts:
             GPIO.add_event_detect(
-                spout['touch'],
+                spout.touch,
                 GPIO.RISING,
                 callback=increase_spont_reaches,
-                bouncetime=100
+                bouncetime=100,
             )
 
     def set_button_callback(self, button, func):
@@ -209,7 +250,7 @@ class RPiReal:
             GPIO.remove_event_detect(pin)
 
         for spout in self.spouts:
-            GPIO.remove_event_detect(spout['touch'])
+            GPIO.remove_event_detect(spout.touch)
 
     def start_trial(self, spout_number, reward_func, incorrect_func):
         """
@@ -231,8 +272,8 @@ class RPiReal:
 
         """
         print("Cue illuminated")
-        self.spouts[spout_number]['cue_timepoints'].append(time.time())
-        GPIO.output(self.spouts[spout_number]['cue'], True)
+        self.spouts[spout_number].cue_timepoints.append(time.time())
+        GPIO.output(self.spouts[spout_number].cue, True)
 
         for paw_pin in self.paw_pins:
             GPIO.add_event_detect(
@@ -243,7 +284,7 @@ class RPiReal:
             )
 
         GPIO.add_event_detect(
-            self.spouts[spout_number]['touch'],
+            self.spouts[spout_number].touch,
             GPIO.RISING,
             callback=reward_func,
             bouncetime=1000
@@ -251,7 +292,7 @@ class RPiReal:
 
         if len(self.spouts) > 1:
             GPIO.add_event_detect(
-                self.spouts[1 - spout_number]['touch'],
+                self.spouts[1 - spout_number].touch,
                 GPIO.RISING,
                 callback=incorrect_func,
                 bouncetime=1000
@@ -281,8 +322,8 @@ class RPiReal:
             The spout number corresponding to this trial's reach target.
 
         """
-        GPIO.output(self.spouts[spout_number]['cue'], False)
-        self.spouts[spout_number]['touch_timepoints'].append(time.time())
+        GPIO.output(self.spouts[spout_number].cue, False)
+        self.spouts[spout_number.touch_timepoints.append(time.time())
 
     def incorrect_grasp(self, spout_number):
         """
@@ -295,8 +336,8 @@ class RPiReal:
             The spout number corresponding to this trial's reach target.
 
         """
-        GPIO.output(self.spouts[spout_number]['cue'], False)
-        self.spouts[1 - spout_number]['touch_timepoints'].append(time.time())
+        GPIO.output(self.spouts[spout_number.cue, False)
+        self.spouts[1 - spout_number].touch_timepoints.append(time.time())
 
     def dispense_water(self, spout_number, duration_ms):
         """
@@ -311,9 +352,9 @@ class RPiReal:
             The duration in milliseconds to open the solenoid.
 
         """
-        GPIO.output(self.spouts[spout_number]['solenoid'], True)
+        GPIO.output(self.spouts[spout_number].solenoid, True)
         time.sleep(duration_ms / 1000)
-        GPIO.output(self.spouts[spout_number]['solenoid'], False)
+        GPIO.output(self.spouts[spout_number].solenoid, False)
 
     def miss_trial(self, duration_ms=30):
         """
@@ -331,7 +372,7 @@ class RPiReal:
         """
         self.disable_callbacks()
         for spout in self.spouts:
-            GPIO.output(spout['cue'], False)
+            GPIO.output(spout.cue, False)
 
     def cleanup(self, signal_number=None, frame=None):
         """
@@ -347,7 +388,7 @@ class RPiReal:
 
         """
         for spout in self.spouts:
-            GPIO.output(spout['solenoid'], False)
+            GPIO.output(spout.solenoid, False)
         GPIO.cleanup()
 
 
@@ -362,8 +403,8 @@ class _RPiMock(RPiReal):
     """
     def _initialise_pins(self):
         for spout in self.spouts:
-            spout['cue_timepoints'] = []
-            spout['touch_timepoints'] = []
+            spout.cue_timepoints = []
+            spout.touch_timepoints = []
 
     def wait_to_start(self):
         """
@@ -386,7 +427,7 @@ class _RPiMock(RPiReal):
         """
         Block execution and wait until both paw sensors are held.
         """
-        print("Waiting for rest... ", end='', flush=True)
+        print("Waiting for rest... ")
         time.sleep(1)
 
     def disable_callbacks(self):
@@ -407,7 +448,7 @@ class _RPiMock(RPiReal):
 
         """
         print("Cue illuminated")
-        self.spouts[spout_number]['cue_timepoints'].append(time.time())
+        self.spouts[spout_number].cue_timepoints.append(time.time())
 
     def successful_grasp(self, spout_number):
         """
@@ -420,7 +461,7 @@ class _RPiMock(RPiReal):
             The spout number corresponding to this trial's reach target.
 
         """
-        self.spouts[spout_number]['touch_timepoints'].append(time.time())
+        self.spouts[spout_number].touch_timepoints.append(time.time())
 
     def incorrect_grasp(self, spout_number):
         """
@@ -432,7 +473,7 @@ class _RPiMock(RPiReal):
             The spout number corresponding to this trial's reach target.
 
         """
-        self.spouts[1 - spout_number]['touch_timepoints'].append(time.time())
+        self.spouts[1 - spout_number].touch_timepoints.append(time.time())
 
     def dispense_water(self, spout_number, duration_ms):
         """
@@ -493,7 +534,7 @@ class UtilityPi(RPiReal):
         def _toggle(pin):
             time.sleep(0.010)
             GPIO.output(
-                self.spouts[self._button_pins.index(pin)]['solenoid'],
+                self.spouts[self._button_pins.index(pin)].solenoid,
                 not GPIO.input(pin),
             )
 
@@ -511,7 +552,7 @@ class UtilityPi(RPiReal):
         """
         print("Testing all touch sensors.")
 
-        spout_pins = [i['touch'] for i in self.spouts]
+        spout_pins = [i.touch for i in self.spouts]
 
         def _print_touch(pin):
             if pin == self.paw_pins[0]:
@@ -537,7 +578,7 @@ class UtilityPi(RPiReal):
         """
         print("Push button to toggle corresponding LED.")
 
-        led_pins = [i['cue'] for i in self.spouts]
+        led_pins = [i.cue for i in self.spouts]
 
         def _toggle(pin):
             spout_number = self._button_pins.index(pin)
@@ -592,7 +633,7 @@ class UtilityPi(RPiReal):
             time.sleep(0.010)
             for spout in self.spouts:
                 GPIO.output(
-                    spout['solenoid'],
+                    spout.solenoid,
                     not GPIO.input(pin),
                 )
 
@@ -626,9 +667,9 @@ class UtilityPi(RPiReal):
 
         def _dispense(pin):
             time.sleep(0.010)
-            for spout_num in range(0, 2):
+            for spout_number in [0, 1]:
                 self.dispense_water(
-                    spout_num,
+                    spout_number,
                     dispense_duration_ms
                 )
 
