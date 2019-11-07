@@ -1,48 +1,42 @@
 #!/usr/bin/env python3
 """
-Plot reaction times across all sessions for a cohort of mice
+Example script for plotting reaction times across all sessions for a cohort of
+mice.
+
 """
 
 
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
 from reach import Cohort
 
 
-home = os.path.expanduser('~')
-json_path = home + '/work/analysis/CuedBehaviourAnalysis/Data/TrainingJSON/'
+# folder containing training data
+json_path = '/mnt/ardbeg/CuedBehaviourAnalysis/Data/TrainingJSON'
 
+# mice in cohort
 mouse_ids = [
-    'ImALM1',
-    'ImALM2',
+    'ImALM3',
+    'ImALM4',
 ]
 
+# load data
 cohort = Cohort.init_from_files(
     mouse_ids=mouse_ids,
-    json_path=json_path
+    json_path=json_path,
 )
 
-import cProfile
-cProfile.run('cohort.mice[1].reaction_times')
-cProfile.run('cohort.mice[1].reaction_times')
+mouse = 0
+rts = pd.DataFrame(cohort.mice[mouse].reaction_times).transpose()
 
-#rts = cohort.mice[1].reaction_times
-#
-#sns.boxplot(
-#    x="Session",
-#    y="Reaction time",
-#    data=rts,
-#    #whis=np.inf,
-#)
-
-#sns.stripplot(
-#    x="tip",
-#    y="day",
-#    data=tips,
-#    jitter=True,
-#    color=".3",
-#)
+sns.violinplot(
+    cut=0,
+    data=rts,
+    scale='area',
+    inner='point',
+)
 
 plt.show()
