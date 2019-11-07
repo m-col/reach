@@ -164,8 +164,8 @@ class RPiReal:
 
     def wait_to_start(self):
         """
-        Block the program and wait until the left hand button is pressed at the
-        training box. Once this is pressed, the training session begins.
+        Block the program and wait until the enter key is hit. Once this is
+        pressed, the training session begins.
         """
         try:
             input("Press enter to begin.\n")
@@ -211,15 +211,15 @@ class RPiReal:
         Parameters
         ----------
         button : int
-            The number of the button to assign the function to.
+            The number of the button to assign the function to (zero-indexed).
 
         callback_function : func
             Function to be executed upon button press.
 
         """
-        GPIO.remove_event_detect(self._button_pins[button - 1])
+        GPIO.remove_event_detect(self._button_pins[button])
         GPIO.add_event_detect(
-            self._button_pins[button - 1],
+            self._button_pins[button],
             GPIO.FALLING,
             callback=func,
             bouncetime=500
@@ -410,7 +410,7 @@ class _RPiMock(RPiReal):
         """
         Instead of blocking execution, simply print a message.
         """
-        print("Hit the start button to begin.")
+        print("Press enter to begin.")
         return True
 
     def monitor_sensors(self, *args, **kwargs):
@@ -598,7 +598,7 @@ class UtilityPi(RPiReal):
         Measure volume of water dispensed by a specified dispense duration.
         """
         duration_ms = int(input("Specify duration to dispense in ms: "))
-        print("Press button to dispense from corresponding spout.")
+        print("Press button 0 or 1 to dispense from corresponding spout.")
 
         def _dispense(pin):
             self.dispense_water(
@@ -616,11 +616,11 @@ class UtilityPi(RPiReal):
 
     def test_air_puffs(self):
         """
-        Trigger air puffs upon press of button 1.
+        Trigger air puffs upon press of button 0.
         """
         duration_ms = int(input("Specify duration to puff air in ms: "))
-        print("Press button 1 to trigger air puff.")
-        print("Press button 2 to open solenoids.")
+        print("Press button 0 to trigger air puff.")
+        print("Press button 1 to open solenoids.")
 
         GPIO.add_event_detect(
             self._button_pins[0],
@@ -646,8 +646,8 @@ class UtilityPi(RPiReal):
 
     def test_reward_volume_with_air_puffs(self):
         """
-        Trigger air puffs upon press of button 1 with specified water volume
-        dispensed to both spouts upon press of button 2.
+        Trigger air puffs upon press of button 0 with specified water volume
+        dispensed to both spouts upon press of button 1.
         """
         puff_duration_ms = int(input(
             "Specify duration to puff air in ms: "
@@ -655,8 +655,8 @@ class UtilityPi(RPiReal):
         dispense_duration_ms = int(input(
             "Specify duration to dispense in ms: "
         ))
-        print("Press button 1 to trigger air puff.")
-        print(f"Press button 2 to dispense water for {dispense_duration_ms} ms.")
+        print("Press button 0 to trigger air puff.")
+        print(f"Press button 1 to dispense water for {dispense_duration_ms} ms.")
 
         GPIO.add_event_detect(
             self._button_pins[0],
@@ -688,9 +688,9 @@ class UtilityPi(RPiReal):
 
         def _print_number(pin):
             if GPIO.input(pin):
-                print(f'You released button: {self._button_pins.index(pin) + 1}')
+                print(f'You released button: {self._button_pins.index(pin)}')
             else:
-                print(f'You pressed button: {self._button_pins.index(pin) + 1}')
+                print(f'You pressed button: {self._button_pins.index(pin)}')
 
         for pin in self._button_pins:
             GPIO.add_event_detect(
