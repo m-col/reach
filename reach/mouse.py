@@ -127,9 +127,15 @@ class Mouse:
         config = read_config(config_file)
         new_session = Session(data=data)
 
+        if self.training_data:
+            prev_data = self.training_data[-1].data
+        else:
+            prev_data = None
+
         new_session.run(
             config,
-            curses=curses
+            prev_data=prev_data,
+            curses=curses,
         )
 
         if save_notes:

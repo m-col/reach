@@ -66,22 +66,21 @@ class Spout:
         GPIO.setup(self.touch, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.solenoid, GPIO.OUT, initial=False)
 
-        self.position = 0
-
-        self.cue_timepoints = []
-        self.touch_timepoints = []
-
-    def advance(self):
+    def advance(self, home=False):
         """
         Move spout toward mouse by 0.5 mm.
         """
-        raise NotImplementedError
+        if home:
+            # move spouts to initial position
+            pass
+        else:
+            # retract by one step
+            pass
 
     def retract(self):
         """
         Move spout away from mouse by 0.5 mm.
         """
-        raise NotImplementedError
 
 
 class RPiReal:
@@ -129,6 +128,7 @@ class RPiReal:
         self._air_puff = _PIN_NUMBERS['air_puff']
 
         self.spouts = []
+        self.spout_position = 0
         self._initialise_pins()
 
         self.lift_timepoints = [[], []]
@@ -225,6 +225,33 @@ class RPiReal:
             bouncetime=500
         )
 
+    def home_spouts(self):
+        """
+        Move spouts to 1 mm distance from mouse.
+        """
+        for spout in self.spouts:
+            spout.advance(home=True)
+
+    def move_spouts(self, direction):
+        """
+        Set spout position to set step.
+
+        Parameters
+        ----------
+        direction : :class:`bool`
+            True will retract spouts away from mouse, False will advance spouts towards
+            mouse.
+
+        """
+        if direction:
+            for spout in self.spouts:
+                spout.retract()
+        else:
+            for spout in self.spouts:
+                spout.advance()
+
+        self.spout_position = 0  # TODO
+
     def wait_for_rest(self):
         """
         Block execution and wait until both paw sensors are held.
@@ -272,7 +299,6 @@ class RPiReal:
 
         """
         print("Cue illuminated")
-        self.spouts[spout_number].cue_timepoints.append(time.time())
         GPIO.output(self.spouts[spout_number].cue, True)
 
         for paw_pin in self.paw_pins:
@@ -311,33 +337,17 @@ class RPiReal:
         """
         self.lift_timepoints[self.paw_pins.index(pin)].append(time.time())
 
-    def successful_grasp(self, spout_number):
+    def disable_cue(self, spout_number):
         """
-        Disable target spout LED and record time upon successful cued grasp of
-        trial target spout.
+        Disable cue LED.
 
         Parameters
         ----------
         spout_number : int
-            The spout number corresponding to this trial's reach target.
+            The spout_number whose LED will be disabled.
 
         """
         GPIO.output(self.spouts[spout_number].cue, False)
-        self.spouts[spout_number.touch_timepoints.append(time.time())
-
-    def incorrect_grasp(self, spout_number):
-        """
-        Disable target spout LED and record time upon grasp of incorrect spout
-        during trial.
-
-        Parameters
-        ----------
-        spout_number : int
-            The spout number corresponding to this trial's reach target.
-
-        """
-        GPIO.output(self.spouts[spout_number.cue, False)
-        self.spouts[1 - spout_number].touch_timepoints.append(time.time())
 
     def dispense_water(self, spout_number, duration_ms):
         """
@@ -402,9 +412,7 @@ class _RPiMock(RPiReal):
     the superclass would otherwise execute.
     """
     def _initialise_pins(self):
-        for spout in self.spouts:
-            spout.cue_timepoints = []
-            spout.touch_timepoints = []
+        pass
 
     def wait_to_start(self):
         """
@@ -448,12 +456,10 @@ class _RPiMock(RPiReal):
 
         """
         print("Cue illuminated")
-        self.spouts[spout_number].cue_timepoints.append(time.time())
 
-    def successful_grasp(self, spout_number):
+    def disable_cue(self, spout_number):
         """
-        Record the time upon successful cued grasp of hypothetical target
-        spout.
+        Pretend to disable cue LED.
 
         Parameters
         ----------
@@ -461,19 +467,6 @@ class _RPiMock(RPiReal):
             The spout number corresponding to this trial's reach target.
 
         """
-        self.spouts[spout_number].touch_timepoints.append(time.time())
-
-    def incorrect_grasp(self, spout_number):
-        """
-        Record time upon grasp of fictional incorrect spout during mock trial.
-
-        Parameters
-        ----------
-        spout_number : int
-            The spout number corresponding to this trial's reach target.
-
-        """
-        self.spouts[1 - spout_number].touch_timepoints.append(time.time())
 
     def dispense_water(self, spout_number, duration_ms):
         """

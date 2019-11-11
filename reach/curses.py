@@ -191,9 +191,6 @@ class RPiCurses(RPiReal):
         """
         Set initial state of mock pins and virtual rig.
         """
-        for spout in self.spouts:
-            spout['cue_timepoints'] = []
-            spout['touch_timepoints'] = []
 
     def _draw_rig(self):
         """
@@ -271,8 +268,8 @@ class RPiCurses(RPiReal):
             dict([
                 ('v', lambda: reset_iti(self.paw_pins[0])),
                 ('n', lambda: reset_iti(self.paw_pins[1])),
-                ('g', lambda: increase_spont_reaches(self.spouts[0]['touch'])),
-                ('h', lambda: increase_spont_reaches(self.spouts[1]['touch'])),
+                ('g', lambda: increase_spont_reaches(self.spouts[0].touch)),
+                ('h', lambda: increase_spont_reaches(self.spouts[1].touch)),
                 ('1', self._button_callbacks[0]),
                 ('2', self._button_callbacks[0]),
             ]),
@@ -329,8 +326,6 @@ class RPiCurses(RPiReal):
             spout.
 
         """
-        self.spouts[spout_number]['cue_timepoints'].append(time.time())
-
         _addstr_multiline(
             self._rig,
             *self._target_pos[spout_number],
@@ -371,10 +366,9 @@ class RPiCurses(RPiReal):
         """
         self.lift_timepoints[self.paw_pins.index(pin)].append(time.time())
 
-    def successful_grasp(self, spout_number):
+    def disable_cue(self, spout_number):
         """
-        Record the time upon successful cued grasp of hypothetical target
-        spout.
+        Disable cue LED.
 
         Parameters
         ----------
@@ -382,19 +376,6 @@ class RPiCurses(RPiReal):
             The spout number corresponding to this trial's reach target.
 
         """
-        self.spouts[spout_number]['touch_timepoints'].append(time.time())
-
-    def incorrect_grasp(self, spout_number):
-        """
-        Record time upon grasp of fictional incorrect spout during mock trial.
-
-        Parameters
-        ----------
-        spout_number : int
-            The spout number corresponding to this trial's reach target.
-
-        """
-        self.spouts[1 - spout_number]['touch_timepoints'].append(time.time())
 
     def dispense_water(self, spout_number, duration_ms):
         """
