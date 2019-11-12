@@ -111,10 +111,6 @@ class Session:
         data['resets'] = []
         data['spontaneous_reaches'] = []
 
-        if prev_data:
-            num_recent_trials = min(len(prev_data['trials']), _SLIDING_WINDOW)
-            self._recent_trials.extend(prev_data['trials'][- num_recent_trials:])
-
         if curses:
             self._rpi = RPiCurses(data['spout_count'])
             self._message = self._rpi.print_to_feed
@@ -122,7 +118,13 @@ class Session:
             self._rpi = RPi(data['spout_count'])
 
         self._display_training_settings()
-        self._rpi.home_spouts()
+
+        if prev_data:
+            num_recent_trials = min(len(prev_data['trials']), _SLIDING_WINDOW)
+            self._recent_trials.extend(prev_data['trials'][- num_recent_trials:])
+            self._rpi.spout_position = self._recent_trials[-1]['spout_position']
+        else:
+            self._rpi.spout_position = 0
 
         if not self._rpi.wait_to_start():
             # Control-C hit while waiting.
@@ -402,9 +404,9 @@ class Session:
             self._cue_duration *= 0.9
 
         if num_hits == _SLIDING_WINDOW:
-            self._rpi.move_spouts(True)
+            self._rpi.spout_position += 0.5
         elif num_hits < _SLIDING_WINDOW / 4:
-            self._rpi.move_spouts(False)
+            self._rpi.spout_position -= 0.5
 
     def _end_session(self, signal_number=None, frame=None):
         """

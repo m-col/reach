@@ -25,7 +25,7 @@ except ModuleNotFoundError:
 
 
 _PIN_NUMBERS = {
-    'buttons': [2, 3, 4],
+    'buttons': [2, 3, 4, 7],
     'paw_sensors': [5, 6],
     'air_puff': 18,
     'spouts': [
@@ -33,13 +33,13 @@ _PIN_NUMBERS = {
             'cue': 23,
             'touch': 14,
             'solenoid': 16,
-            'actuator': 0,
+            'actuator': 12,
         },
         {
             'cue': 22,
             'touch': 15,
             'solenoid': 21,
-            'actuator': 0,
+            'actuator': 13,
         },
     ],
 }
@@ -65,22 +65,35 @@ class Spout:
         GPIO.setup(self.cue, GPIO.OUT, initial=False)
         GPIO.setup(self.touch, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.solenoid, GPIO.OUT, initial=False)
+        GPIO.setup(self.actuator, GPIO.OUT, initial=False)
 
-    def advance(self, home=False):
-        """
-        Move spout toward mouse by 0.5 mm.
-        """
-        if home:
-            # move spouts to initial position
-            pass
-        else:
-            # retract by one step
-            pass
+        self._duty_cycle = 0
+        self._pwm = GPIO.PWM(self.actuator, 50)
+        self._pwm.start(self._duty_cycle)
 
-    def retract(self):
+    @property
+    def duty_cycle(self):
         """
-        Move spout away from mouse by 0.5 mm.
+        Keep track of actuator PWM duty cycle.
         """
+        return self._duty_cycle
+
+    @duty_cycle.setter
+    def duty_cycle(self, duty_cycle):
+        """
+        Set duty cycle of actuator PWM.
+        """
+        self._duty_cycle = duty_cycle
+        self._pwm.ChangeDutyCycle(duty_cycle)
+        #time.sleep(1)
+        #self._pwm.ChangeDutyCycle(0)
+
+    def disable(self):
+        """
+        Disable actuator PWM.
+        """
+        self._pwm.stop()
+        GPIO.output(self.solenoid, False)
 
 
 class RPiReal:
@@ -124,7 +137,7 @@ class RPiReal:
         self._air_puff = _PIN_NUMBERS['air_puff']
 
         self.spouts = []
-        self.spout_position = 0
+        self._spout_position = 0
         self._initialise_pins()
 
     def _initialise_pins(self):
@@ -219,32 +232,41 @@ class RPiReal:
             bouncetime=500
         )
 
-    def home_spouts(self):
+    @property
+    def spout_position(self):
         """
-        Move spouts to 1 mm distance from mouse.
+        Keep track of spout actuator position.
         """
+        return self._spout_position
+
+    @spout_position.setter
+    def spout_position(self, pos):
+        """
+        Change spout position by assignment.
+
+        The spout_position int represents distance in mm from the mouse, and is
+        limited to between 0.5 and 14 mm.
+        """
+        if pos < 0.5:
+            pos = 0.5
+        elif pos > 14:
+            pos = 14
+
+        # SERVO
+        #angle = 360 * pos / 14
+        #duty_cycle = angle / 18 + 2
+
+        # ACTUATOR
+        # 0 mm -> 5 %
+        # 10 mm -> 7.5 %
+        # 20 mm -> 10 %
+        duty_cycle = 5 + (pos / 20) * 5
+        print(duty_cycle)
+
         for spout in self.spouts:
-            spout.advance(home=True)
+            spout.duty_cycle = duty_cycle
 
-    def move_spouts(self, direction):
-        """
-        Set spout position to set step.
-
-        Parameters
-        ----------
-        direction : :class:`bool`
-            True will retract spouts away from mouse, False will advance spouts towards
-            mouse.
-
-        """
-        if direction:
-            for spout in self.spouts:
-                spout.retract()
-        else:
-            for spout in self.spouts:
-                spout.advance()
-
-        self.spout_position = 0  # TODO
+        self._spout_position = pos
 
     def wait_for_rest(self):
         """
@@ -367,7 +389,8 @@ class RPiReal:
 
         """
         for spout in self.spouts:
-            GPIO.output(spout.solenoid, False)
+            
+            spout.disable()
         GPIO.cleanup()
 
 
@@ -592,7 +615,7 @@ class UtilityPi(RPiReal):
             self._button_pins[1],
             GPIO.BOTH,
             callback=_toggle,
-            bouncetime=20
+            bouncetime=20,
         )
 
     def test_reward_volume_with_air_puffs(self):
@@ -621,14 +644,14 @@ class UtilityPi(RPiReal):
             for spout_number in [0, 1]:
                 self.dispense_water(
                     spout_number,
-                    dispense_duration_ms
+                    dispense_duration_ms,
                 )
 
         GPIO.add_event_detect(
             self._button_pins[1],
             GPIO.FALLING,
             callback=_dispense,
-            bouncetime=500
+            bouncetime=500,
         )
 
     def test_buttons(self):
@@ -648,5 +671,32 @@ class UtilityPi(RPiReal):
                 pin,
                 GPIO.BOTH,
                 callback=_print_number,
-                bouncetime=500
+                bouncetime=500,
+            )
+
+    def test_actuators(self):
+        """
+        Move the actuator positions using the buttons.
+        """
+        print("Press button 0 or 1 to advance or retract the actuators by 1 step.")
+        print("Press button 2 or 3 to advance or retract the actuators fully.")
+
+        def _move_spouts(pin):
+            button_num = self._button_pins.index(pin)
+            if button_num == 0:
+                self.spout_position -= 1
+            if button_num == 1:
+                self.spout_position += 1
+            if button_num == 2:
+                self.spout_position = 0.5
+            if button_num == 3:
+                self.spout_position = 14
+            print(f'Spout position: {self.spout_position}')
+
+        for pin in self._button_pins:
+            GPIO.add_event_detect(
+                pin,
+                GPIO.FALLING,
+                callback=_move_spouts,
+                bouncetime=200,
             )
