@@ -4,7 +4,7 @@ todo list
 core code
 ---------
 
-[ ] incorporate 'lift' and 'end' into data['trials']
+[ ] incorporate 'end' into data['trials']
 [ ] rewrite tests/test_data with new format
 [ ] Record when mice rest paws (for IGM durations)
 
@@ -13,8 +13,3 @@ extra code
 
 [ ] write tests for each class
 [ ] write tests for raspberry methods
-
-rig hardware
-------------
-
-[ ] ensure clocks on Raspberry Pis are set and synced with NTP server or something

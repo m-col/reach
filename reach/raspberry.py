@@ -108,10 +108,6 @@ class RPiReal:
     _air_puff : int
         Pin number that controls the air puff solenoid.
 
-    lift_timepoints : list of 2 lists of floats
-        Two lists storing timepoints of when the left or right paw were lifted
-        from the paw rests following cue onset.
-
     """
     def __init__(self, spout_count):
         """
@@ -130,8 +126,6 @@ class RPiReal:
         self.spouts = []
         self.spout_position = 0
         self._initialise_pins()
-
-        self.lift_timepoints = [[], []]
 
     def _initialise_pins(self):
         """
@@ -159,8 +153,8 @@ class RPiReal:
             initial=False,
         )
 
-        self.spouts[0] = Spout(0)
-        self.spouts[1] = Spout(1)
+        self.spouts.append(Spout(0))
+        self.spouts.append(Spout(1))
 
     def wait_to_start(self):
         """
@@ -279,7 +273,7 @@ class RPiReal:
         for spout in self.spouts:
             GPIO.remove_event_detect(spout.touch)
 
-    def start_trial(self, spout_number, reward_func, incorrect_func):
+    def start_trial(self, spout_number, lift_func, reward_func, incorrect_func):
         """
         Illuminate a cue, record the time, and add callback functions to be
         executed upon grasp of target spouts during trial.
@@ -305,15 +299,15 @@ class RPiReal:
             GPIO.add_event_detect(
                 paw_pin,
                 GPIO.FALLING,
-                callback=self._record_lift_timepoints,
-                bouncetime=50
+                callback=lift_func,
+                bouncetime=1000,
             )
 
         GPIO.add_event_detect(
             self.spouts[spout_number].touch,
             GPIO.RISING,
             callback=reward_func,
-            bouncetime=1000
+            bouncetime=1000,
         )
 
         if len(self.spouts) > 1:
@@ -321,33 +315,8 @@ class RPiReal:
                 self.spouts[1 - spout_number].touch,
                 GPIO.RISING,
                 callback=incorrect_func,
-                bouncetime=1000
+                bouncetime=1000,
             )
-
-    def _record_lift_timepoints(self, pin):
-        """
-        Record timepoint of paw lifts during trials.
-
-        Parameters
-        ----------
-        pin : int
-            Pin number listening to the touch sensor that detected the
-            movement.
-
-        """
-        self.lift_timepoints[self.paw_pins.index(pin)].append(time.time())
-
-    def disable_cue(self, spout_number):
-        """
-        Disable cue LED.
-
-        Parameters
-        ----------
-        spout_number : int
-            The spout_number whose LED will be disabled.
-
-        """
-        GPIO.output(self.spouts[spout_number].cue, False)
 
     def dispense_water(self, spout_number, duration_ms):
         """
@@ -456,17 +425,6 @@ class _RPiMock(RPiReal):
 
         """
         print("Cue illuminated")
-
-    def disable_cue(self, spout_number):
-        """
-        Pretend to disable cue LED.
-
-        Parameters
-        ----------
-        spout_number : int
-            The spout number corresponding to this trial's reach target.
-
-        """
 
     def dispense_water(self, spout_number, duration_ms):
         """

@@ -112,8 +112,8 @@ class Session:
         data['spontaneous_reaches'] = []
 
         if prev_data:
-            num_recent_trials = min(prev_data['trials'], _SLIDING_WINDOW)
-            self._recent_trials.append(prev_data['trials'][- num_recent_trials:])
+            num_recent_trials = min(len(prev_data['trials']), _SLIDING_WINDOW)
+            self._recent_trials.extend(prev_data['trials'][- num_recent_trials:])
 
         if curses:
             self._rpi = RPiCurses(data['spout_count'])
@@ -174,12 +174,13 @@ class Session:
                           % (trial_count, now - data['start_time']))
 
             self._current_spout = random.randint(0, data['spout_count'] - 1)
-            if not self._inter_trial_interval():
-                return
+            if self._inter_trial_interval():
+                self._trial()
+                self._message(f"Total rewards: {self.reward_count}")
+                now = time.time()
 
-            self._trial()
-            self._message(f"Total rewards: {self.reward_count}")
-            now = time.time()
+            if self._outcome == 3:
+                break
 
     def _inter_trial_interval(self):
         """
@@ -278,6 +279,7 @@ class Session:
 
         self._rpi.start_trial(
             current_spout,
+            self._record_lift_timepoints,
             self._reward_callback,
             self._incorrect_grasp_callback,
         )
@@ -289,7 +291,7 @@ class Session:
             )
 
         now = time.time()
-        trial = dict(start=now)
+        self.data['trials'].append(dict(start=now))
 
         if self._extended_trial:
             cue_duration = self.data['end_time'] - now
@@ -300,8 +302,6 @@ class Session:
         while not self._outcome and now < cue_end:
             time.sleep(0.008)
             now = time.time()
-
-        self._rpi.end_trial()
 
         if self._outcome == 0:
             self._message("Missed reach")
@@ -316,15 +316,29 @@ class Session:
             self._message("Incorrect reach!")
             time.sleep(reward_duration / 1000)
 
-        trial.update(dict(
+        self.data['trials'][-1].update(dict(
             spout=current_spout,
             shaping=self._water_at_cue_onset,
             cue_duration=cue_duration,
             outcome=self._outcome,
             spout_position=self._rpi.spout_position,
         ))
-        self.data['trials'].append(trial)
-        self._recent_trials.append(trial)
+        self._recent_trials.append(self.data['trials'][-1])
+
+    def _record_lift_timepoints(self, pin):
+        """
+        Record timepoint of paw lifts during trials.
+
+        Parameters
+        ----------
+        pin : int
+            Pin number listening to the touch sensor that detected the
+            movement.
+
+        """
+        if not 'lift_time' in self.data['trials'][-1]:
+            self.data['trials'][-1]['lift_time'] = time.time()
+            self.data['trials'][-1]['lift_paw'] = self._rpi.paw_pins.index(pin)
 
     def _reward_callback(self, pin):
         """
@@ -338,7 +352,7 @@ class Session:
 
         """
         self.data['trials'][-1]['end'] = time.time()
-        self._rpi.disable_cue(self._current_spout)
+        self._rpi.end_trial()
         self._outcome = 1
         if not self._water_at_cue_onset:
             self._rpi.dispense_water(
@@ -358,7 +372,7 @@ class Session:
 
         """
         self.data['trials'][-1]['end'] = time.time()
-        self._rpi.disable_cue(self._current_spout)
+        self._rpi.end_trial()
         self._outcome = 2
         if self._water_at_cue_onset:
             self._rpi.miss_trial()
@@ -375,13 +389,14 @@ class Session:
         """
         Adapt live training settings based on recent behavioural performance.
         """
-        trials = self._recent_trials
+        num_hits = len([x for x in self._recent_trials if x['outcome'] == 1])
 
-        num_hits = len([x for x in trials if x['outcome'] == 1])
         if num_hits == _SLIDING_WINDOW:
             self._water_at_cue_onset = False
+            shaping_message = 'not shaping'
         else:
             self._water_at_cue_onset = True
+            shaping_message = 'shaping'
 
         if num_hits >= _SLIDING_WINDOW - 1:
             self._cue_duration *= 0.9
@@ -406,9 +421,11 @@ class Session:
             Passed to function by signal.signal; ignored.
 
         """
+        if self._outcome == 3:
+            return
+
         self._message = print
         self._outcome = 3
-
         self._rpi.cleanup()
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -424,8 +441,6 @@ class Session:
             '%H:%M:%S', time.localtime(data['end_time'])
         )
 
-        data['cued_lift_timepoints'] = self._rpi.lift_timepoints
-
         self._display_training_results()
 
     def _display_training_results(self):
@@ -440,12 +455,9 @@ class Session:
         miss_count = trial_count - self.reward_count
         reward_perc = 100 * self.reward_count / trial_count
         miss_perc = 100 * miss_count / trial_count
-        left_resets = len(
-            [x for x in data['resets'] if x[0] == 0]
-        )
-        right_resets = len(
-            [x for x in data['resets'] if x[0] == 1]
-        )
+        reset_pins = [y for x, y in data['resets']]
+        left_resets = reset_pins.count(0)
+        right_resets = reset_pins.count(1)
 
         self._message(textwrap.dedent(f"""
         _________________________________

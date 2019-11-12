@@ -366,17 +366,6 @@ class RPiCurses(RPiReal):
         """
         self.lift_timepoints[self.paw_pins.index(pin)].append(time.time())
 
-    def disable_cue(self, spout_number):
-        """
-        Disable cue LED.
-
-        Parameters
-        ----------
-        spout_number : int
-            The spout number corresponding to this trial's reach target.
-
-        """
-
     def dispense_water(self, spout_number, duration_ms):
         """
         Pretend to dispense water from a specified spout.
