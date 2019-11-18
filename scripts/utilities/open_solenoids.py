@@ -10,5 +10,6 @@ from reach.raspberry import UtilityPi
 rpi = UtilityPi()
 rpi.hold_open_solenoid()
 
-
 input("Hit enter to finish.\n")
+
+rpi.cleanup()

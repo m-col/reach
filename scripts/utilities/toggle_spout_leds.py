@@ -10,5 +10,6 @@ from reach.raspberry import UtilityPi
 rpi = UtilityPi()
 rpi.toggle_spout_leds()
 
-
 input("Hit enter to finish.\n")
+
+rpi.cleanup()
