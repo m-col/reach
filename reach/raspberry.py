@@ -25,10 +25,10 @@ except ModuleNotFoundError:
 
 
 _PIN_NUMBERS = {
-    'buttons': [2, 3, 4, 7],
-    'paw_sensors': [5, 6],
+    'buttons': (2, 3, 4, 7),
+    'paw_sensors': (5, 6),
     'air_puff': 18,
-    'spouts': [
+    'spouts': (
         {
             'cue': 23,
             'touch': 14,
@@ -41,8 +41,12 @@ _PIN_NUMBERS = {
             'solenoid': 21,
             'actuator': 13,
         },
-    ],
+    ),
 }
+
+_DUTY_CYCLES = (
+    5.9, 6.15, 6.45, 6.65, 6.86, 7.1, 7.35,
+)
 
 
 class Spout:
@@ -90,7 +94,7 @@ class Spout:
 
     def disable(self):
         """
-        Disable actuator PWM.
+        Disable actuator PWM and close solenoid valve.
         """
         self._pwm.stop()
         GPIO.output(self.solenoid, False)
@@ -244,25 +248,15 @@ class RPiReal:
         """
         Change spout position by assignment.
 
-        The spout_position int represents distance in mm from the mouse, and is
-        limited to between 0.5 and 14 mm.
+        The _spout_position attribute and this property represent distance in
+        mm from the mouse, and is limited to between 1 and 7 mm.
         """
-        if pos < 0.5:
-            pos = 0.5
-        elif pos > 14:
-            pos = 14
+        if pos < 1:
+            pos = 1
+        elif pos > 7:
+            pos = 7
 
-        # SERVO
-        #angle = 360 * pos / 14
-        #duty_cycle = angle / 18 + 2
-
-        # ACTUATOR
-        # 0 mm -> 5 %
-        # 10 mm -> 7.5 %
-        # 20 mm -> 10 %
-        duty_cycle = 5 + (pos / 20) * 5
-        print(duty_cycle)
-
+        duty_cycle = _DUTY_CYCLES[pos - 1]
         for spout in self.spouts:
             spout.duty_cycle = duty_cycle
 
@@ -389,7 +383,6 @@ class RPiReal:
 
         """
         for spout in self.spouts:
-            
             spout.disable()
         GPIO.cleanup()
 
@@ -698,5 +691,7 @@ class UtilityPi(RPiReal):
                 pin,
                 GPIO.FALLING,
                 callback=_move_spouts,
-                bouncetime=200,
+                bouncetime=1000,
             )
+
+        self.spout_position = 1
