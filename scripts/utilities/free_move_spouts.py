@@ -8,7 +8,7 @@ from reach.raspberry import UtilityPi
 
 
 rpi = UtilityPi()
-rpi.test_actuators()
+rpi.free_move_actuators()
 
 input("Hit enter to finish.\n")
 

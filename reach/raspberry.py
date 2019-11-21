@@ -87,6 +87,11 @@ class Spout:
         """
         Set duty cycle of actuator PWM.
         """
+        if duty_cycle > 9.5:
+            duty_cycle = 9.5
+        elif duty_cycle < 5.2:
+            duty_cycle = 5.2
+
         self._duty_cycle = duty_cycle
         self._pwm.ChangeDutyCycle(duty_cycle)
         #time.sleep(1)
@@ -531,7 +536,15 @@ class UtilityPi(RPiReal):
                     f"Spout {spout_pins.index(pin) + 1}:    {GPIO.input(pin)}"
                 )
 
-        for pin in self.paw_pins + spout_pins:
+        for pin in spout_pins:
+            GPIO.add_event_detect(
+                pin,
+                GPIO.BOTH,
+                callback=_print_touch,
+                bouncetime=10
+            )
+
+        for pin in self.paw_pins:
             GPIO.add_event_detect(
                 pin,
                 GPIO.BOTH,
@@ -667,9 +680,9 @@ class UtilityPi(RPiReal):
                 bouncetime=500,
             )
 
-    def test_actuators(self):
+    def step_actuators(self):
         """
-        Move the actuator positions using the buttons.
+        Move the actuator positions along steps using the buttons.
         """
         print("Press button 0 or 1 to advance or retract the actuators by 1 step.")
         print("Press button 2 or 3 to advance or retract the actuators fully.")
@@ -694,4 +707,28 @@ class UtilityPi(RPiReal):
                 bouncetime=1000,
             )
 
-        self.spout_position = 1
+    def free_move_actuators(self):
+        """
+        Move the actuator positions along entire range using the buttons.
+        """
+        print("Press button 0 or 1 to decrease or increase actuator duty")
+        print("cycle by a specified percentage.")
+        perc = float(input("Enter the percentage to step duty cycle: "))
+
+        def _move_spouts(pin):
+            button_num = self._button_pins.index(pin)
+            if button_num == 0:
+                for spout in self.spouts:
+                    spout.duty_cycle -= perc
+            if button_num == 1:
+                for spout in self.spouts:
+                    spout.duty_cycle += perc
+            print(f'duty cycle = {self.spouts[0].duty_cycle}')
+
+        for pin in self._button_pins:
+            GPIO.add_event_detect(
+                pin,
+                GPIO.FALLING,
+                callback=_move_spouts,
+                bouncetime=1000,
+            )
