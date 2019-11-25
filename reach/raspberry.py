@@ -45,9 +45,8 @@ _PIN_NUMBERS = {
 }
 
 _DUTY_CYCLES = (
-    5.9, 6.15, 6.45, 6.65, 6.86, 7.1, 7.35,
+    7.3, 7.5, 7.7, 7.95, 8.2, 8.4, 8.7,
 )
-
 
 class Spout:
     """
@@ -89,8 +88,8 @@ class Spout:
         """
         if duty_cycle > 9.5:
             duty_cycle = 9.5
-        elif duty_cycle < 5.2:
-            duty_cycle = 5.2
+        elif duty_cycle < 7.3:
+            duty_cycle = 7.3
 
         self._duty_cycle = duty_cycle
         self._pwm.ChangeDutyCycle(duty_cycle)
@@ -684,8 +683,8 @@ class UtilityPi(RPiReal):
         """
         Move the actuator positions along steps using the buttons.
         """
-        print("Press button 0 or 1 to advance or retract the actuators by 1 step.")
-        print("Press button 2 or 3 to advance or retract the actuators fully.")
+        print("Press button 0 or 1 to decrease or increase actuator distance by 1 step.")
+        print("Press button 2 or 3 to decrease or increase actuator distance fully.")
 
         def _move_spouts(pin):
             button_num = self._button_pins.index(pin)
@@ -694,9 +693,9 @@ class UtilityPi(RPiReal):
             if button_num == 1:
                 self.spout_position += 1
             if button_num == 2:
-                self.spout_position = 0.5
+                self.spout_position = 1
             if button_num == 3:
-                self.spout_position = 14
+                self.spout_position = 7
             print(f'Spout position: {self.spout_position}')
 
         for pin in self._button_pins:
@@ -711,8 +710,13 @@ class UtilityPi(RPiReal):
         """
         Move the actuator positions along entire range using the buttons.
         """
-        print("Press button 0 or 1 to decrease or increase actuator duty")
-        print("cycle by a specified percentage.")
+        print("Move actuators by duty cycle.")
+        print("Range: 5.2% to 9.5%\n")
+        print("Buttons functions:")
+        print("0: decrease duty cycle (bring forward)")
+        print("1: increase duty cycle (move back)")
+        print("2: minimise duty cycle (fully bring forward)")
+        print("3: maximise duty cycle (fully move back)\n")
         perc = float(input("Enter the percentage to step duty cycle: "))
 
         def _move_spouts(pin):
@@ -723,6 +727,12 @@ class UtilityPi(RPiReal):
             if button_num == 1:
                 for spout in self.spouts:
                     spout.duty_cycle += perc
+            if button_num == 2:
+                for spout in self.spouts:
+                    spout.duty_cycle = 0
+            if button_num == 3:
+                for spout in self.spouts:
+                    spout.duty_cycle = 100
             print(f'duty cycle = {self.spouts[0].duty_cycle}')
 
         for pin in self._button_pins:
