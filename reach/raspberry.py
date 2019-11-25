@@ -93,8 +93,8 @@ class Spout:
 
         self._duty_cycle = duty_cycle
         self._pwm.ChangeDutyCycle(duty_cycle)
-        #time.sleep(1)
-        #self._pwm.ChangeDutyCycle(0)
+        time.sleep(1)
+        self._pwm.ChangeDutyCycle(0)
 
     def disable(self):
         """

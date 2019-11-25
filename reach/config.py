@@ -23,7 +23,7 @@ def _default_config():
 
     config.add_section('Settings')
     config.set('Settings', 'duration', 2400)
-    config.set('Settings', 'spout_count', 1)
+    config.set('Settings', 'spout_count', 2)
     config.set('Settings', 'reward_duration_ms', '[100, 100]')
     config.set('Settings', 'iti', '[4000, 6000]')
     config.set('Settings', 'json_path',

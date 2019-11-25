@@ -395,18 +395,17 @@ class Session:
 
         if num_hits == _SLIDING_WINDOW:
             self._water_at_cue_onset = False
-            shaping_message = 'not shaping'
         else:
             self._water_at_cue_onset = True
-            shaping_message = 'shaping'
+            self._message('Shaping.')
 
         if num_hits >= _SLIDING_WINDOW - 1:
             self._cue_duration *= 0.9
 
         if num_hits == _SLIDING_WINDOW:
-            self._rpi.spout_position += 0.5
-        elif num_hits < _SLIDING_WINDOW / 4:
-            self._rpi.spout_position -= 0.5
+            self._rpi.spout_position += 1
+        elif num_hits < _SLIDING_WINDOW / 4 and self._rpi.spout_position > 1:
+            self._rpi.spout_position -= 1
 
     def _end_session(self, signal_number=None, frame=None):
         """
