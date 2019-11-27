@@ -99,6 +99,8 @@ def main():
         notes = mouse[-1].data['notes']
         if notes == 'rm':
             print('Not saving new training data.')
+        elif len(mouse[-1].data['trials']) == 0:
+            print('Not saving new data: no trials')
         else:
             mouse.save_data_to_file(settings.json_path)
 

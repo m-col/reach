@@ -73,13 +73,26 @@ def main():
             data=data,
             save_notes=True,
         )
-        mouse.save_data_to_file(json_path)
+
+        # ignore this session's data if we pass 'rm' into the notes
+        notes = mouse[-1].data['notes']
+        if notes == 'rm':
+            print('Not saving new training data.')
+        elif len(mouse[-1].data['trials']) == 0:
+            print('Not saving new data: no trials')
+        else:
+            mouse.save_data_to_file(settings.json_path)
 
     else:
-        Mouse().train(
+        mouse = Mouse()
+        mouse.train(
             config_file=config_file,
             save_notes=False,
         )
+
+    # Print remaining water that mouse requires
+    reward_count = mouse[-1].reward_count
+    print(f'\n1000 uL - {reward_count} * 6 uL = {1000 - reward_count * 6} uL')
 
 
 if __name__ == '__main__':
