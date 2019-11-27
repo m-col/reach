@@ -278,6 +278,7 @@ class Session:
         """
         current_spout = self._current_spout
         reward_duration = self.data['reward_duration_ms'][current_spout]
+        self.data['trials'].append({})
 
         self._rpi.start_trial(
             current_spout,
@@ -293,12 +294,12 @@ class Session:
             )
 
         now = time.time()
-        self.data['trials'].append(dict(start=now))
+        self.data['trials'][-1].update(dict(start=now))
 
         if self._extended_trial:
             cue_duration = self.data['end_time'] - now
         else:
-            cue_duration = self._cue_duration
+            cue_duration = self._cue_duration / 1000
         cue_end = now + cue_duration
 
         while not self._outcome and now < cue_end:
@@ -306,8 +307,9 @@ class Session:
             now = time.time()
 
         if self._outcome == 0:
-            self._message("Missed reach")
+            self._rpi.end_trial()
             self._rpi.miss_trial()
+            self._message("Missed reach")
 
         elif self._outcome == 1:
             self._message("Successful reach!")
@@ -384,8 +386,12 @@ class Session:
         Callback function assigned to a button that will stop the next trial from timing
         out, instead leaving the cue illuminated until grasped.
         """
-        self._extended_trial = True
-        print('Next trial will be an extended trial')
+        if self._extended_trial:
+            self._extended_trial = False
+            print('Next trial will NOT be an extended trial')
+        else:
+            self._extended_trial = True
+            print('Next trial will be an extended trial')
 
     def _adapt_settings(self):
         """
