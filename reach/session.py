@@ -132,6 +132,7 @@ class Session:
             print('Cancelled..')
             sys.exit(1)
 
+        self._rpi.hold_spouts()
         signal.signal(signal.SIGINT, self._end_session)
         self._trial_loop()
         self._end_session()
@@ -410,8 +411,14 @@ class Session:
 
         if num_hits == _SLIDING_WINDOW:
             self._rpi.spout_position += 1
+            print(f'Spouts moved to position {self._rpi.spout_position}')
+            time.sleep(1)
+            self._rpi.hold_spouts()
         elif num_hits < _SLIDING_WINDOW / 4 and self._rpi.spout_position > 1:
             self._rpi.spout_position -= 1
+            print(f'Spouts moved to position {self._rpi.spout_position}')
+            time.sleep(1)
+            self._rpi.hold_spouts()
 
     def _end_session(self, signal_number=None, frame=None):
         """

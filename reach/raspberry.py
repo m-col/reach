@@ -45,8 +45,10 @@ _PIN_NUMBERS = {
 }
 
 _DUTY_CYCLES = (
-    7.3, 7.5, 7.7, 7.95, 8.2, 8.4, 8.7,
+    #7.3, 7.5, 7.7, 7.95, 8.2, 8.4, 8.7,
+    7.5, 7.7, 7.95, 8.2, 8.4, 8.7, 8.9,
 )
+
 
 class Spout:
     """
@@ -86,15 +88,14 @@ class Spout:
         """
         Set duty cycle of actuator PWM.
         """
-        if duty_cycle > 9.5:
-            duty_cycle = 9.5
-        elif duty_cycle < 7.3:
-            duty_cycle = 7.3
+        if not duty_cycle == 0:
+            if duty_cycle > 9.5:
+                duty_cycle = 9.5
+            elif duty_cycle < 7.3:
+                duty_cycle = 7.3
 
         self._duty_cycle = duty_cycle
         self._pwm.ChangeDutyCycle(duty_cycle)
-        time.sleep(1)
-        self._pwm.ChangeDutyCycle(0)
 
     def disable(self):
         """
@@ -265,6 +266,13 @@ class RPiReal:
             spout.duty_cycle = duty_cycle
 
         self._spout_position = pos
+
+    def hold_spouts(self):
+        """
+        Sets duty cycle of actuators to 0 to hold them stationary.
+        """
+        for spout in self.spouts:
+            spout.duty_cycle = 0
 
     def wait_for_rest(self):
         """
@@ -486,7 +494,6 @@ class UtilityPi(RPiReal):
     """
     A representation of a Raspberry Pi that exposes methods that serve as
     utilities for testing the training hardware.
-
     """
 
     def __init__(self):
@@ -564,7 +571,7 @@ class UtilityPi(RPiReal):
             state = GPIO.input(led_pins[spout_number])
             GPIO.output(led_pins[spout_number], not state)
 
-        for pin in self._button_pins:
+        for pin in self._button_pins[0:2]:
             GPIO.add_event_detect(
                 pin,
                 GPIO.FALLING,
