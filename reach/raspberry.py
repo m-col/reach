@@ -516,7 +516,7 @@ class UtilityPi(RPiReal):
                 not GPIO.input(pin),
             )
 
-        for pin in self._button_pins:
+        for pin in self._button_pins[0:2]:
             GPIO.add_event_detect(
                 pin,
                 GPIO.BOTH,
@@ -592,7 +592,7 @@ class UtilityPi(RPiReal):
                 duration_ms,
             )
 
-        for pin in self._button_pins:
+        for pin in self._button_pins[0:2]:
             GPIO.add_event_detect(
                 pin,
                 GPIO.FALLING,

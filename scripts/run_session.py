@@ -66,6 +66,13 @@ def parse_args():
         type=str
     )
 
+    parser.add_argument(
+        '-v', '--reward_volume',
+        help='microlitre volume used for rewards during this session',
+        default=6,
+        type=int
+    )
+
     settings = parser.parse_args()
     if settings.config_file == 'None':
         settings.config_file = None
@@ -114,7 +121,8 @@ def main():
 
     # Print remaining water that mouse requires
     reward_count = mouse[-1].reward_count
-    print(f'\n1000 uL - {reward_count} * 6 uL = {1000 - reward_count * 6} uL')
+    vol = settings.reward_volume
+    print(f'\n1000 uL - {reward_count} * {vol} uL = {1000 - reward_count * vol} uL')
 
 
 if __name__ == '__main__':
