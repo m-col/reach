@@ -178,7 +178,7 @@ class RPiReal:
         self.spouts.append(Spout(0))
         self.spouts.append(Spout(1))
 
-    def wait_to_start(self):
+    def wait_to_start(self):  # pylint: disable=R0201
         """
         Block the program and wait until the enter key is hit. Once this is
         pressed, the training session begins.

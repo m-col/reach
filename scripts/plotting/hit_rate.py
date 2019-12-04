@@ -31,15 +31,15 @@ cohort = Cohort.init_from_files(
     json_path=json_path,
 )
 
-# plot  TODO: plot mice all together
-mouse = 0
-rts = pd.DataFrame(cohort.mice[mouse].reaction_times).transpose()
+# plot
+outcomes = pd.DataFrame(cohort.outcomes).transpose()
 
-sns.violinplot(
-    cut=0,
-    data=rts,
-    scale='area',
-    inner='point',
+ax = sns.lineplot(  # TODO
+    x="timepoint",
+    y="signal",
+    hue="event",
+    err_style="bars", 
+    data=outcomes,
 )
 
 plt.show()

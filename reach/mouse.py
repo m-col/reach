@@ -214,3 +214,24 @@ class Mouse:
             reaction_times.append(session.reaction_times)
 
         return reaction_times
+
+    @lazy_property
+    def outcomes(self):
+        """
+        Get trial outcomes per session.
+
+        Returns
+        -------
+        :class:`list` of :class:`lists`\s of :class:`int`\s where each inner
+        list is one session, and each int represents one possible outcome:
+            - 0 - miss trial
+            - 1 - correct reach
+            - 2 - incorrect reach
+
+        """
+        successes = []
+        for session in self.training_data:
+            successes.append(
+                list(i['outcome'] for i in session.data['trials'])
+            )
+        return successes

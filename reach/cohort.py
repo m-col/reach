@@ -12,6 +12,7 @@ instances.
 from collections.abc import Sequence
 
 from reach.mouse import Mouse
+from reach.utilities import lazy_property
 
 
 class Cohort(Sequence):
@@ -85,3 +86,16 @@ class Cohort(Sequence):
         Allow querying of the size of the cohort.
         """
         return len(self.mice)
+
+    def __str__(self):
+        return f"Cohort containing mice: {', '.join(self.mouse_ids)}"
+
+    @lazy_property
+    def outcomes(self):
+        """
+        Get trial outcomes for all mice across all sessions.
+        """
+        outcomes = []
+        for mouse in self.mice:
+            outcomes.append(mouse.outcomes)
+        return outcomes

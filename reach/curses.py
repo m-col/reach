@@ -305,7 +305,7 @@ class RPiCurses(RPiReal):
         """
         self._monitor.event.set()
 
-    def start_trial(self, spout_number, reward_func, incorrect_func):
+    def start_trial(self, spout_number, lift_func, reward_func, incorrect_func):
         """
         Record the trial start time.
 
@@ -345,26 +345,13 @@ class RPiCurses(RPiReal):
         self._monitor = _KeyMonitor(
             self._feed,
             dict([
-                ('v', lambda: self._record_lift_timepoints(self.paw_pins[0])),
-                ('n', lambda: self._record_lift_timepoints(self.paw_pins[1])),
+                ('v', lambda: lift_func(self.paw_pins[0])),
+                ('n', lambda: lift_func(self.paw_pins[1])),
                 (correct_key, lambda: reward_func(spout_number)),
                 (incorrect_key, lambda: incorrect_func(abs(spout_number - 1))),
             ]),
         )
         self._monitor.start()
-
-    def _record_lift_timepoints(self, pin):
-        """
-        Record timepoint of paw lifts during trials.
-
-        Parameters
-        ----------
-        pin : int
-            Pin number listening to the touch sensor that detected the
-            movement.
-
-        """
-        self.lift_timepoints[self.paw_pins.index(pin)].append(time.time())
 
     def dispense_water(self, spout_number, duration_ms):
         """

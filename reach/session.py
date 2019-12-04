@@ -200,7 +200,8 @@ class Session:
         self._rpi.set_button_callback(1, self._extend_trial)
         self._extended_trial = False
 
-        while True:
+        self._iti_broken = True
+        while self._iti_broken:
             self._rpi.wait_for_rest()
             self._iti_broken = False
 
@@ -212,14 +213,8 @@ class Session:
             while now < trial_end and not self._iti_broken:
                 if self._outcome == 3:
                     return False
-
                 time.sleep(0.020)
                 now = time.time()
-
-            if self._iti_broken:
-                continue
-            else:
-                break
 
         self._rpi.disable_callbacks()
         return True
@@ -341,7 +336,7 @@ class Session:
             movement.
 
         """
-        if not 'lift_time' in self.data['trials'][-1]:
+        if 'lift_time' not in self.data['trials'][-1]:
             self.data['trials'][-1]['lift_time'] = time.time()
             self.data['trials'][-1]['lift_paw'] = self._rpi.paw_pins.index(pin)
 
@@ -509,5 +504,5 @@ class Session:
         reaction_times = []
         for trial in self.data['trials']:
             if trial['outcome'] == 1:
-                reaction_times.append(trial['end_time'] - trial['start_time'])
+                reaction_times.append(trial['end'] - trial['start'])
         return reaction_times
