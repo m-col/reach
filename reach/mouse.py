@@ -97,8 +97,13 @@ class Mouse:
         print("Initialising empty Mouse object.")
         return cls(mouse_id=mouse_id)
 
-    def train(self, config_file=None, data=None, curses=False,
-              save_notes=True):
+    def train(
+        self,
+        config_file=None,
+        data=None,
+        rpi=None,
+        save_notes=True,
+    ):
         """
         Start reaching training session and add new data to training data.
 
@@ -112,9 +117,10 @@ class Mouse:
         data : :class:`dict`, optional
             Extra data that should be saved into the new session's data.
 
-        curses : :class:`bool`, optional
-            Run a virtual training session using a curses interface rather than
-            real hardware.
+        rpi : :class:`class`, optional
+            A class that has all methods of reach.RPiReal to use as the virtual
+            raspberry pi during training. By default, reach.RPiReal is used if
+            the RPi.GPIO library is present.
 
         save_notes : :class:`bool`, optional
             Whether to save notes into the new session's data dict.
@@ -135,7 +141,7 @@ class Mouse:
         new_session.run(
             config,
             prev_data=prev_data,
-            curses=curses,
+            rpi=rpi,
         )
 
         if save_notes:

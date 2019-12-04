@@ -23,7 +23,7 @@ training box hardware. See :repo:`scripts/utilities/
 
 """
 
-__version__ = '2019.11.04.0'
+__version__ = '2019.12.04.0'
 
 from reach.cohort import Cohort
 from reach.mouse import Mouse

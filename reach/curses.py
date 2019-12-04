@@ -225,7 +225,7 @@ class RPiCurses(RPiReal):
                 line,
             )
 
-    def print_to_feed(self, string):
+    def message(self, string):
         """
         Print text to self._feed window, scrolling as needed.
         """
@@ -247,7 +247,7 @@ class RPiCurses(RPiReal):
         """
         Instead of blocking execution, simply print a message.
         """
-        self.print_to_feed("Hit button 1 to begin.")
+        self.message("Hit button 1 to begin.")
 
         try:
             while True:
@@ -295,7 +295,7 @@ class RPiCurses(RPiReal):
         """
         Block execution and wait until both paw sensors are held.
         """
-        self.print_to_feed("Waiting for rest... ")
+        self.message("Waiting for rest... ")
         time.sleep(0.200)
 
     def disable_callbacks(self):
@@ -333,7 +333,7 @@ class RPiCurses(RPiReal):
             attr=curses.color_pair(1),
         )
         self._rig.refresh()
-        self.print_to_feed("Cue illuminated")
+        self.message("Cue illuminated")
 
         if spout_number == 0:
             correct_key = 'g'

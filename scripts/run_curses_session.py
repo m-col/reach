@@ -8,6 +8,7 @@ Run a mock session using the curses interface.
 import os
 
 from reach import Mouse
+from reach.curses import RPiCurses
 
 
 HOME = os.path.expanduser('~')
@@ -17,7 +18,7 @@ mouse = Mouse()
 
 mouse.train(
     config_file=config_file,
-    curses=True,
+    rpi=RPiCurses,
 )
 
 mouse.save_data_to_file()

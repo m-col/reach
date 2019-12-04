@@ -17,7 +17,6 @@ import textwrap
 import time
 
 from collections import deque
-from reach.curses import RPiCurses
 from reach.raspberry import RPi
 from reach.utilities import enforce_suffix, lazy_property
 
@@ -85,7 +84,7 @@ class Session:
 
         return training_data
 
-    def run(self, config, prev_data=None, curses=False):
+    def run(self, config, prev_data=None, rpi=None):
         """
         Begin a training session.
 
@@ -98,9 +97,10 @@ class Session:
             Training data from the previous session, which if provided will be used when
             calculating initial cue duration, spout position and shaping status.
 
-        curses: :class:`bool` (optional)
-            Specify whether to use curses interface, and therefore mock raspberry pi,
-            for a test training session.
+        rpi: :class:`class` (optional)
+            Class with RPi functionality. By default, this will use
+            reach.raspberry.RPi, but class with the same methods can be used if
+            different functionality is desired (e.g. reach.curses.RPiCurses).
 
         """
         random.seed()
@@ -111,11 +111,11 @@ class Session:
         data['resets'] = []
         data['spontaneous_reaches'] = []
 
-        if curses:
-            self._rpi = RPiCurses(data['spout_count'])
-            self._message = self._rpi.print_to_feed
-        else:
-            self._rpi = RPi(data['spout_count'])
+        if rpi is None:
+            rpi = RPi
+        self._rpi = rpi(data['spout_count'])
+        if hasattr(self._rpi, 'message'):
+            self._message = self._rpi.message
 
         self._display_training_settings()
 
