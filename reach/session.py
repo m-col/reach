@@ -170,12 +170,10 @@ class Session:
         while now < data['end_time']:
             trial_count += 1
             self._outcome = 0
-            self._adapt_settings()
-
             self._message("_____________________________________")
             self._message("# -- Starting trial #%i -- %4.0f s -- #"
                           % (trial_count, now - data['start_time']))
-
+            self._adapt_settings()
             self._current_spout = random.randint(0, data['spout_count'] - 1)
             if self._inter_trial_interval():
                 self._trial()
@@ -402,18 +400,24 @@ class Session:
             self._message('Shaping.')
 
         if num_hits >= _SLIDING_WINDOW - 1:
-            self._cue_duration *= 0.9
+            self._cue_duration *= 0.95
+            self._message(f'Cue duration decreased to {self._cue_duration} ms')
+        elif num_hits < _SLIDING_WINDOW / 4 and self._rpi.spout_position > 1:
+            if self._cue_duration < 10000:
+                self._cue_duration /= 0.95
+                self._message(f'Cue duration increased to {self._cue_duration} ms')
 
         if num_hits == _SLIDING_WINDOW:
             self._rpi.spout_position += 1
-            print(f'Spouts moved to position {self._rpi.spout_position}')
+            self._message(f'Spouts moved back to position {self._rpi.spout_position}')
             time.sleep(1)
             self._rpi.hold_spouts()
         elif num_hits < _SLIDING_WINDOW / 4 and self._rpi.spout_position > 1:
-            self._rpi.spout_position -= 1
-            print(f'Spouts moved to position {self._rpi.spout_position}')
-            time.sleep(1)
-            self._rpi.hold_spouts()
+            if self._recent_trials[-1]['outcome'] != 1:
+                self._rpi.spout_position -= 1
+                self._message(f'Spouts moved forward to position {self._rpi.spout_position}')
+                time.sleep(1)
+                self._rpi.hold_spouts()
 
     def _end_session(self, signal_number=None, frame=None):
         """
@@ -461,9 +465,13 @@ class Session:
         if trial_count == 0:
             return
 
-        miss_count = trial_count - self.reward_count
-        reward_perc = 100 * self.reward_count / trial_count
+        outcomes = list(i['outcome'] for i in data['trials'])
+        miss_count = outcomes.count(0)
         miss_perc = 100 * miss_count / trial_count
+        reward_count = outcomes.count(1)
+        reward_perc = 100 * reward_count / trial_count
+        incorrect_count = outcomes.count(2)
+        incorrect_perc = 100 * incorrect_count / trial_count
         reset_pins = [y for x, y in data['resets']]
         left_resets = reset_pins.count(0)
         right_resets = reset_pins.count(1)
@@ -473,7 +481,8 @@ class Session:
         # __________ The End __________ #
 
         Trials:            {trial_count}
-        Correct reaches:   {self.reward_count} ({reward_perc:0.1f}%)
+        Correct reaches:   {reward_count} ({reward_perc:0.1f}%)
+        Incorrect reaches: {incorrect_count} ({incorrect_perc:0.1f}%)
         Missed cues:       {miss_count} ({miss_perc:0.1f}%)
         Spont. reaches:    {len(data['spontaneous_reaches'])}
         ITI resets:        {len(data['resets'])}
