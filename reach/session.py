@@ -117,14 +117,15 @@ class Session:
         if hasattr(self._rpi, 'message'):
             self._message = self._rpi.message
 
-        self._display_training_settings()
-
         if prev_data:
             num_recent_trials = min(len(prev_data['trials']), _SLIDING_WINDOW)
             self._recent_trials.extend(prev_data['trials'][- num_recent_trials:])
             self._rpi.spout_position = self._recent_trials[-1]['spout_position']
+            self._cue_duration = self._recent_trials[-1]['cue_duration']
         else:
-            self._rpi.spout_position = 0
+            self._rpi.spout_position = 1
+
+        self._display_training_settings()
 
         if not self._rpi.wait_to_start():
             # Control-C hit while waiting.
@@ -148,9 +149,11 @@ class Session:
             f"""
             _________________________________
 
-            Spouts:      {self.data['spout_count']}
-            Duration:    {self.data['duration']} s
-            ITI:         {iti_min} - {iti_max} ms
+            Spouts:                 {self.data['spout_count']}
+            Duration:               {self.data['duration']} s
+            ITI:                    {iti_min} - {iti_max} ms
+            Initial cue duration:   {self._cue_duration} ms
+            Initial spout position: {self._rpi.spout_position}
             _________________________________
 
             """
@@ -314,10 +317,13 @@ class Session:
             self._message("Incorrect reach!")
             time.sleep(reward_duration / 1000)
 
+        elif self._outcome == 3:
+            return
+
         self.data['trials'][-1].update(dict(
             spout=current_spout,
             shaping=self._water_at_cue_onset,
-            cue_duration=cue_duration,
+            cue_duration=cue_duration * 1000,
             outcome=self._outcome,
             spout_position=self._rpi.spout_position,
         ))
@@ -410,7 +416,7 @@ class Session:
                     # spouts have been at final position for at least _SLIDING_WINDOW trials
                     if self._cue_duration > 2000:
                         # we are still decreasing cue duration
-                        self._cue_duration *= 0.9
+                        self._cue_duration = int(self._cue_duration * 0.9)
                         if self._cue_duration < 2000:
                             self._cue_duration = 2000
                         self._message(
@@ -437,8 +443,8 @@ class Session:
                     time.sleep(1)
                     self._rpi.hold_spouts()
 
-            self._water_at_cue_onset = True
-            self._message('Shaping.')
+        self._water_at_cue_onset = True
+        self._message('Shaping.')
 
     def _end_session(self, signal_number=None, frame=None):
         """
@@ -482,10 +488,14 @@ class Session:
         Print training results at the end of the session.
         """
         data = self.data
-        trial_count = len(data['trials'])
-        if trial_count == 0:
+        if len(data['trials']) == 0:
             return
+        elif not 'outcome' in data['trials'][-1]:
+            data['trials'].pop()
+            if len(data['trials']) == 0:
+                return
 
+        trial_count = len(data['trials'])
         outcomes = list(i['outcome'] for i in data['trials'])
         miss_count = outcomes.count(0)
         miss_perc = 100 * miss_count / trial_count
