@@ -393,31 +393,52 @@ class Session:
         """
         num_hits = len([x for x in self._recent_trials if x['outcome'] == 1])
 
-        if num_hits == _SLIDING_WINDOW:
-            self._water_at_cue_onset = False
-        else:
-            self._water_at_cue_onset = True
-            self._message('Shaping.')
-
-        if num_hits >= _SLIDING_WINDOW - 1:
-            self._cue_duration *= 0.95
-            self._message(f'Cue duration decreased to {self._cue_duration} ms')
-        elif num_hits < _SLIDING_WINDOW / 4 and self._rpi.spout_position > 1:
-            if self._cue_duration < 10000:
-                self._cue_duration /= 0.95
-                self._message(f'Cue duration increased to {self._cue_duration} ms')
-
-        if num_hits == _SLIDING_WINDOW:
-            self._rpi.spout_position += 1
-            self._message(f'Spouts moved back to position {self._rpi.spout_position}')
-            time.sleep(1)
-            self._rpi.hold_spouts()
-        elif num_hits < _SLIDING_WINDOW / 4 and self._rpi.spout_position > 1:
-            if self._recent_trials[-1]['outcome'] != 1:
-                self._rpi.spout_position -= 1
-                self._message(f'Spouts moved forward to position {self._rpi.spout_position}')
+        if num_hits >= _SLIDING_WINDOW * 0.90:
+            # GOOD PERFORMANCE
+            if self._rpi.spout_position < 7:
+                # we are still progressing spouts before changing anything else
+                self._rpi.spout_position += 1
+                self._message(
+                    f'Spouts progressed to position {self._rpi.spout_position}'
+                )
                 time.sleep(1)
                 self._rpi.hold_spouts()
+
+            else:
+                recent_pos = [x['spout_position'] for x in self._recent_trials]
+                if len(set(recent_pos)) == 1:
+                    # spouts have been at final position for at least _SLIDING_WINDOW trials
+                    if self._cue_duration > 2000:
+                        # we are still decreasing cue duration
+                        self._cue_duration *= 0.9
+                        if self._cue_duration < 2000:
+                            self._cue_duration = 2000
+                        self._message(
+                            f'Cue duration decreased to {self._cue_duration} ms'
+                        )
+
+                    self._water_at_cue_onset = False
+
+        elif num_hits == 0:
+            if self._cue_duration < 10000:
+                # increase cue duration if we can
+                self._cue_duration /= 0.9
+                if self._cue_duration > 10000:
+                    self._cue_duration = 10000
+                self._message(f'Cue duration increased to {self._cue_duration} ms')
+
+            else:
+                recent_pos = [x['spout_position'] for x in self._recent_trials]
+                if len(set(recent_pos)) == 1 and self._rpi.spout_position > 1:
+                    self._rpi.spout_position -= 1
+                    self._message(
+                        f'Spouts reverted to position {self._rpi.spout_position}'
+                    )
+                    time.sleep(1)
+                    self._rpi.hold_spouts()
+
+            self._water_at_cue_onset = True
+            self._message('Shaping.')
 
     def _end_session(self, signal_number=None, frame=None):
         """
