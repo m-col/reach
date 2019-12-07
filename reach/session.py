@@ -307,6 +307,7 @@ class Session:
             self._rpi.end_trial()
             self._rpi.miss_trial()
             self._message("Missed reach")
+            self.data['trials'][-1]['end'] = cue_end
 
         elif self._outcome == 1:
             self._message("Successful reach!")
