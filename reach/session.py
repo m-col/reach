@@ -53,7 +53,7 @@ class Session:
         self.reward_count = 0
         self._outcome = 0
         self._iti_broken = False
-        self._current_spout = None
+        self._current_spout = 0
         self._water_at_cue_onset = None
         self._rpi = None
         self._message = print
@@ -113,7 +113,7 @@ class Session:
 
         if rpi is None:
             rpi = RPi
-        self._rpi = rpi(data['spout_count'])
+        self._rpi = rpi()
         if hasattr(self._rpi, 'message'):
             self._message = self._rpi.message
 
@@ -121,7 +121,9 @@ class Session:
             num_recent_trials = min(len(prev_data['trials']), _SLIDING_WINDOW)
             self._recent_trials.extend(prev_data['trials'][- num_recent_trials:])
             self._rpi.spout_position = self._recent_trials[-1]['spout_position']
-            self._cue_duration = self._recent_trials[-1]['cue_duration']
+            self._cue_duration = min(
+                self._recent_trials[-1]['cue_duration'], 10000
+            )
         else:
             self._rpi.spout_position = 1
 
@@ -149,7 +151,6 @@ class Session:
             f"""
             _________________________________
 
-            Spouts:                 {self.data['spout_count']}
             Duration:               {self.data['duration']} s
             ITI:                    {iti_min} - {iti_max} ms
             Initial cue duration:   {self._cue_duration} ms
@@ -177,7 +178,6 @@ class Session:
             self._message("# -- Starting trial #%i -- %4.0f s -- #"
                           % (trial_count, now - data['start_time']))
             self._adapt_settings()
-            self._current_spout = random.randint(0, data['spout_count'] - 1)
             if self._inter_trial_interval():
                 self._trial()
                 self._message(f"Total rewards: {self.reward_count}")
@@ -397,6 +397,9 @@ class Session:
         """
         Adapt live training settings based on recent behavioural performance.
         """
+        if self._recent_trials and self._recent_trials[-1]['outcome'] == 1:
+            self._current_spout = random.randint(0, 1)
+
         num_hits = len([x for x in self._recent_trials if x['outcome'] == 1])
 
         if num_hits >= _SLIDING_WINDOW * 0.90:

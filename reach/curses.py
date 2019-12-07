@@ -152,11 +152,11 @@ class RPiCurses(RPiReal):
         pressed during the inter-trial interval.
 
     """
-    def __init__(self, spout_count):
+    def __init__(self):
         """
         Initialise virtual raspberry pi and draw rig on screen.
         """
-        super().__init__(spout_count)
+        super().__init__()
 
         self._stdscr = _initialise_curses()
         self._dimensions = self._stdscr.getmaxyx()

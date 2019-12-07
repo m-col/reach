@@ -109,11 +109,6 @@ class RPiReal:
     """
     An instance of a raspberry pi and its GPIO pins.
 
-    Parameters
-    ----------
-    spout_count : int
-        The number of spouts to be used for the current training session.
-
     Attributes
     ----------
     _button_pins : list of 2 ints
@@ -131,15 +126,9 @@ class RPiReal:
         Pin number that controls the air puff solenoid.
 
     """
-    def __init__(self, spout_count):
+    def __init__(self):
         """
         Initialise the pi and set initial pin states.
-
-        Parameters
-        ----------
-        spout_count : int
-            The number of spouts to be used for the current training session.
-
         """
         self._button_pins = _PIN_NUMBERS['buttons']
         self.paw_pins = _PIN_NUMBERS['paw_sensors']
@@ -501,7 +490,7 @@ class UtilityPi(RPiReal):
         This subclass interacts with both spouts so initialises as
         :class:`._RPi` with two spouts.
         """
-        super().__init__(2)
+        super().__init__()
 
     def hold_open_solenoid(self):
         """
