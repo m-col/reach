@@ -87,7 +87,7 @@ class Cohort(Sequence):
         """
         return len(self.mice)
 
-    def __str__(self):
+    def __repr__(self):
         return f"Cohort containing mice: {', '.join(self.mouse_ids)}"
 
     @lazy_property
@@ -99,3 +99,36 @@ class Cohort(Sequence):
         for mouse in self.mice:
             outcomes.append(mouse.outcomes)
         return outcomes
+
+    @lazy_property
+    def trials(self):
+        """
+        Get trial data for all mice and sessions as a pandas DataFrame.
+        """
+        import pandas as pd  # pylint: disable=import-outside-toplevel
+        trials = pd.DataFrame()
+
+        for i, mouse in enumerate(self.mice):
+            mouse_df = pd.DataFrame()
+            for j, session in enumerate(mouse.training_data):
+                df = pd.DataFrame(session.data['trials'])
+                mouse_df = mouse_df.append(df.assign(day=j + 1), sort=False)
+            trials = trials.append(mouse_df.assign(mouse=self.mouse_ids[i]))
+
+        return trials
+
+    @lazy_property
+    def results(self):
+        import pandas as pd  # pylint: disable=import-outside-toplevel
+        results = pd.DataFrame()
+
+        for i, mouse in enumerate(self.mice):  # TODO
+            mouse_df = pd.DataFrame()
+            for j, session in enumerate(mouse.training_data):
+                ses_results = {}
+                ses_results['missed'] = mouse.outcomes[j].count(0)
+                ses_results['correct'] = mouse.outcomes[j].count(1)
+                ses_results['incorrect'] = mouse.outcomes[j].count(2)
+            mouse_df.append(pd.DataFrame(ses_results))
+
+        return results
