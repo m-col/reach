@@ -122,13 +122,35 @@ class Cohort(Sequence):
         import pandas as pd  # pylint: disable=import-outside-toplevel
         results = pd.DataFrame()
 
-        for i, mouse in enumerate(self.mice):  # TODO
-            mouse_df = pd.DataFrame()
+        for i, mouse in enumerate(self.mice):
+            session_results = []
             for j, session in enumerate(mouse.training_data):
-                ses_results = {}
-                ses_results['missed'] = mouse.outcomes[j].count(0)
-                ses_results['correct'] = mouse.outcomes[j].count(1)
-                ses_results['incorrect'] = mouse.outcomes[j].count(2)
-            mouse_df.append(pd.DataFrame(ses_results))
-
+                session_results.append(
+                    dict(
+                        day=j + 1,
+                        trials=len(session.data['trials']),
+                        trainer=session.data['trainer'],
+                        weight=session.data['weight'],
+                        training_box=session.data['training_box'],
+                        duration=session.data['duration'],
+                        iti=session.data['iti'],
+                        resets=len(session.data['resets']),
+                        resets_l=len([x for x in session.data['resets'] if x[1] == 0]),
+                        resets_r=len([x for x in session.data['resets'] if x[1] == 1]),
+                        spontaneous_reaches=len(session.data['spontaneous_reaches']),
+                        spontaneous_reaches_l=len(
+                            [x for x in session.data['spontaneous_reaches'] if x[1] == 0]
+                        ),
+                        spontaneous_reaches_r=len(
+                            [x for x in session.data['spontaneous_reaches'] if x[1] == 1]
+                        ),
+                        start_time=session.data['start_time'],
+                        end_time=session.data['end_time'],
+                        missed=mouse.outcomes[j].count(0),
+                        correct=mouse.outcomes[j].count(1),
+                        incorrect=mouse.outcomes[j].count(2),
+                        mouse_id=self.mouse_ids[i],
+                    )
+                )
+            results = results.append(pd.DataFrame(session_results))
         return results
