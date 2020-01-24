@@ -25,6 +25,20 @@ from reach.utilities import enforce_suffix, lazy_property
 _SLIDING_WINDOW = 10
 
 
+class TrialDeque(deque):
+    def __getattr__(self, name):
+        """
+        This lets use do e.g. recent_trials.shaping to return a list containing the
+        values stored in all trials in the deque (which are themselves dicts).
+        """
+        if not len(self):
+            return 0
+        if name in self[0]:
+            return [x[name] for x in self]
+        else:
+            raise AttributeError(f'No {name} attribute in: {self}')
+
+
 class Session:
     """
     Controls a single training session and its behavioural data.
@@ -59,7 +73,7 @@ class Session:
         self._message = print
         self._extended_trial = False
         self._cue_duration = 10000
-        self._recent_trials = deque([], _SLIDING_WINDOW)
+        self._recent_trials = TrialDeque([], _SLIDING_WINDOW)
 
     @classmethod
     def init_all_from_file(cls, json_path=None):
@@ -132,7 +146,7 @@ class Session:
         if not self._rpi.wait_to_start():
             # Control-C hit while waiting.
             self._rpi.cleanup()
-            print('Cancelled..')
+            self._message('Cancelled..')
             sys.exit(1)
 
         self._rpi.hold_spouts()
@@ -267,7 +281,7 @@ class Session:
 
         """
         self._water_at_cue_onset = not self._water_at_cue_onset
-        self._message(f'Water at cue onset: {str(self._water_at_cue_onset)}')
+        self._message(f'Water at cue onset: {self._water_at_cue_onset}')
 
     def _trial(self):
         """
@@ -389,10 +403,10 @@ class Session:
         """
         if self._extended_trial:
             self._extended_trial = False
-            print('Next trial will NOT be an extended trial')
+            self._message('Next trial will NOT be an extended trial')
         else:
             self._extended_trial = True
-            print('Next trial will be an extended trial')
+            self._message('Next trial will be an extended trial')
 
     def _adapt_settings(self):
         """
@@ -401,54 +415,30 @@ class Session:
         if self._recent_trials and self._recent_trials[-1]['outcome'] == 1:
             self._current_spout = random.randint(0, 1)
 
-        num_hits = len([x for x in self._recent_trials if x['outcome'] == 1])
+        num_hits = self._recent_trials.outcome.count(1)
+        self._recent_trials.shaping.count
 
         if num_hits >= _SLIDING_WINDOW * 0.90:
-            # GOOD PERFORMANCE
+            self._water_at_cue_onset = False
+            if self._recent_trials.shaping.count(False) < 3:
+                return
+
             if self._rpi.spout_position < 7:
-                # we are still progressing spouts before changing anything else
-                self._rpi.spout_position += 1
-                self._message(
-                    f'Spouts progressed to position {self._rpi.spout_position}'
-                )
-                time.sleep(1)
-                self._rpi.hold_spouts()
-
-            else:
-                recent_pos = [x['spout_position'] for x in self._recent_trials]
-                if len(set(recent_pos)) == 1:
-                    # spouts have been at final position for at least _SLIDING_WINDOW trials
-                    if self._cue_duration > 2000:
-                        # we are still decreasing cue duration
-                        self._cue_duration = int(self._cue_duration * 0.9)
-                        if self._cue_duration < 2000:
-                            self._cue_duration = 2000
-                        self._message(
-                            f'Cue duration decreased to {self._cue_duration} ms'
-                        )
-
-                    self._water_at_cue_onset = False
-
-        elif num_hits == 0:
-            if self._cue_duration < 10000:
-                # increase cue duration if we can
-                self._cue_duration /= 0.9
-                if self._cue_duration > 10000:
-                    self._cue_duration = 10000
-                self._message(f'Cue duration increased to {self._cue_duration} ms')
-
-            else:
-                recent_pos = [x['spout_position'] for x in self._recent_trials]
-                if len(set(recent_pos)) == 1 and self._rpi.spout_position > 1:
-                    self._rpi.spout_position -= 1
-                    self._message(
-                        f'Spouts reverted to position {self._rpi.spout_position}'
-                    )
+                if len(set(self._recent_trials.spout_position[-3:])) == 1:
+                    self._rpi.spout_position += 1
+                    self._message(f'Spouts progressed to position {self._rpi.spout_position}')
                     time.sleep(1)
                     self._rpi.hold_spouts()
 
-        self._water_at_cue_onset = True
-        self._message('Shaping.')
+            elif len(set(self._recent_trials.spout_position[-3:])) == 1 and self._cue_duration > 2000:
+                self._cue_duration = int(self._cue_duration * 0.9)
+                if self._cue_duration < 2000:
+                    self._cue_duration = 2000
+                self._message(f'Cue duration decreased to {self._cue_duration} ms')
+
+        elif num_hits == 0:
+            self._water_at_cue_onset = True
+            self._message('Shaping.')
 
     def _end_session(self, signal_number=None, frame=None):
         """

@@ -113,7 +113,7 @@ class Cohort(Sequence):
             for j, session in enumerate(mouse.training_data):
                 df = pd.DataFrame(session.data['trials'])
                 mouse_df = mouse_df.append(df.assign(day=j + 1), sort=False)
-            trials = trials.append(mouse_df.assign(mouse=self.mouse_ids[i]))
+            trials = trials.append(mouse_df.assign(mouse_id=self.mouse_ids[i]))
 
         return trials
 
@@ -153,4 +153,6 @@ class Cohort(Sequence):
                     )
                 )
             results = results.append(pd.DataFrame(session_results))
+
+        results['hit_rate'] = results['correct'] / results['trials']
         return results
