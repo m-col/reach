@@ -572,7 +572,7 @@ class UtilityPi(RPiReal):
         """
         Measure volume of water dispensed by a specified dispense duration.
         """
-        duration_ms = int(input("Specify duration to dispense in ms: "))
+        duration_ms = float(input("Specify duration to dispense in ms: "))
         print("Press button 0 or 1 to dispense from corresponding spout.")
 
         def _dispense(pin):
@@ -593,7 +593,7 @@ class UtilityPi(RPiReal):
         """
         Trigger air puffs upon press of button 0.
         """
-        duration_ms = int(input("Specify duration to puff air in ms: "))
+        duration_ms = float(input("Specify duration to puff air in ms: "))
         print("Press button 0 to trigger air puff.")
         print("Press button 1 to open solenoids.")
 
@@ -624,10 +624,10 @@ class UtilityPi(RPiReal):
         Trigger air puffs upon press of button 0 with specified water volume
         dispensed to both spouts upon press of button 1.
         """
-        puff_duration_ms = int(input(
+        puff_duration_ms = float(input(
             "Specify duration to puff air in ms: "
         ))
-        dispense_duration_ms = int(input(
+        dispense_duration_ms = float(input(
             "Specify duration to dispense in ms: "
         ))
         print("Press button 0 to trigger air puff.")
