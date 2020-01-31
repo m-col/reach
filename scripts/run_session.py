@@ -1,129 +1,68 @@
 #!/usr/bin/env python3
 """
-Run a training session.
-=======================
+Run a training session
+======================
 
-argparse is used to provide extra information about the Session before
-beginning training.
+This script shows an example of how a training session can be run.
 
 """
 
 
-import argparse
-import os
-import sys
-
 from reach import Mouse
+from reach.backends.raspberrypi import RaspberryPi
 
 
-HOME = os.path.expanduser('~')
+# Basic settings
+mouse_id = 'Mouse1'
+training_box = 1
+weight = '21.0'
+trainer = 'matt'
+data_dir = '/home/pi/reach_data'
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description='Run reach training session'
-    )
+# Instantiate Mouse from existing data
+mouse = Mouse.init_from_file(
+    data_dir=data_dir,
+    mouse_id=mouse_id,
+)
 
-    parser.add_argument(
-        '-c', '--config_file',
-        help='Select training configuration file',
-        default=f'{HOME}/reach_config.ini',
-        type=str
-    )
+# Create the backend
+backend = RaspberryPi(
+    reward_duration=60,
+)
 
-    parser.add_argument(
-        '-m', '--mouse_id',
-        help='Specify mouse_id',
-        default=None,
-        type=str
-    )
+# Additional metadata
+metadata = {
+    'trainer': trainer,
+    'weight': weight,
+    'training_box': training_box,
+}
 
-    parser.add_argument(
-        '-b', '--training_box',
-        help='Specify training box',
-        default=None,
-        type=int
-    )
+# Begin the training session
+mouse.train(
+    backend,
+    additional_data=metadata,
+    duration=1800,
+    intertrial_interval=(4000, 6000),
+)
 
-    parser.add_argument(
-        '-w', '--weight',
-        help='Specify mouse weight',
-        default=None,
-        type=str
-    )
+# Collect some extra notes
+notes = input('Add any training notes:\n')
+if notes:
+    mouse[-1].add_data({'notes': notes})
 
-    parser.add_argument(
-        '-t', '--trainer',
-        help='Specify trainer',
-        default=None,
-        type=str
-    )
+# Ignore this session's data if we pass 'rm' into the notes
+if notes == 'rm':
+    print('Not saving new training data.')
 
-    parser.add_argument(
-        '-j', '--json_path',
-        help='Path to folder containing training JSONs',
-        default=f'{HOME}/CuedBehaviourAnalysis/Data/TrainingJSON',
-        type=str
-    )
-
-    parser.add_argument(
-        '-v', '--reward_volume',
-        help='microlitre volume used for rewards during this session',
-        default=6,
-        type=int
-    )
-
-    settings = parser.parse_args()
-    if settings.config_file == 'None':
-        settings.config_file = None
-
-    return settings
-
-
-def main():
-    settings = parse_args()
-
-    # add any additional metadata
-    data = {}
-    for key in ['trainer', 'weight', 'training_box']:
-        if getattr(settings, key):
-            data.update({key: getattr(settings, key)})
-
-    if settings.mouse_id:
-        # instantiate mouse from training JSON
-        mouse = Mouse.init_from_file(
-            mouse_id=settings.mouse_id,
-            json_path=settings.json_path
-        )
-
-        mouse.train(
-            config_file=settings.config_file,
-            data=data,
-            save_notes=True,
-        )
-
-        # ignore this session's data if we pass 'rm' into the notes
-        notes = mouse[-1].data['notes']
-        if notes == 'rm':
-            print('Not saving new training data.')
-        elif len(mouse[-1].data['trials']) == 0:
-            print('Not saving new data: no trials')
-        else:
-            mouse.save_data_to_file(settings.json_path)
-
+else:
+    if len(mouse[-1].data['trials']) == 0:
+        confirm = input('There were no new trials. Still save data? [Y/n]')
+        if confirm != 'n':
+            mouse.save_data_to_file(data_dir)
     else:
-        # train anonymous mouse
-        mouse = Mouse()
-        mouse.train(
-            config_file=settings.config_file,
-            save_notes=False,
-        )
+        mouse.save_data_to_file(data_dir)
 
-    # Print remaining water that mouse requires
-    reward_count = mouse[-1].reward_count
-    vol = settings.reward_volume
-    print(f'\n1000 uL - {reward_count} * {vol} uL = {1000 - reward_count * vol} uL')
-
-
-if __name__ == '__main__':
-    main()
+# Print remaining water that mouse requires
+reward_count = mouse[-1].reward_count
+print(f'1000 uL - {reward_count} * 6 uL = {1000 - reward_count * 6} uL')
