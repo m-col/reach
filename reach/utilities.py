@@ -2,7 +2,7 @@
 Utilities
 =========
 
-Miscellaneous utilities that do not fit into any main class.
+Miscellaneous utilities.
 
 """
 
@@ -10,11 +10,9 @@ Miscellaneous utilities that do not fit into any main class.
 import functools
 
 
-class lazy_property:  # pylint: disable=invalid-name,too-few-public-methods
+class cache:  # pylint: disable=invalid-name,too-few-public-methods
     """
-    Method decorator that results in property functions being replaced by the
-    result of their first call, so future calls do not recalculate the same
-    values.
+    Property decorator to cache the return value of its first call.
     """
     def __init__(self, func):
         self.func = func
@@ -27,13 +25,3 @@ class lazy_property:  # pylint: disable=invalid-name,too-few-public-methods
         value = self.func(obj)
         setattr(obj, self.func.__name__, value)
         return value
-
-
-def enforce_suffix(string, suffix):
-    """
-    Append suffix to string if not present.
-    """
-    if not string.endswith(suffix):
-        string = string + suffix
-
-    return string

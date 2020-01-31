@@ -2,11 +2,10 @@
 Sessions
 ========
 
-:class:`.Session` objects interface with a raspberry pi to sequence training sessions
-and record data.
+:class:`Session` objects interface with a backend such as a raspberry pi to operate
+training sessions and record data.
 
 """
-# pylint: disable=unused-argument
 
 
 import json
@@ -15,10 +14,10 @@ import signal
 import sys
 import textwrap
 import time
-
 from collections import deque
-from reach.raspberry import RPi
-from reach.utilities import enforce_suffix, lazy_property
+
+import reach.backends
+from reach.utilities import cache
 
 
 # Number of recent trials used to calculate adaptive task settings
@@ -28,129 +27,134 @@ _SLIDING_WINDOW = 10
 class TrialDeque(deque):
     def __getattr__(self, name):
         """
-        This lets use do e.g. recent_trials.shaping to return a list containing the
-        values stored in all trials in the deque (which are themselves dicts).
+        This lets the Session do e.g. recent_trials.shaping to return a list containing
+        the values stored in all trials in the deque (which are themselves dicts).
         """
         if not len(self):
-            return 0
-        if name in self[0]:
-            return [x[name] for x in self]
-        else:
-            raise AttributeError(f'No {name} attribute in: {self}')
+            return []
+        return [x[name] for x in self]
 
 
 class Session:
     """
     Controls a single training session and its behavioural data.
 
-    Attributes
+    Parameters
     ----------
-    data : :class:`dict`
-        Stores all training data that is saved and loaded from the training JSONs. Can
-        be passed as a kwarg to pre-fill entries.
-
-    reward_count : int
-        The number of rewarded trials in this session. This is exposed so scripts can
-        calculate and display how much water to give a mouse after a session.
+    data : :class:`dict` (optional)
+        A dictionary of additional or pre-filled data to be added to the session's
+        training data.
 
     """
-
     def __init__(self, data=None):
-        """
-        Instantiate a representation of a training session.
-        """
-        self.data = {}
-        if data is not None:
-            self.data.update(data)
+        self.data = data or {}
 
         # These attributes track state during training
-        self.reward_count = 0
+        self._reward_count = 0
         self._outcome = 0
         self._iti_broken = False
         self._current_spout = 0
         self._water_at_cue_onset = None
-        self._rpi = None
+        self._backend = None
         self._message = print
         self._extended_trial = False
         self._cue_duration = 10000
         self._recent_trials = TrialDeque([], _SLIDING_WINDOW)
+        self._spout_position = 1
 
     @classmethod
-    def init_all_from_file(cls, json_path=None):
+    def init_all_from_file(cls, full_path):
         """
         Generate a :class:`list` of :class:`Session` objects from data stored in a
         Training JSON.
 
         Parameters
         ----------
-        json_path : :class:`str`
-            Training JSON to read data from.
+        full_path : :class:`str`
+            Full path to file containing existing training data.
 
         """
-        json_path = enforce_suffix(json_path, '.json')
-
-        with open(json_path, 'r') as json_file:
-            file_data = json.load(json_file)
+        with open(full_path, 'r') as fd:
+            previous_data = json.load(fd)
 
         training_data = [
-            cls(data=session_data) for session_data in file_data
+            cls(data=data) for data in previous_data
         ]
 
         return training_data
 
-    def run(self, config, prev_data=None, rpi=None):
+    def add_data(self, data):
+        """
+        Manually add data to the Session's data.
+
+        Parameters
+        ----------
+        data : :class:`dict`
+            Dictionary of values to add into the Session's data dict.
+
+        """
+        self.data.update(data)
+
+    def run(
+        self,
+        backend,
+        duration=None,
+        intertrial_interval=None,
+        previous_data=None,
+    ):
         """
         Begin a training session.
 
         Parameters
         ----------
-        config : :class:`dict`
-            Training settings.
+        backend : :class:`class`
+            An instance of a Backend subclass.
 
-        prev_data : :class:`dict` of :class:`reach.Session` data
+        duration : :class:`int` (optional)
+            Duration of the training session in seconds. Default: 1800 seconds.
+
+        intertrial_interval : :class:`tuple` of 2 :class:`int`\s (optional)
+            Minimum and maximum duration in milliseconds for use for the inter-trial
+            interval. Default: (4000, 6000).
+
+        previous_data : :class:`dict` of :class:`reach.Session` training data (optional)
             Training data from the previous session, which if provided will be used when
             calculating initial cue duration, spout position and shaping status.
 
-        rpi: :class:`class` (optional)
-            Class with RPi functionality. By default, this will use
-            reach.raspberry.RPi, but class with the same methods can be used if
-            different functionality is desired (e.g. reach.curses.RPiCurses).
-
         """
-        random.seed()
-
-        data = self.data
-        data.update(config)
-        data['trials'] = []
-        data['resets'] = []
-        data['spontaneous_reaches'] = []
-
-        if rpi is None:
-            rpi = RPi
-        self._rpi = rpi()
-        if hasattr(self._rpi, 'message'):
-            self._message = self._rpi.message
-
-        if prev_data:
-            num_recent_trials = min(len(prev_data['trials']), _SLIDING_WINDOW)
-            self._recent_trials.extend(prev_data['trials'][- num_recent_trials:])
-            self._rpi.spout_position = self._recent_trials[-1]['spout_position']
-            self._cue_duration = min(
-                self._recent_trials[-1]['cue_duration'], 10000
+        if not isinstance(backend, reach.backends.Backend):
+            raise SystemError(
+                'Provided backend is not an instance of reach.backend.Backend'
             )
-        else:
-            self._rpi.spout_position = 1
+        self._backend = backend
 
+        if hasattr(self._backend, 'message'):
+            self._message = self._backend.message
+
+        self.data['duration'] = duration or 1800
+        self.data['intertrial_interval'] = intertrial_interval or (4000, 6000)
+        self.data['trials'] = []
+        self.data['resets'] = []
+        self.data['spontaneous_reaches'] = []
+
+        if previous_data:
+            self._recent_trials.extend(previous_data['trials'])
+            self._spout_position = self._recent_trials[-1]['spout_position']
+            self._cue_duration = self._recent_trials[-1]['cue_duration']
+
+        self._backend.position_spouts(self._spout_position)
         self._display_training_settings()
+        self._backend.configure_callbacks(self)
 
-        if not self._rpi.wait_to_start():
-            # Control-C hit while waiting.
-            self._rpi.cleanup()
+        try:
+            self._backend.wait_to_start()
+        except KeyboardInterrupt:
+            self._backend.cleanup()
             self._message('Cancelled..')
             sys.exit(1)
 
-        self._rpi.hold_spouts()
         signal.signal(signal.SIGINT, self._end_session)
+        self._backend.disable_spouts()
         self._trial_loop()
         self._end_session()
 
@@ -159,20 +163,17 @@ class Session:
         Display the training settings that will be used for the upcoming training
         session.
         """
-        iti_min, iti_max = self.data['iti']
+        iti_min, iti_max = self.data['intertrial_interval']
 
-        self._message(textwrap.dedent(
-            f"""
+        self._message(textwrap.dedent(f"""
             _________________________________
 
             Duration:               {self.data['duration']} s
-            ITI:                    {iti_min} - {iti_max} ms
+            Inter-trial interval:   {iti_min} - {iti_max} ms
             Initial cue duration:   {self._cue_duration} ms
-            Initial spout position: {self._rpi.spout_position}
+            Initial spout position: {self._spout_position}
             _________________________________
-
-            """
-        ))
+        """))
 
     def _trial_loop(self):
         """
@@ -194,11 +195,44 @@ class Session:
             self._adapt_settings()
             if self._inter_trial_interval():
                 self._trial()
-                self._message(f"Total rewards: {self.reward_count}")
+                self._message(f"Total rewards: {self._reward_count}")
                 now = time.time()
 
             if self._outcome == 3:
                 break
+
+    def _adapt_settings(self):
+        """
+        Adapt live training settings based on recent behavioural performance.
+        """
+        if self._recent_trials and self._recent_trials[-1]['outcome'] == 1:
+            self._current_spout = random.randint(0, 1)
+
+        num_hits = self._recent_trials.outcome.count(1)
+
+        if num_hits >= _SLIDING_WINDOW * 0.90:
+            self._water_at_cue_onset = False
+            if self._recent_trials.shaping.count(False) < 3:
+                return
+
+            if self._spout_position < 7:
+                if len(set(self._recent_trials.spout_position[-3:])) == 1:
+                    self._spout_position += 1
+                    self._backend.position_spouts(self._spout_position)
+                    self._message(
+                        f'Spouts progressed to position {self._spout_position}'
+                    )
+                    time.sleep(1)
+                    self._backend.disable_spouts()
+
+            elif len(set(self._recent_trials.spout_position[-3:])) == 1:
+                if self._cue_duration > 2000:
+                    self._cue_duration = max(int(self._cue_duration * 0.9), 2000)
+                    self._message(f'Cue duration decreased to {self._cue_duration} ms')
+
+        elif num_hits == 0:
+            self._water_at_cue_onset = True
+            self._message('Shaping.')
 
     def _inter_trial_interval(self):
         """
@@ -207,21 +241,16 @@ class Session:
         During the inter-trial interval we start listening for mouse movements using the
         touch sensors. Shaping can be toggled by pressing the start button.
         """
-        self._rpi.monitor_sensors(
-            self._reset_iti_callback,
-            self._increase_spont_reaches_callback,
-        )
-        self._rpi.set_button_callback(0, self._reverse_shaping_callback)
-        self._rpi.set_button_callback(1, self._extend_trial)
+        self._backend.start_iti()
         self._extended_trial = False
-
         self._iti_broken = True
+
         while self._iti_broken:
-            self._rpi.wait_for_rest()
+            self._backend.wait_for_rest()
             self._iti_broken = False
 
             now = time.time()
-            iti_duration = random.uniform(*self.data['iti']) / 1000
+            iti_duration = random.uniform(*self.data['intertrial_interval']) / 1000
             trial_end = now + iti_duration
             self._message(f"Counting down {iti_duration:.2f}s")
 
@@ -231,81 +260,18 @@ class Session:
                 time.sleep(0.020)
                 now = time.time()
 
-        self._rpi.disable_callbacks()
         return True
-
-    def _reset_iti_callback(self, pin):
-        """
-        Callback function executed when the inter-trial interval is broken when
-        the mouse prematurely lifts either paw from the paw rests.
-
-        Parameters
-        ----------
-        pin : int
-            Pin number listening to the touch sensor that detected the
-            movement.
-
-        """
-        self._iti_broken = True
-        self.data['resets'].append(
-            (time.time(), self._rpi.paw_pins.index(pin))
-        )
-
-    def _increase_spont_reaches_callback(self, pin):
-        """
-        Callback function executed when a spontaneous reach is made during the
-        inter-trial interval.
-
-        Parameters
-        ----------
-        pin : int
-            Pin number listening to the touch sensor that detected the
-            spontaneous reach.
-
-        """
-        self.data['spontaneous_reaches'].append(
-            (time.time(), 0 if self._rpi.spouts[0].touch else 1)
-        )
-        self._message('Spontaneous reach made!')
-
-    def _reverse_shaping_callback(self, pin):
-        """
-        Callback function applied to start button that reverses the state of
-        the shaping boolean i.e. switches water dispensing between cue onset
-        and grasp for the next trial.
-
-        Parameters
-        ----------
-        pin : int
-            Passed to function by RPi.GPIO event callback; ignored.
-
-        """
-        self._water_at_cue_onset = not self._water_at_cue_onset
-        self._message(f'Water at cue onset: {self._water_at_cue_onset}')
 
     def _trial(self):
         """
         Run trial during training session.
         """
-        current_spout = self._current_spout
-        reward_duration = self.data['reward_duration_ms'][current_spout]
-        self.data['trials'].append({})
-
-        self._rpi.start_trial(
-            current_spout,
-            self._record_lift_timepoints,
-            self._reward_callback,
-            self._incorrect_grasp_callback,
-        )
-
-        if self._water_at_cue_onset:
-            self._rpi.dispense_water(
-                current_spout,
-                reward_duration,
-            )
-
         now = time.time()
-        self.data['trials'][-1].update(dict(start=now))
+        self.data['trials'].append({'start': now})
+
+        self._backend.start_trial(self._current_spout)
+        if self._water_at_cue_onset:
+            self._backend.dispense_water(self._current_spout)
 
         if self._extended_trial:
             cue_duration = self.data['end_time'] - now
@@ -318,85 +284,103 @@ class Session:
             now = time.time()
 
         if self._outcome == 0:
-            self._rpi.end_trial()
-            self._rpi.miss_trial()
+            self._backend.end_trial()
+            self._backend.miss_trial()
             self._message("Missed reach")
             self.data['trials'][-1]['end'] = cue_end
 
         elif self._outcome == 1:
             self._message("Successful reach!")
-            self.reward_count += 1
-            time.sleep(reward_duration / 1000)
+            self._reward_count += 1
 
         elif self._outcome == 2:
             self._message("Incorrect reach!")
-            time.sleep(reward_duration / 1000)
 
         elif self._outcome == 3:
             return
 
         self.data['trials'][-1].update(dict(
-            spout=current_spout,
+            spout=self._current_spout,
             shaping=self._water_at_cue_onset,
             cue_duration=cue_duration * 1000,
             outcome=self._outcome,
-            spout_position=self._rpi.spout_position,
+            spout_position=self._spout_position,
         ))
         self._recent_trials.append(self.data['trials'][-1])
 
-    def _record_lift_timepoints(self, pin):
+    def on_iti_lift(self, side):
+        """
+        Callback function executed when the inter-trial interval is broken when the
+        mouse prematurely lifts either paw from the paw rests.
+
+        Parameters
+        ----------
+        side : :class:`int`
+            Which paw was lifted: 0 for left, 1 for right
+
+        """
+        self._iti_broken = True
+        self.data['resets'].append((time.time(), side))
+
+    def on_iti_grasp(self, side):
+        """
+        Callback function executed when a spontaneous reach is made during the
+        inter-trial interval.
+
+        Parameters
+        ----------
+        side : :class:`int`
+            Which spout was grasped: 0 for left, 1 for right.
+
+        """
+        self.data['spontaneous_reaches'].append((time.time(), side))
+        self._message('Spontaneous reach made!')
+
+    def on_trial_lift(self, side):
         """
         Record timepoint of paw lifts during trials.
 
         Parameters
         ----------
-        pin : int
-            Pin number listening to the touch sensor that detected the
-            movement.
+        side : :class:`int`
+            Which spout side paw was lifted: 0 for left, 1 for right.
 
         """
         if 'lift_time' not in self.data['trials'][-1]:
             self.data['trials'][-1]['lift_time'] = time.time()
-            self.data['trials'][-1]['lift_paw'] = self._rpi.paw_pins.index(pin)
+            self.data['trials'][-1]['lift_paw'] = side
 
-    def _reward_callback(self, pin):
+    def on_trial_correct(self):
         """
-        Callback function executed upon successful grasp of illuminated reach
-        target during trial.
-
-        Parameters
-        ----------
-        pin : int
-            Passed to function by RPi.GPIO event callback; ignored.
-
+        Callback function executed upon successful grasp of illuminated reach target
+        during trial.
         """
         self.data['trials'][-1]['end'] = time.time()
-        self._rpi.end_trial()
+        self._backend.end_trial()
         self._outcome = 1
         if not self._water_at_cue_onset:
-            self._rpi.dispense_water(
-                self._current_spout,
-                self.data['reward_duration_ms'][self._current_spout],
-            )
+            self._backend.dispense_water(self._current_spout)
 
-    def _incorrect_grasp_callback(self, pin):
+    def on_trial_incorrect(self):
         """
-        Callback function executed upon grasp of incorrect reach target during
-        trial.
-
-        Parameters
-        ----------
-        pin : int
-            Passed to function by RPi.GPIO event callback; ignored.
-
+        Callback function executed upon grasp of incorrect reach target during trial.
         """
         self.data['trials'][-1]['end'] = time.time()
-        self._rpi.end_trial()
+        self._backend.end_trial()
         self._outcome = 2
         if self._water_at_cue_onset:
-            self._rpi.miss_trial()
+            self._backend.miss_trial()
 
-    def _extend_trial(self, pin):
+    def reverse_shaping(self):
+        """
+        Callback function applied to start button that reverses the state of the shaping
+        boolean i.e. switches water dispensing between cue onset and grasp for the next
+        trial.
+        """
+        self._water_at_cue_onset = not self._water_at_cue_onset
+        self._message(f'Water at cue onset: {self._water_at_cue_onset}')
+
+    def extend_trial(self):
         """
         Callback function assigned to a button that will stop the next trial from timing
         out, instead leaving the cue illuminated until grasped.
@@ -408,38 +392,6 @@ class Session:
             self._extended_trial = True
             self._message('Next trial will be an extended trial')
 
-    def _adapt_settings(self):
-        """
-        Adapt live training settings based on recent behavioural performance.
-        """
-        if self._recent_trials and self._recent_trials[-1]['outcome'] == 1:
-            self._current_spout = random.randint(0, 1)
-
-        num_hits = self._recent_trials.outcome.count(1)
-        self._recent_trials.shaping.count
-
-        if num_hits >= _SLIDING_WINDOW * 0.90:
-            self._water_at_cue_onset = False
-            if self._recent_trials.shaping.count(False) < 3:
-                return
-
-            if self._rpi.spout_position < 7:
-                if len(set(self._recent_trials.spout_position[-3:])) == 1:
-                    self._rpi.spout_position += 1
-                    self._message(f'Spouts progressed to position {self._rpi.spout_position}')
-                    time.sleep(1)
-                    self._rpi.hold_spouts()
-
-            elif len(set(self._recent_trials.spout_position[-3:])) == 1 and self._cue_duration > 2000:
-                self._cue_duration = int(self._cue_duration * 0.9)
-                if self._cue_duration < 2000:
-                    self._cue_duration = 2000
-                self._message(f'Cue duration decreased to {self._cue_duration} ms')
-
-        elif num_hits == 0:
-            self._water_at_cue_onset = True
-            self._message('Shaping.')
-
     def _end_session(self, signal_number=None, frame=None):
         """
         End the current training session: uninitialise the raspberry pi,
@@ -448,10 +400,10 @@ class Session:
 
         Parameters
         ----------
-        signal_number : int, optional
+        signal_number : :class:`int` (optional)
             Passed to function by signal.signal; ignored.
 
-        frame : int, optional
+        frame : :class:`int` (optional)
             Passed to function by signal.signal; ignored.
 
         """
@@ -460,7 +412,7 @@ class Session:
 
         self._message = print
         self._outcome = 3
-        self._rpi.cleanup()
+        self._backend.cleanup()
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
         data = self.data
@@ -475,56 +427,15 @@ class Session:
             '%H:%M:%S', time.localtime(data['end_time'])
         )
 
-        self._display_training_results()
+    @cache
+    def outcomes(self):
+        return list(i['outcome'] for i in self.data['trials'])
 
-    def _display_training_results(self):
-        """
-        Print training results at the end of the session.
-        """
-        data = self.data
-        if len(data['trials']) == 0:
-            return
-        elif not 'outcome' in data['trials'][-1]:
-            data['trials'].pop()
-            if len(data['trials']) == 0:
-                return
+    @cache
+    def reward_count(self):
+        return self.outcomes.count(1)
 
-        trial_count = len(data['trials'])
-        outcomes = list(i['outcome'] for i in data['trials'])
-        miss_count = outcomes.count(0)
-        miss_perc = 100 * miss_count / trial_count
-        reward_count = outcomes.count(1)
-        reward_perc = 100 * reward_count / trial_count
-        incorrect_count = outcomes.count(2)
-        incorrect_perc = 100 * incorrect_count / trial_count
-        reset_pins = [y for x, y in data['resets']]
-        left_resets = reset_pins.count(0)
-        right_resets = reset_pins.count(1)
-
-        self._message(textwrap.dedent(f"""
-        _________________________________
-        # __________ The End __________ #
-
-        Trials:            {trial_count}
-        Correct reaches:   {reward_count} ({reward_perc:0.1f}%)
-        Incorrect reaches: {incorrect_count} ({incorrect_perc:0.1f}%)
-        Missed cues:       {miss_count} ({miss_perc:0.1f}%)
-        Spont. reaches:    {len(data['spontaneous_reaches'])}
-        ITI resets:        {len(data['resets'])}
-            left paw:      {left_resets}
-            right paw:     {right_resets}
-        # _____________________________ #
-        """))
-
-    def add_training_notes(self):
-        """
-        Add arbitrary training notes to this session's data dictionary.
-        """
-
-        self._message('Add any notes to save:')
-        self.data["notes"] = input()
-
-    @lazy_property
+    @cache
     def reaction_times(self):
         """
         List of reaction times for this training session.
@@ -540,3 +451,43 @@ class Session:
             if trial['outcome'] == 1:
                 reaction_times.append(trial['end'] - trial['start'])
         return reaction_times
+
+
+def print_results(session):
+    """
+    Print the results of a training session.
+    """
+    data = session.data
+
+    if not data['trials']:
+        return
+    if 'outcome' not in data['trials'][-1]:
+        data['trials'].pop()
+        if not data['trials']:
+            return
+
+    trial_count = len(data['trials'])
+    miss_count = session.outcomes.count(0)
+    miss_perc = 100 * miss_count / trial_count
+    reward_count = session.outcomes.count(1)
+    reward_perc = 100 * reward_count / trial_count
+    incorrect_count = session.outcomes.count(2)
+    incorrect_perc = 100 * incorrect_count / trial_count
+    reset_pins = [y for x, y in data['resets']]
+    left_resets = reset_pins.count(0)
+    right_resets = reset_pins.count(1)
+
+    print(textwrap.dedent(f"""
+        _________________________________
+        # __________ The End __________ #
+
+        Trials:            {trial_count}
+        Correct reaches:   {reward_count} ({reward_perc:0.1f}%)
+        Incorrect reaches: {incorrect_count} ({incorrect_perc:0.1f}%)
+        Missed cues:       {miss_count} ({miss_perc:0.1f}%)
+        Spont. reaches:    {len(data['spontaneous_reaches'])}
+        ITI resets:        {len(data['resets'])}
+            left paw:      {left_resets}
+            right paw:     {right_resets}
+        # _____________________________ #
+    """))

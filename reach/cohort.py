@@ -2,9 +2,8 @@
 Cohorts
 =======
 
-:class:`.Cohort` objects store multiple :class:`.Mouse` objects for easier
-handling of mutiple mice. It can be iterated over, yielding its :class:`.Mouse`
-instances.
+:class:`Cohort` objects store multiple :class:`Mouse` objects for easier handling of
+mutiple mice. Iterating over a cohort returns its :class:`Mouse` instances.
 
 """
 
@@ -12,52 +11,38 @@ instances.
 from collections.abc import Sequence
 
 from reach.mouse import Mouse
-from reach.utilities import lazy_property
+from reach.utilities import cache
 
 
 class Cohort(Sequence):
     """
-    Represents a cohort of multiple mice who have undergone behavioural
-    training. Cohort can be indexed to easily access a specific mouse.
+    Represents a cohort of multiple mice who have undergone behavioural training. Cohort
+    can be indexed to easily access a specific mouse.
 
-    Attributes
-    ----------
-    mouse_ids : :class:`list` of :class:`str`\s
+    Parameters
+    ---------------------
+    mice : :class:`list` of :class:`Mouse` instances (optional)
+        A list containing a :class:`Mouse` intance for each mouse in the cohort.
+
+    mouse_ids : :class:`list` of :class:`str`\s (optional)
         A list of mouse IDs.
-
-    mice : :class:`list` of :class:`.Mouse` instances
-        A list containing a :class:`.Mouse` intance for each mouse in the
-        cohort.
 
     """
 
     def __init__(self, mice=None, mouse_ids=None):
-        """
-        Initialise a cohort of mice for analysis.
-
-        Parameters
-        ----------
-        mice : :class:`list` of :class:`Mouse` instances
-            The mice to be included in the cohort, whose data we are going to
-            handle.
-
-        mouse_ids : :class:`list` of :class:`str`\s
-            List of mouse IDs corresponding to the mice to be handled.
-
-        """
-        self.mouse_ids = mouse_ids
-        self.mice = mice
+        self.mice = mice or []
+        self.mouse_ids = mouse_ids or []
 
     @classmethod
-    def init_from_files(cls, json_path=None, mouse_ids=None):
+    def init_from_files(cls, data_dir=None, mouse_ids=None):
         """
-        Initialise the cohort of mice using training JSON files stored within
-        the same folder.
+        Initialise the cohort of mice using training files stored within the same
+        folder.
 
         Parameters
         ----------
-        json_path : :class:`str`
-            Path to the folder containing the training JSONs.
+        data_dir : :class:`str`
+            Directory containing the training data files.
 
         mouse_ids : :class:`list` of :class:`str`\s
             IDs for the mice to be handled within the cohort.
@@ -68,8 +53,8 @@ class Cohort(Sequence):
         for mouse in mouse_ids:
             mice.append(
                 Mouse.init_from_file(
+                    data_dir=data_dir,
                     mouse_id=mouse,
-                    json_path=json_path
                 )
             )
 
@@ -90,7 +75,7 @@ class Cohort(Sequence):
     def __repr__(self):
         return f"Cohort containing mice: {', '.join(self.mouse_ids)}"
 
-    @lazy_property
+    @cache
     def outcomes(self):
         """
         Get trial outcomes for all mice across all sessions.
@@ -100,7 +85,7 @@ class Cohort(Sequence):
             outcomes.append(mouse.outcomes)
         return outcomes
 
-    @lazy_property
+    @cache
     def trials(self):
         """
         Get trial data for all mice and sessions as a pandas DataFrame.
@@ -117,7 +102,7 @@ class Cohort(Sequence):
 
         return trials
 
-    @lazy_property
+    @cache
     def results(self):
         import pandas as pd  # pylint: disable=import-outside-toplevel
         results = pd.DataFrame()

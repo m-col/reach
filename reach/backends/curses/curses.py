@@ -109,7 +109,7 @@ class _KeyMonitor(threading.Thread):
                     self._callbacks[key]()
 
 
-class RPiCurses(RPiReal):
+class Curses(RPiReal):
     """
     A mock instance of a raspberry pi and its GPIO pins. This class is a
     fallback for reach.RPiReal when the RPi.GPIO library cannot be loaded,

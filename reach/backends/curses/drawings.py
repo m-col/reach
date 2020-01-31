@@ -2,11 +2,10 @@
 Drawings
 ========
 
-This file contains ASCII drawings such as those used to create the curses
-interface.
+This file contains ASCII drawings used to create the curses interface.
 
-It also contains a list of small mice ASCII drawings used for decoration
-because why not?
+It also contains a list of small mice ASCII drawings used for decoration because why
+not?
 
 """
 
