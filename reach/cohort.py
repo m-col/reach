@@ -99,6 +99,7 @@ class Cohort(Sequence):
                 mouse_df = mouse_df.append(df.assign(day=j + 1), sort=False)
             trials = trials.append(mouse_df.assign(mouse_id=self.mouse_ids[i]))
 
+        trials['reaction_time'] = trials.end - trials.start
         return trials
 
     @cache
