@@ -55,12 +55,12 @@ if notes == 'rm':
     print('Not saving new training data.')
 
 else:
-    if len(mouse[-1].data['trials']) == 0:
+    if 'outcome' in mouse[-1].data['trials']:
+        mouse.save_data_to_file(data_dir)
+    else:
         confirm = input('There were no new trials. Still save data? [Y/n]')
         if confirm != 'n':
             mouse.save_data_to_file(data_dir)
-    else:
-        mouse.save_data_to_file(data_dir)
 
 # Print remaining water that mouse requires
 reward_count = mouse[-1].reward_count
