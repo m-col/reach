@@ -80,15 +80,16 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training.html">Behavioural Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Structure</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Training Box Construction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#parts-list">Parts list</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#d-printed-parts">3D printed parts:</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#raspberry-pi">Raspberry Pi:</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#circuitry">Circuitry:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#puffadder">PuffAdder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#misc">Misc:</a></li>
 </ul>
 </li>
@@ -161,64 +162,88 @@
             
   <div class="section" id="training-box-construction">
 <h1>Training Box Construction<a class="headerlink" href="#training-box-construction" title="Permalink to this headline">¶</a></h1>
+<p>THIS IS A WORK IN PROGRESS</p>
 <p>This page describes how to construct a single training box, which looks like
 this:</p>
-<a class="reference internal image-reference" href="_static/training_box.png"><img alt="_static/training_box.png" src="_static/training_box.png" style="width: 420pt;" /></a>
+<p>#.. image:: /_static/training_box.jpg
+#    :width: 420pt</p>
 <p>The base holds a Raspberry Pi which runs the reach code and operates the
 training box hardware.</p>
-<p>The circuit design was done in <a class="reference external" href="https://fritzing.org/home">fritzing</a>. The
-design file is <a class="reference download internal" download="" href="_downloads/88fa2cb7cc4dfee4c98b996309a9fc3e/pi_hat_circuit.fzz"><code class="xref download docutils literal notranslate"><span class="pre">here</span></code></a> to be used as reference
-during construction.</p>
 <div class="section" id="parts-list">
 <h2>Parts list<a class="headerlink" href="#parts-list" title="Permalink to this headline">¶</a></h2>
+<p>For best touch sensor performance, the mice should be electrically contiguous
+with a much larger mass of conductive material. The capacittive touch sensors
+work well with the human finger but may become more erratic when a mouse is
+interacting them. I found this is largely improved by building the training
+boxes on a metal table and line conductive tape from where the mice sit to the
+table.</p>
 <div class="section" id="d-printed-parts">
 <h3>3D printed parts:<a class="headerlink" href="#d-printed-parts" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>base</p></li>
+<li><p>base with RIVETS head posts</p></li>
 <li><p>2x RIVETS head bars</p></li>
-<li><p>LED case per target spout</p></li>
-<li><p>button box</p></li>
+<li><p>spout mount with LED case lid</p></li>
+<li><p>spritzer mounter</p></li>
+<li><p>button box with lid</p></li>
 </ul>
 </div>
 <div class="section" id="raspberry-pi">
 <h3>Raspberry Pi:<a class="headerlink" href="#raspberry-pi" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>power supply</p></li>
+<li><p>raspberry pi 4</p></li>
 <li><p>SD card flashed with raspbian lite</p></li>
+<li><p>power supply</p></li>
 <li><p>ethernet cable</p></li>
 </ul>
 </div>
 <div class="section" id="circuitry">
 <h3>Circuitry:<a class="headerlink" href="#circuitry" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Adafrauit Perma-Proto HAT for Pi</p></li>
+<li><p>prototyping board</p></li>
 <li><p>4x touch sensors (proto-pic part #PPAC0012)</p></li>
 <li><p>100 uF capacitor</p></li>
-<li><p>2x momentary push buttons to fit button box</p></li>
-<li><p>2x small solenoid valves</p></li>
+<li><p>3x momentary push buttons to fit button box (part number?)</p></li>
+<li><p>2x small solenoid valves (part number?)</p></li>
 <li><p>2x 1N4001 diodes</p></li>
 <li><p>2x 2N2222 transistors</p></li>
 <li><p>2x 3.9 KOhm resistor</p></li>
 <li><p>2x 100 Ohm resistors</p></li>
-<li><p>2x white LEDs</p></li>
-<li><p>4x 2x1 wire sockets</p></li>
-<li><p>2x 50 ml syringe</p></li>
-<li><p>3.2 mm x 1.6 mm x 3M silicon tubing</p></li>
+<li><p>2x white LEDs (UPDATE)</p></li>
+<li><p>4x 2x1 wire sockets (UPDATE)</p></li>
+<li><p>2x 60 ml syringe</p></li>
+<li><p>3.2 mm x 1.6 mm x 3M silicon tubing (UPDATE)</p></li>
 <li><p>2x 1.1 x 40 mm (19G) syringe needle</p></li>
-<li><p>conductive foil tape</p></li>
+<li><p>conductive tape (RS part 458-7416)</p></li>
 <li><p>plenty of wire</p></li>
+</ul>
+</div>
+<div class="section" id="puffadder">
+<h3>PuffAdder<a class="headerlink" href="#puffadder" title="Permalink to this headline">¶</a></h3>
+<p>Based on: <a class="reference external" href="http://raimondolab.com/2013/11/29/puffadder-picospritzer/">http://raimondolab.com/2013/11/29/puffadder-picospritzer/</a>
+Part supplier: <a class="reference external" href="https://www.festo.com/cat/en-gb_gb/products">https://www.festo.com/cat/en-gb_gb/products</a></p>
+<p>Festo Pressure Switch, R 1/8 0bar to 4 bar</p>
+<ul class="simple">
+<li><p>Festo Precision Pressure Regulator LRP-1/4-4 (Festo part 159501)</p></li>
+<li><p>Festo Precision Gauge MAP-40-4-1/8-EN (Festo part 162842)</p></li>
+<li><p>Solenoid Valve MHE2-M1H-3/2G-M7 (Festo part 196130)</p></li>
+<li><p>KMYZ-4-24-2.5-B (plug in cable for valve – not essential) (Festo part 193691)</p></li>
+<li><p>QSL-1/4-6 Festo Push-in/threaded L-fitting (Festo part 153047)</p></li>
+<li><p>QS-1/4-4 Festo Push-in fitting (Festo part 190644)</p></li>
+<li><p>2x QSM-M7-4-I Festo Push-in fitting (Festo part 153319)</p></li>
+<li><p>4mm OD Festo Plastic tubing (Festo part 159662)</p></li>
 </ul>
 </div>
 <div class="section" id="misc">
 <h3>Misc:<a class="headerlink" href="#misc" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
+<li><p>cable clips (RS part 475-198)</p></li>
 <li><p>2x RIVETS bar thumb screws</p></li>
-<li><p>USB camera</p></li>
+<li><p>USB camera (RS part 125-4274)</p></li>
+<li><p>IR LEDs (led1.de part 58008450050) with 12V power supply (RS part 121-7157)</p></li>
 <li><p>three axis coarse manipulator or something else to mount the spouts</p></li>
 <li><p>optic fibres</p></li>
 <li><p>superglue</p></li>
-<li><p>a box to cover the rig during training</p></li>
-<li><p>black paint (optional)</p></li>
+<li><p>a box to cover the rig during training (RS part 303-4781)</p></li>
 </ul>
 </div>
 </div>
@@ -239,8 +264,8 @@ during construction.</p>
 </div>
 </div></blockquote>
 <ol class="arabic simple" start="3">
-<li><p>text</p></li>
-<li><p>text</p></li>
+<li><p>Fix the base to the table with cable clips.</p></li>
+<li><p>Fix the syringes to be higher than the base and attach around 1 metre of</p></li>
 </ol>
 </div>
 </div>
@@ -263,7 +288,7 @@ during construction.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Matt Colligan
+        &copy; Copyright 2020, Matt Colligan
 
     </p>
   </div>

@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Training Box Construction" href="construction.html" />
-    <link rel="prev" title="Behavioural Training" href="training.html" /> 
+    <link rel="prev" title="Library API" href="API.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -81,9 +81,9 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training.html">Behavioural Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">Library API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Data Structure</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#keys">Keys</a></li>
 </ul>
@@ -155,74 +155,50 @@
             
   <div class="section" id="data-structure">
 <h1>Data Structure<a class="headerlink" href="#data-structure" title="Permalink to this headline">¶</a></h1>
-<p>Each <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> object contains an attribute named <code class="xref py py-class docutils literal notranslate"><span class="pre">data</span></code>, which
-unsurprisingly stores data for that training session. This includes behavioural
-timepoints that record events during training, settings used for the session,
-and any arbitrary metadata specified during training.</p>
-<p>The behavioural timepoint data can then be used to analyse the mouse’s
-performance.</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code>s have a <code class="xref py py-class docutils literal notranslate"><span class="pre">data</span></code> attribute which stores data for that
+training session. This includes behavioural timepoints that record events
+during training, settings used for the session, and any arbitrary metadata
+specified by the user.</p>
 <div class="section" id="keys">
 <h2>Keys<a class="headerlink" href="#keys" title="Permalink to this headline">¶</a></h2>
-<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Session.data</span></code> is a <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>. Below lists the basic keys contained
-within:</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Session.data</span></code> is a <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>. Below lists the default keys
+contained within that are created during a training session:</p>
 <table class="colwidths-given docutils align-default">
 <colgroup>
 <col style="width: 25%" />
 <col style="width: 75%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p>date (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>)</p></td>
-<td><p>The date on which the training occurred in %Y-%m-%d format.</p></td>
-</tr>
-<tr class="row-even"><td><p>start_time (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>)</p></td>
-<td><p>The start time of the session in Unix time.</p></td>
-</tr>
-<tr class="row-odd"><td><p>end_time (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>)</p></td>
-<td><p>The end time of the session in Unix time.</p></td>
-</tr>
-<tr class="row-even"><td><p>duration (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
+<tr class="row-odd"><td><p>duration (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
 <td><p>The duration of the session in seconds.</p></td>
 </tr>
-<tr class="row-odd"><td><p>shaping (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>)</p></td>
-<td><p>Specifies if this session was a shaping session i.e. water is/was
-dispensed upon cue onset rather than successful grasp.</p></td>
+<tr class="row-even"><td><p>date (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>)</p></td>
+<td><p>The date of training in %Y-%m-%d format.</p></td>
 </tr>
-<tr class="row-even"><td><p>spout_count (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
-<td><p>The number of target spouts used in this session.</p></td>
+<tr class="row-odd"><td><p>start_time (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>)</p></td>
+<td><p>The start time of the session in Unix time.</p></td>
 </tr>
-<tr class="row-odd"><td><p>iti (<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code> of 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
-<td><p>The minimum and maximum inter-trial intervals.</p></td>
+<tr class="row-even"><td><p>end_time (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>)</p></td>
+<td><p>The end time of the session in Unix time.</p></td>
 </tr>
-<tr class="row-even"><td><p>cue_duration_ms (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
-<td><p>The duration in milliseconds for which the cue is illuminated in this
-session.</p></td>
+<tr class="row-odd"><td><p>trials (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>s)</p></td>
+<td><p>This list stores the main behavioural data. Each element is a dictionary
+containing, for every trial, the start time, lift time, lift paw, target
+spout, spout position, cue duration, outcome, and whether or not the
+trial is a shaping trial.</p></td>
 </tr>
-<tr class="row-odd"><td><p>reward_duration_ms (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>)</p></td>
-<td><p>The duration in milliseconds for which the solenoid was opened when a
-reward is given.</p></td>
+<tr class="row-even"><td><p>intertrial_interval (<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code> of 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
+<td><p>The minimum and maximum inter-trial intervals. The inter-trial interval
+for a given trial is randomly determined between these two values.</p></td>
 </tr>
-<tr class="row-even"><td><p>spont_reach_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
-<td><p>This contains the timepoints (in Unix time) for all spontaneous reaches.</p></td>
+<tr class="row-odd"><td><p>spontaneous_reaches (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>s)</p></td>
+<td><p>This list contains, for every spontaneous reach, a tuple indicating the
+timepoint (in Unix time) and which spout was grasped.</p></td>
 </tr>
-<tr class="row-odd"><td><p>resets_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
-<td><p>This list stores two lists, which each stores the timepoints (in Unix
-time) for all premature movements that reset the inter-trial interval
-for the left and right paws respectively.</p></td>
-</tr>
-<tr class="row-even"><td><p>cue_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of 1-2 <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>s of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
-<td><p>The timepoints (in Unix time) at which the cue was illuminated at the
-start of a new trial.</p></td>
-</tr>
-<tr class="row-odd"><td><p>cued_lift_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>s of <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>s)</p></td>
-<td><p>The timepoints (in Unix time) at which the left and right paws were
-lifted from the paw rests following cue onset.</p></td>
-</tr>
-<tr class="row-even"><td><p>touch_timepoints (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of up to 2 <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>s of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>s)</p></td>
-<td><p>The timepoints (in Unix time) at which the reach target was successfully
-grasped during a cued trial.</p></td>
-</tr>
-<tr class="row-odd"><td><p>notes (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>)</p></td>
-<td><p>Training notes made during the training session.</p></td>
+<tr class="row-even"><td><p>resets (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>s)</p></td>
+<td><p>Like spontaneous_reaches above, this list stores, for every premature
+movement that reset the intertrial interval, the timepoint (in Unix
+time) and which paw was lifted to cause the reset.</p></td>
 </tr>
 </tbody>
 </table>
@@ -240,7 +216,7 @@ grasped during a cued trial.</p></td>
         <a href="construction.html" class="btn btn-neutral float-right" title="Training Box Construction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="training.html" class="btn btn-neutral float-left" title="Behavioural Training" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="API.html" class="btn btn-neutral float-left" title="Library API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -249,7 +225,7 @@ grasped during a cued trial.</p></td>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Matt Colligan
+        &copy; Copyright 2020, Matt Colligan
 
     </p>
   </div>

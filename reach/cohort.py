@@ -2,9 +2,8 @@
 Cohorts
 =======
 
-:class:`Cohort` objects store multiple :class:`Mouse` objects for easier handling of
-mutiple mice. Iterating over a cohort returns its :class:`Mouse` instances.
-
+:class:`Cohort`\s store multiple :class:`Mouse` instances for easier handling of mutiple
+mice. Iterating over a cohort returns its :class:`Mouse` instances.
 """
 
 
@@ -16,15 +15,15 @@ from reach.utilities import cache
 
 class Cohort(Sequence):
     """
-    Represents a cohort of multiple mice who have undergone behavioural training. Cohort
+    Represents a cohort of multiple mice who have undergone behavioural training. These
     can be indexed to easily access a specific mouse.
 
     Parameters
     ---------------------
-    mice : :class:`list` of :class:`Mouse` instances (optional)
+    mice : :class:`list` of :class:`Mouse` instances, optional
         A list containing a :class:`Mouse` intance for each mouse in the cohort.
 
-    mouse_ids : :class:`list` of :class:`str`\s (optional)
+    mouse_ids : :class:`list` of :class:`str`\s, optional
         A list of mouse IDs.
 
     """

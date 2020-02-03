@@ -2,27 +2,25 @@
 Data Structure
 ==============
 
-Each :class:`Session` object contains an attribute named :class:`data`, which
-unsurprisingly stores data for that training session. This includes behavioural
-timepoints that record events during training, settings used for the session,
-and any arbitrary metadata specified during training.
-
-The behavioural timepoint data can then be used to analyse the mouse's
-performance.
-
+:class:`Session`\s have a :class:`data` attribute which stores data for that
+training session. This includes behavioural timepoints that record events
+during training, settings used for the session, and any arbitrary metadata
+specified by the user.
 
 Keys
 ----
 
-:class:`Session.data` is a :class:`dict`. Below lists the basic keys contained
-within:
-
+:class:`Session.data` is a :class:`dict`. Below lists the default keys
+contained within that are created during a training session:
 
 .. list-table::
    :widths: 25 75
 
+   * - duration (:class:`int`)
+     - The duration of the session in seconds.
+
    * - date (:class:`str`)
-     - The date on which the training occurred in %Y-%m-%d format.
+     - The date of training in %Y-%m-%d format.
 
    * - start_time (:class:`float`)
      - The start time of the session in Unix time.
@@ -30,46 +28,21 @@ within:
    * - end_time (:class:`float`)
      - The end time of the session in Unix time.
 
-   * - duration (:class:`int`)
-     - The duration of the session in seconds.
+   * - trials (:class:`list` of :class:`dict`\s)
+     - This list stores the main behavioural data. Each element is a dictionary
+       containing, for every trial, the start time, lift time, lift paw, target
+       spout, spout position, cue duration, outcome, and whether or not the
+       trial is a shaping trial.
 
-   * - shaping (:class:`bool`)
-     - Specifies if this session was a shaping session i.e. water is/was
-       dispensed upon cue onset rather than successful grasp.
+   * - intertrial_interval (:class:`tuple` of 2 :class:`int`\s)
+     - The minimum and maximum inter-trial intervals. The inter-trial interval
+       for a given trial is randomly determined between these two values.
 
-   * - spout_count (:class:`int`)
-     - The number of target spouts used in this session.
+   * - spontaneous_reaches (:class:`list` of :class:`tuple`\s)
+     - This list contains, for every spontaneous reach, a tuple indicating the
+       timepoint (in Unix time) and which spout was grasped.
 
-   * - iti (:class:`tuple` of 2 :class:`int`\s)
-     - The minimum and maximum inter-trial intervals.
-
-   * - cue_duration_ms (:class:`int`)
-     - The duration in milliseconds for which the cue is illuminated in this
-       session.
-
-   * - reward_duration_ms (:class:`int`)
-     - The duration in milliseconds for which the solenoid was opened when a
-       reward is given.
-
-   * - spont_reach_timepoints (:class:`list` of :class:`int`\s)
-     - This contains the timepoints (in Unix time) for all spontaneous reaches.
-
-   * - resets_timepoints (:class:`list` of 2 :class:`int`\s)
-     - This list stores two lists, which each stores the timepoints (in Unix
-       time) for all premature movements that reset the inter-trial interval
-       for the left and right paws respectively.
-
-   * - cue_timepoints (:class:`list` of 1-2 :class:`list`\s of :class:`int`\s)
-     - The timepoints (in Unix time) at which the cue was illuminated at the
-       start of a new trial.
-
-   * - cued_lift_timepoints (:class:`list` of 2 :class:`list`\s of :class:`float`\s)
-     - The timepoints (in Unix time) at which the left and right paws were
-       lifted from the paw rests following cue onset.
-
-   * - touch_timepoints (:class:`list` of up to 2 :class:`list`\s of :class:`int`\s)
-     - The timepoints (in Unix time) at which the reach target was successfully
-       grasped during a cued trial.
-
-   * - notes (:class:`str`)
-     - Training notes made during the training session.
+   * - resets (:class:`list` of :class:`tuple`\s)
+     - Like spontaneous_reaches above, this list stores, for every premature
+       movement that reset the intertrial interval, the timepoint (in Unix
+       time) and which paw was lifted to cause the reset.

@@ -13,6 +13,11 @@ reach.Session
 
 .. autoclass:: reach.Session
 
+reach.backends
+--------------
+
+.. autoclass:: reach.backends.Backend
+
 reach.Mouse
 -----------
 
@@ -23,8 +28,3 @@ reach.Cohort
 
 .. autoclass:: reach.Cohort
    :show-inheritance:
-
-reach.UtilityPi
----------------
-
-.. autoclass:: reach.UtilityPi

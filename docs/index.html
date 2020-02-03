@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Introduction" href="introduction.html" /> 
+    <link rel="next" title="Behavioural Training" href="training.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,9 +80,9 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training.html">Behavioural Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="construction.html">Training Box Construction</a></li>
 </ul>
@@ -151,12 +151,29 @@
             
   <div class="section" id="reach">
 <h1>reach<a class="headerlink" href="#reach" title="Permalink to this headline">¶</a></h1>
-<p><a class="reference internal" href="api.html#module-reach" title="reach"><code class="xref py py-class docutils literal notranslate"><span class="pre">reach</span></code></a> is a Python library that operates a Raspberry Pi-driven
-visually-guided reaching task for mice. It also aims to make handling and
-analysis of behavioural data collected during the task easy and
-straightforward.</p>
+<p><a class="reference internal" href="API.html#module-reach" title="reach"><code class="xref py py-class docutils literal notranslate"><span class="pre">reach</span></code></a> is a Python library that operates a forelimb reaching task for
+mice. It also aims to make handling and analysis of behavioural data collected
+during the task easy and straightforward.</p>
+<p>This documentation contains directions on how to contruct, operate and analyse
+a head-fixed forelimb reaching task for mice. Different backends can be used
+during the task to interface with the hardware, allowing for customisation of
+the training paradigm. This facilitates modification of the task to, for
+example, use different types of cues. The original backend controls a Raspberry
+Pi and its inputs and outputs.</p>
 <p>GitHub: <a class="reference external" href="https://github.com/m-col/reach">https://github.com/m-col/reach</a></p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Simply clone with git:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/m-col/reach
+</pre></div>
+</div>
+<p>Then either add the folder to <code class="xref py py-class docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> or install using setuptools:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python setup.py build
+python setup.py install --user
+</pre></div>
+</div>
 <div class="toctree-wrapper compound">
+</div>
 </div>
 </div>
 
@@ -168,7 +185,7 @@ straightforward.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="introduction.html" class="btn btn-neutral float-right" title="Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="training.html" class="btn btn-neutral float-right" title="Behavioural Training" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
@@ -178,7 +195,7 @@ straightforward.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Matt Colligan
+        &copy; Copyright 2020, Matt Colligan
 
     </p>
   </div>

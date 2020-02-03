@@ -2,7 +2,6 @@
 """
 Example script for plotting reaction times across all sessions for a cohort of
 mice.
-
 """
 
 

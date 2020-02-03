@@ -14,16 +14,15 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
+import reach.backends
 from reach import Cohort, Mouse, Session
 
 
 ## Project information
 
 project = 'reach'
-copyright = '2019, Matt Colligan'
+copyright = '2020, Matt Colligan'
 author = 'Matt Colligan'
-
-# this determines generated URLs in some places
 repo = 'https://github.com/m-col/reach'
 
 

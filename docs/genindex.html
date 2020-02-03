@@ -80,9 +80,9 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training.html">Behavioural Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="construction.html">Training Box Construction</a></li>
 </ul>
@@ -151,22 +151,48 @@
 <h1 id="index">Index</h1>
 
 <div class="genindex-jumpbox">
- <a href="#C"><strong>C</strong></a>
+ <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
  | <a href="#G"><strong>G</strong></a>
- | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
- | <a href="#U"><strong>U</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  
 </div>
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.Session.add_data">add_data() (reach.Session method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.backends.Backend">Backend (class in reach.backends)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Cohort">Cohort (class in reach)</a>
+      <li><a href="API.html#reach.backends.Backend.cleanup">cleanup() (reach.backends.Backend method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.Cohort">Cohort (class in reach)</a>
+</li>
+      <li><a href="API.html#reach.backends.Backend.configure_callbacks">configure_callbacks() (reach.backends.Backend method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -174,7 +200,23 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Session.data">data (reach.Session attribute)</a>
+      <li><a href="API.html#reach.backends.Backend.disable_spouts">disable_spouts() (reach.backends.Backend method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.backends.Backend.dispense_water">dispense_water() (reach.backends.Backend method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.backends.Backend.end_trial">end_trial() (reach.backends.Backend method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.Session.extend_trial">extend_trial() (reach.Session method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -182,15 +224,7 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Mouse.get_session_reaction_times">get_session_reaction_times() (reach.Mouse method)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="H">H</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.UtilityPi.hold_open_solenoid">hold_open_solenoid() (reach.UtilityPi method)</a>
+      <li><a href="API.html#reach.Mouse.get_session_reaction_times">get_session_reaction_times() (reach.Mouse method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -198,13 +232,13 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Session.init_all_from_file">init_all_from_file() (reach.Session class method)</a>
+      <li><a href="API.html#reach.Session.init_all_from_file">init_all_from_file() (reach.Session class method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Mouse.init_from_file">init_from_file() (reach.Mouse class method)</a>
+      <li><a href="API.html#reach.Mouse.init_from_file">init_from_file() (reach.Mouse class method)</a>
 </li>
-      <li><a href="api.html#reach.Cohort.init_from_files">init_from_files() (reach.Cohort class method)</a>
+      <li><a href="API.html#reach.Cohort.init_from_files">init_from_files() (reach.Cohort class method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -212,15 +246,45 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Cohort.mice">mice (reach.Cohort attribute)</a>
-</li>
-      <li><a href="api.html#reach.Mouse">Mouse (class in reach)</a>
+      <li><a href="API.html#reach.backends.Backend.miss_trial">miss_trial() (reach.backends.Backend method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Mouse.mouse_id">mouse_id (reach.Mouse attribute)</a>
+      <li><a href="API.html#reach.Mouse">Mouse (class in reach)</a>
 </li>
-      <li><a href="api.html#reach.Cohort.mouse_ids">mouse_ids (reach.Cohort attribute)</a>
+      <li><a href="API.html#reach.Mouse.mouse_id">mouse_id (reach.Mouse attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.Session.on_iti_grasp">on_iti_grasp() (reach.Session method)</a>
+</li>
+      <li><a href="API.html#reach.Session.on_iti_lift">on_iti_lift() (reach.Session method)</a>
+</li>
+      <li><a href="API.html#reach.Session.on_trial_correct">on_trial_correct() (reach.Session method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.Session.on_trial_incorrect">on_trial_incorrect() (reach.Session method)</a>
+</li>
+      <li><a href="API.html#reach.Session.on_trial_lift">on_trial_lift() (reach.Session method)</a>
+</li>
+      <li><a href="API.html#reach.Cohort.outcomes">outcomes (reach.Cohort attribute)</a>
+
+      <ul>
+        <li><a href="API.html#reach.Mouse.outcomes">(reach.Mouse attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.backends.Backend.position_spouts">position_spouts() (reach.backends.Backend method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -228,17 +292,19 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#module-reach">reach (module)</a>
+      <li><a href="API.html#module-reach">reach (module)</a>
 </li>
-      <li><a href="api.html#reach.Mouse.reaction_times">reaction_times (reach.Mouse attribute)</a>
+      <li><a href="API.html#reach.Mouse.reaction_times">reaction_times (reach.Mouse attribute)</a>
 
       <ul>
-        <li><a href="api.html#reach.Session.reaction_times">(reach.Session attribute)</a>
+        <li><a href="API.html#reach.Session.reaction_times">(reach.Session attribute)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Session.run">run() (reach.Session method)</a>
+      <li><a href="API.html#reach.Session.reverse_shaping">reverse_shaping() (reach.Session method)</a>
+</li>
+      <li><a href="API.html#reach.Session.run">run() (reach.Session method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -246,11 +312,15 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Mouse.save_data_to_file">save_data_to_file() (reach.Mouse method)</a>
+      <li><a href="API.html#reach.Mouse.save_data_to_file">save_data_to_file() (reach.Mouse method)</a>
+</li>
+      <li><a href="API.html#reach.Session">Session (class in reach)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.Session">Session (class in reach)</a>
+      <li><a href="API.html#reach.backends.Backend.start_iti">start_iti() (reach.backends.Backend method)</a>
+</li>
+      <li><a href="API.html#reach.backends.Backend.start_trial">start_trial() (reach.backends.Backend method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -258,25 +328,25 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.UtilityPi.test_reward_volume">test_reward_volume() (reach.UtilityPi method)</a>
-</li>
-      <li><a href="api.html#reach.UtilityPi.test_sensors">test_sensors() (reach.UtilityPi method)</a>
+      <li><a href="API.html#reach.Mouse.train">train() (reach.Mouse method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.UtilityPi.toggle_spout_leds">toggle_spout_leds() (reach.UtilityPi method)</a>
+      <li><a href="API.html#reach.Mouse.training_data">training_data (reach.Mouse attribute)</a>
 </li>
-      <li><a href="api.html#reach.Mouse.train">train() (reach.Mouse method)</a>
-</li>
-      <li><a href="api.html#reach.Mouse.training_data">training_data (reach.Mouse attribute)</a>
+      <li><a href="API.html#reach.Cohort.trials">trials (reach.Cohort attribute)</a>
 </li>
   </ul></td>
 </tr></table>
 
-<h2 id="U">U</h2>
+<h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#reach.UtilityPi">UtilityPi (class in reach)</a>
+      <li><a href="API.html#reach.backends.Backend.wait_for_rest">wait_for_rest() (reach.backends.Backend method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="API.html#reach.backends.Backend.wait_to_start">wait_to_start() (reach.backends.Backend method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -293,7 +363,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Matt Colligan
+        &copy; Copyright 2020, Matt Colligan
 
     </p>
   </div>

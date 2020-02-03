@@ -4,12 +4,11 @@ todo list
 core code
 ---------
 
-[ ] incorporate 'end' into data['trials']
 [ ] rewrite tests/test_data with new format
 [ ] Record when mice rest paws (for IGM durations)
+[ ] replace backend.dispense_water with generalised backend.reward
 
 extra code
 ----------
 
-[ ] write tests for each class
-[ ] write tests for raspberry methods
+[ ] tests for Backend subclasses?

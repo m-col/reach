@@ -4,7 +4,6 @@ Run a training session
 ======================
 
 This script shows an example of how a training session can be run.
-
 """
 
 

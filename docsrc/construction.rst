@@ -2,11 +2,13 @@
 Training Box Construction
 =========================
 
+THIS IS A WORK IN PROGRESS
+
 This page describes how to construct a single training box, which looks like
 this:
 
-.. image:: /_static/training_box.jpg
-    :width: 420pt
+#.. image:: /_static/training_box.jpg
+#    :width: 420pt
 
 The base holds a Raspberry Pi which runs the reach code and operates the
 training box hardware.
@@ -23,8 +25,7 @@ boxes on a metal table and line conductive tape from where the mice sit to the
 table.
 
 3D printed parts:
-"""""""""""""""""
-
+`````````````````
 - base with RIVETS head posts
 - 2x RIVETS head bars
 - spout mount with LED case lid
@@ -32,16 +33,14 @@ table.
 - button box with lid
 
 Raspberry Pi:
-"""""""""""""
-
+`````````````
 - raspberry pi 4
 - SD card flashed with raspbian lite
 - power supply
 - ethernet cable
 
 Circuitry:
-""""""""""
-
+``````````
 - prototyping board
 - 4x touch sensors (proto-pic part #PPAC0012)
 - 100 uF capacitor
@@ -59,9 +58,24 @@ Circuitry:
 - conductive tape (RS part 458-7416)
 - plenty of wire
 
-Misc:
-"""""
+PuffAdder
+`````````
+Based on: http://raimondolab.com/2013/11/29/puffadder-picospritzer/
+Part supplier: https://www.festo.com/cat/en-gb_gb/products
 
+Festo Pressure Switch, R 1/8 0bar to 4 bar
+
+- Festo Precision Pressure Regulator LRP-1/4-4 (Festo part 159501)
+- Festo Precision Gauge MAP-40-4-1/8-EN (Festo part 162842)
+- Solenoid Valve MHE2-M1H-3/2G-M7 (Festo part 196130)
+- KMYZ-4-24-2.5-B (plug in cable for valve – not essential) (Festo part 193691)
+- QSL-1/4-6 Festo Push-in/threaded L-fitting (Festo part 153047)
+- QS-1/4-4 Festo Push-in fitting (Festo part 190644)
+- 2x QSM-M7-4-I Festo Push-in fitting (Festo part 153319)
+- 4mm OD Festo Plastic tubing (Festo part 159662)
+
+Misc:
+`````
 - cable clips (RS part 475-198)
 - 2x RIVETS bar thumb screws
 - USB camera (RS part 125-4274)

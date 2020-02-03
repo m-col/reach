@@ -5,7 +5,6 @@ Mice
 Mouse objects store and handle training sessions and collected data for a single
 experimental mouse. They are used to start training sessions using the
 :class:`Mouse.train()` method.
-
 """
 
 
@@ -22,14 +21,14 @@ class Mouse:
     instantiated either by providing training data manually, or with
     :class:`Mouse.init_from_file` to use training data stored in a file.
 
-    Training data is stored as a list of reach.Session instances.
+    Training data is stored as a list of :class:`Session` instances.
 
     Attributes
     ----------
-    mouse_id : :class:`str` (optional)
+    mouse_id : :class:`str`, optional
         The mouse's ID.
 
-    training_data : :class:`list` of :class:`.Session` instances.
+    training_data : :class:`list` of :class:`Session` instances.
         The mouse's training data.
 
     """
@@ -102,15 +101,15 @@ class Mouse:
         backend : :class:`class`
             An instance of a Backend subclass.
 
-        additional_data : :class:`dict` (optional)
+        additional_data : :class:`dict`, optional
             Extra data that should be saved into the new session's data.
 
-        duration : :class:`int` (optional)
+        duration : :class:`int`, optional
             The duration in seconds for the training session to run.
 
-        intertrial_interval : :class:`list` of 2 :class`int`\s (optional)
+        intertrial_interval : :class:`tuple` of 2 :class:`int`\s, optional
             Min. and max. duration in milliseconds for the inter-trial intervals e.g.
-            [4000, 6000]
+            (4000, 6000)
 
         """
 
@@ -201,11 +200,10 @@ class Mouse:
 
         Returns
         -------
-        :class:`list` of :class:`lists`\s of :class:`int`\s where each inner
-        list is one session, and each int represents one possible outcome:
-            - 0 - miss trial
-            - 1 - correct reach
-            - 2 - incorrect reach
+        :class:`list` of :class:`lists`\s of :class:`int`\s
+            Each inner list is one session, and contains for each trial an :class:`int`
+            representing one possible outcome: 0, miss trial; 1, correct reach; and 2,
+            incorrect reach.
 
         """
         successes = []

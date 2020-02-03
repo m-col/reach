@@ -25,19 +25,19 @@ class RaspberryPi(Backend):
 
     Parameters
     ---------
-    actuator : :class:`class` (optional)
+    actuator : :class:`class`, optional
         An instance of reach.backends.raspberrypi.spouts._Actuator or a subclass. By
         default, reach.backends.raspberrypi.spouts.Actuonix_L12_S will be used.
 
-    reward_duration : :class:`float` (optional)
+    reward_duration : :class:`float`, optional
         The duration in seconds for which the solenoid valves will be opened when
         dispensing water rewards. Default: 0.100 seconds.
 
-    air_puff_duration : :class:`float` (optional)
+    air_puff_duration : :class:`float`, optional
         The duration in seconds for which the air puffs will be delivered. Default:
         0.030 seconds.
 
-    button_bouncetime : :class:`float` (optional)
+    button_bouncetime : :class:`float`, optional
         The bouncetime in seconds assigned to the buttons to prevent accidental
         double-pressing. Default: 0.100
 

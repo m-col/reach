@@ -4,7 +4,6 @@ Sessions
 
 :class:`Session` objects interface with a backend such as a raspberry pi to operate
 training sessions and record data.
-
 """
 
 
@@ -41,7 +40,7 @@ class Session:
 
     Parameters
     ----------
-    data : :class:`dict` (optional)
+    data : :class:`dict`, optional
         A dictionary of additional or pre-filled data to be added to the session's
         training data.
 
@@ -90,7 +89,7 @@ class Session:
         Parameters
         ----------
         data : :class:`dict`
-            Dictionary of values to add into the Session's data dict.
+            Dictionary of values to add into the session's data.
 
         """
         self.data.update(data)
@@ -108,16 +107,16 @@ class Session:
         Parameters
         ----------
         backend : :class:`class`
-            An instance of a Backend subclass.
+            An instance of a :class:`Backend` subclass.
 
-        duration : :class:`int` (optional)
+        duration : :class:`int`, optional
             Duration of the training session in seconds. Default: 1800 seconds.
 
-        intertrial_interval : :class:`tuple` of 2 :class:`int`\s (optional)
+        intertrial_interval : :class:`tuple` of 2 :class:`int`\s, optional
             Minimum and maximum duration in milliseconds for use for the inter-trial
             interval. Default: (4000, 6000).
 
-        previous_data : :class:`dict` of :class:`reach.Session` training data (optional)
+        previous_data : :class:`dict` of training data, optional
             Training data from the previous session, which if provided will be used when
             calculating initial cue duration, spout position and shaping status.
 
@@ -310,8 +309,8 @@ class Session:
 
     def on_iti_lift(self, side):
         """
-        Callback function executed when the inter-trial interval is broken when the
-        mouse prematurely lifts either paw from the paw rests.
+        To be executed when the inter-trial interval is broken when the mouse
+        prematurely lifts either paw from the paw rests.
 
         Parameters
         ----------
@@ -324,8 +323,7 @@ class Session:
 
     def on_iti_grasp(self, side):
         """
-        Callback function executed when a spontaneous reach is made during the
-        inter-trial interval.
+        To be executed when a spontaneous reach is made during the inter-trial interval.
 
         Parameters
         ----------
@@ -338,7 +336,7 @@ class Session:
 
     def on_trial_lift(self, side):
         """
-        Record timepoint of paw lifts during trials.
+        To be executed when the first paw lift occurs during each trial.
 
         Parameters
         ----------
@@ -352,8 +350,7 @@ class Session:
 
     def on_trial_correct(self):
         """
-        Callback function executed upon successful grasp of illuminated reach target
-        during trial.
+        To be executed upon successful grasp of the reach target during each trial.
         """
         self.data['trials'][-1]['end'] = time.time()
         self._backend.end_trial()
@@ -363,7 +360,7 @@ class Session:
 
     def on_trial_incorrect(self):
         """
-        Callback function executed upon grasp of incorrect reach target during trial.
+        To be executed upon grasp of the incorrect reach target during each trial.
         """
         self.data['trials'][-1]['end'] = time.time()
         self._backend.end_trial()
@@ -373,17 +370,16 @@ class Session:
 
     def reverse_shaping(self):
         """
-        Callback function applied to start button that reverses the state of the shaping
-        boolean i.e. switches water dispensing between cue onset and grasp for the next
-        trial.
+        Can be assigned to a button to reverse the state of the shaping boolean i.e.
+        switches water dispensing between cue onset and grasp for the next trial.
         """
         self._water_at_cue_onset = not self._water_at_cue_onset
         self._message(f'Water at cue onset: {self._water_at_cue_onset}')
 
     def extend_trial(self):
         """
-        Callback function assigned to a button that will stop the next trial from timing
-        out, instead leaving the cue illuminated until grasped.
+        Can be assigned to a button to stop the next trial from timing out, instead
+        leaving the cue illuminated until grasped.
         """
         if self._extended_trial:
             self._extended_trial = False
@@ -394,16 +390,16 @@ class Session:
 
     def _end_session(self, signal_number=None, frame=None):
         """
-        End the current training session: uninitialise the raspberry pi,
-        organise collected data, and display final training results. This also
-        function serves as the main session Ctrl-C signal handler.
+        End the current training session: uninitialise the raspberry pi, organise
+        collected data, and display final training results. This also function serves as
+        the main session Ctrl-C signal handler.
 
         Parameters
         ----------
-        signal_number : :class:`int` (optional)
+        signal_number : :class:`int`, optional
             Passed to function by signal.signal; ignored.
 
-        frame : :class:`int` (optional)
+        frame : :class:`int`, optional
             Passed to function by signal.signal; ignored.
 
         """

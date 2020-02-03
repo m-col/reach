@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Example script for plotting reaction times across all sessions for a cohort of
-mice.
+Example script plotting metrics to illustrate how well a cohort of mice are
+training across days.
 """
 
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; reach  documentation</title>
+  <title>Backends &mdash; reach  documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Library API" href="api.html" />
-    <link rel="prev" title="reach" href="index.html" /> 
+    <link rel="next" title="Library API" href="API.html" />
+    <link rel="prev" title="Behavioural Training" href="training.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -81,13 +81,9 @@
             
             
               <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training.html">Behavioural Training</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="construction.html">Training Box Construction</a></li>
 </ul>
@@ -135,13 +131,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Introduction</li>
+      <li>Backends</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/introduction.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/backends.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -154,30 +150,29 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>This project contains directions on how to contruct, operate and analyse a
-head-fixed forelimb reaching task for mice. This design uses visual cues as
-reach targets, though the design could easily be adapted to be cued via other
-sensory modalities.</p>
-<p>This Python library is used by a Raspberry Pi to control the hardware of the
-behavioural task, and is then used to manipulate the data collected during
-training.</p>
-</div>
-<div class="section" id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>Simply clone <a class="reference internal" href="api.html#module-reach" title="reach"><code class="xref py py-class docutils literal notranslate"><span class="pre">reach</span></code></a>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/m-col/reach
-</pre></div>
-</div>
-<p>Then either add the folder to <code class="xref py py-class docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> or install using setup.py:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python setup.py build
-python setup.py install --user
-</pre></div>
-</div>
-</div>
+  <div class="section" id="backends">
+<h1>Backends<a class="headerlink" href="#backends" title="Permalink to this headline">¶</a></h1>
+<p>Throughout training, the <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> that we are using controls the
+sequence of events, but does not directly control any hardware. Instead, a
+backend is specified, allowing for different backends to be used. Backends
+directly control any hardware (or software), having their methods called by the
+running <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code>. New backends can be created for use during training
+by creating a subclass of <a class="reference internal" href="API.html#reach.backends.Backend" title="reach.backends.Backend"><code class="xref py py-class docutils literal notranslate"><span class="pre">reach.backends.Backend</span></code></a> and overriding its
+methods.</p>
+<p>Backends are passed to <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> either indirectly via
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Mouse.train</span></code>, or directly to <code class="xref py py-class docutils literal notranslate"><span class="pre">Session.run</span></code>. The backend should
+be instantiated before passing it; this allows for configuration of the backend
+in a manner that is specific to the type of backend being used.</p>
+<p>The running <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code>, before training begins, passes itself to the
+backend’s <code class="xref py py-class docutils literal notranslate"><span class="pre">configure_callbacks</span></code> method so that the backend can access a
+number of functions that should be assigned to specific behavioural events as
+callbacks. The backend can wrap or modify these functions if it requires.
+During training, the <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> will call <code class="xref py py-class docutils literal notranslate"><span class="pre">backend.start_iti</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">backend.start_trial</span></code> at the appropriate time, in which the backend
+should assign the callback functions to their corresponding events.</p>
+<p>See <a class="reference external" href="https://github.com/m-col/reach/blob/master/reach/backends/mock/mock.py">mock.py</a> for a minimal
+example, or <a class="reference external" href="https://github.com/m-col/reach/blob/master/reach/backends/raspberrypi/raspberry.py">raspberry.py</a> for a full example that
+controls the GPIO pins on a Raspberry Pi.</p>
 </div>
 
 
@@ -188,10 +183,10 @@ python setup.py install --user
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="api.html" class="btn btn-neutral float-right" title="Library API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="API.html" class="btn btn-neutral float-right" title="Library API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="reach" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="training.html" class="btn btn-neutral float-left" title="Behavioural Training" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -200,7 +195,7 @@ python setup.py install --user
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Matt Colligan
+        &copy; Copyright 2020, Matt Colligan
 
     </p>
   </div>

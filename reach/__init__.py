@@ -5,8 +5,8 @@ The library exports  classes:
 :class:`Session`\s control the sequence of events during a training session and track
 training data throughout the session. They can then be used after a session has
 completed for analysis of this training data. :class:`Session`\s must be provided with a
-:class:`Backend` or a subclass thereof to control. See `here <./training.html>`_ for an
-example of how to run a new training session.
+:class:`Backend` or a subclass thereof to control during training. See `Behavioural
+Training <./training.html>`_ for how to do this.
 
 :class:`Mouse` instances handle and manipulate a :class:`list` of :class:`Session`\s,
 and read/write their data to and from the mouse's training JSON file. They provide
@@ -19,7 +19,7 @@ See :repo:`scripts/plotting/cohort_reaction_times.py
 
 """
 
-__version__ = '2020.01.31.0'
+__version__ = '2020.02.03.0'
 
 from reach.cohort import Cohort
 from reach.mouse import Mouse

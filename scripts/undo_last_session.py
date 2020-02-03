@@ -5,7 +5,6 @@ Delete the last session in a data file
 
 This can be used if a small bit of extra time was given at the end of a
 training session, but you don't want to include that extra data.
-
 """
 
 

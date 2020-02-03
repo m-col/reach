@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Data Structure" href="data.html" />
-    <link rel="prev" title="Library API" href="api.html" /> 
+    <link rel="next" title="Backends" href="backends.html" />
+    <link rel="prev" title="reach" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -81,13 +81,12 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">Library API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Behavioural Training</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#training-settings">Training settings</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">Library API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="construction.html">Training Box Construction</a></li>
 </ul>
@@ -158,59 +157,50 @@
 <h1>Behavioural Training<a class="headerlink" href="#behavioural-training" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
-<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> objects represent a single training session and are first used
-to operate the hardware during a session. They are subsequently used to
-manipulate the data collected during that session for analysis.</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> objects represent a single training session and are used to
+operate the hardware during a session. After training, they are also used to
+manipulate the collected behavioural data.</p>
 <p>Training data is stored in a JSON file; each mouse has a single JSON file
 containing all of its training data. At the top level, the JSON data is a
-<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>s where each <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> corresponds to the nth
-training day. This data is collated and manipulated together at the level of
-the <code class="xref py py-class docutils literal notranslate"><span class="pre">Mouse</span></code>, in the form of a <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code>
-objects.</p>
-<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Mouse</span></code> is instantiated from its corresponding training JSON by
-passing the mouse’s ID and the path to the folder containing the training
-JSONs:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mouse</span> <span class="o">=</span> <span class="n">Mouse</span><span class="o">.</span><span class="n">init_from_file</span><span class="p">(</span>
-    <span class="n">mouse_id</span><span class="o">=</span><span class="s1">&#39;ExampleMouse1&#39;</span><span class="p">,</span>
-    <span class="n">json_path</span><span class="o">=</span><span class="s1">&#39;~/training_data&#39;</span><span class="p">,</span>
+<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>s where each <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> contains data
+collected during a single training session. This data can be manipulated at the
+level of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Mouse</span></code>, which stores the data as a <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> objects.</p>
+<p>We can add a new <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> to this list by running a training session.
+Instantiate a <code class="xref py py-class docutils literal notranslate"><span class="pre">Mouse</span></code> from the animal’s training JSON by passing its ID
+and the folder containing the data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">reach</span> <span class="kn">import</span> <span class="n">Mouse</span>
+<span class="n">data_dir</span> <span class="o">=</span> <span class="s1">&#39;/path/to/data&#39;</span>
+<span class="n">mouse</span> <span class="o">=</span> <span class="n">Mouse</span><span class="o">.</span><span class="n">init_from_file</span><span class="p">(</span>
+    <span class="n">mouse_id</span><span class="o">=</span><span class="s1">&#39;Mouse1&#39;</span><span class="p">,</span>
+    <span class="n">data_dir</span><span class="o">=</span><span class="n">data_dir</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Mouse.train</span></code> method creates a new <code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code> object and
-begins the training session:</p>
+<p>We need to create a backend for the new training session to control. We should
+choose a backend base on the hardware setup that we want to use. For example,
+if we are using Raspberry Pis then we can get that from <a class="reference internal" href="API.html#module-reach" title="reach"><code class="xref py py-class docutils literal notranslate"><span class="pre">reach</span></code></a> and
+configure it how we like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">reach.backends.RaspberryPi</span> <span class="kn">import</span> <span class="n">RaspberryPi</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">RaspberryPi</span><span class="p">(</span>
+    <span class="n">reward_duration</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference external" href="backends.html">Backends</a> to see how to create a new backend.</p>
+<p>We can then begin the training session, providing some training settings and
+any arbitrary metadata we’d like to save with the training data. When we are
+done, we should save the data back to file:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mouse</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
-    <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;~/reach_config.ini&#39;</span><span class="p">,</span>
-    <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;trainer&#39;</span><span class="p">:</span> <span class="s1">&#39;Matt&#39;</span><span class="p">,</span> <span class="s1">&#39;training_box&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="n">backend</span><span class="p">,</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">1800</span><span class="p">,</span>
+    <span class="n">intertrial_interval</span><span class="o">=</span><span class="p">(</span><span class="mi">4000</span><span class="p">,</span> <span class="mi">6000</span><span class="p">),</span>
+    <span class="n">additional_data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;trainer&#39;</span><span class="p">:</span> <span class="s1">&#39;Matt&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="mf">25.0</span><span class="p">},</span>
 <span class="p">)</span>
+<span class="n">mouse</span><span class="o">.</span><span class="n">save_data_to_file</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Here, we are passing the path to a config file which contains the training
-settings (<a class="reference external" href="#training_settings">more info below</a>), and a <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>
-containing any arbitrary data that we’d like to save alongside this session’s
-data.</p>
-<p>Finally we save the training data back into the JSON file:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mouse</span><span class="o">.</span><span class="n">save_data_to_file</span><span class="p">(</span><span class="s1">&#39;~/training_data&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>There is an example script at <a class="reference external" href="https://github.com/m-col/reach/blob/master/scripts/run_session.py">scripts/run_session/py</a> which uses argparse to take input from
-the user and run a training session.</p>
-</div>
-<div class="section" id="training-settings">
-<h2>Training settings<a class="headerlink" href="#training-settings" title="Permalink to this headline">¶</a></h2>
-<p>Configuration settings of a training session can be passed to
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Session.run(config)</span></code> to change some of the task parameters. The
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Mouse.train()</span></code> method can accept a <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> providing a path to a
-config file, which it will read settings from and use these to run a session:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mouse</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
-    <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;~/reach_config.ini&#39;</span><span class="p">,</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<p>Default values will be used if it is not passed, or the file does not exist.</p>
-<p>A config file with default values can be generated on demand:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reach</span><span class="o">.</span><span class="n">generate_config</span><span class="p">(</span><span class="s1">&#39;~/reach_config.ini&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
+<p>An example script is found at <a class="reference external" href="https://github.com/m-col/reach/blob/master/scripts/run_session.py">run_session.py</a> to show how these steps can be extended.</p>
 </div>
 </div>
 
@@ -222,10 +212,10 @@ config file, which it will read settings from and use these to run a session:</p
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="data.html" class="btn btn-neutral float-right" title="Data Structure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="backends.html" class="btn btn-neutral float-right" title="Backends" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="api.html" class="btn btn-neutral float-left" title="Library API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="reach" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -234,7 +224,7 @@ config file, which it will read settings from and use these to run a session:</p
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Matt Colligan
+        &copy; Copyright 2020, Matt Colligan
 
     </p>
   </div>

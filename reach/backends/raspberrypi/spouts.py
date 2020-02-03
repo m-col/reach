@@ -127,7 +127,7 @@ class Spout:
     pins : dict
         Dictionary containing pin numbers for cue, touch, reward and actuator.
 
-    actuator : class (optional)
+    actuator : class, optional
         Class used to control the spout's linear actuator. By default, the
         Actuonix_L12_S is used.
 
