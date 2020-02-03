@@ -8,8 +8,8 @@ used to operate the training box hardware during behavioural training.
 """
 
 
-import RPi.GPIO as GPIO
 import time
+import RPi.GPIO as GPIO  # pylint: disable=import-error
 
 from .. import Backend
 from . import spouts
@@ -131,16 +131,6 @@ class RaspberryPi(Backend):
         for spout in self.spouts:
             spout.set_position(position)
 
-    def advance_spouts(self, spout_number=None):
-        if self._spout_position < 7:
-            self._spout_position += 1
-        self.position_spout(self._spout_position, spout_number)
-
-    def retract_spouts(self, spout_number=None):
-        if self._spout_position > 1:
-            self._spout_position -= 1
-        self.position_spout(self._spout_position, spout_number)
-
     def wait_for_rest(self):
         """
         Block execution and wait until both paw sensors are held.
@@ -260,7 +250,7 @@ class RaspberryPi(Backend):
         """
         self._disable_callbacks()
         for spout in self.spouts:
-            GPIO.output(spout.cue, False)
+            GPIO.output(spout.cue_pin, False)
 
     def cleanup(self):
         """
@@ -271,10 +261,10 @@ class RaspberryPi(Backend):
         GPIO.cleanup()
 
 
-def _gpio_callback(self, func):
+def _gpio_callback(func):
     """
     Wraps a function so that it can be cleanly called as a RPi.GPIO event callback.
     """
-    def _func(pin):
+    def _func(pin):  # pylint: disable=unused-argument
         return func()
     return _func

@@ -8,8 +8,8 @@ and using a reach training box.
 """
 
 
-import RPi.GPIO as GPIO
 import time
+import RPi.GPIO as GPIO  # pylint: disable=import-error
 
 from .raspberry import RaspberryPi
 

@@ -13,8 +13,8 @@ under one Spout class.
 """
 
 
-import RPi.GPIO as GPIO
 import time
+import RPi.GPIO as GPIO  # pylint: disable=import-error
 
 
 class _Actuator:
@@ -22,10 +22,14 @@ class _Actuator:
     This is a base class for linear actuators that are controlled by a raspberry.Spout.
     """
     def disable(self):
-        pass
+        """
+        Disable the actuators.
+        """
 
-    def set_position(self):
-        pass
+    def set_position(self, position):
+        """
+        Set the position of the actuators.
+        """
 
 
 class Actuonix_PG12_P(_Actuator):
@@ -113,7 +117,6 @@ class Actuonix_L12_S(_Actuator):
             self._position, and a negative for advancement toward mouse.
 
         """
-        pass
 
 
 class Spout:

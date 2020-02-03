@@ -103,6 +103,9 @@ class Cohort(Sequence):
 
     @cache
     def results(self):
+        """
+        Get a pandas dataframe containing data on all trials for all mice and sessions.
+        """
         import pandas as pd  # pylint: disable=import-outside-toplevel
         results = pd.DataFrame()
 

@@ -4,6 +4,8 @@ todo list
 core code
 ---------
 
+[ ] update utilities following backend refactor
+[ ] update curses following backend refactor
 [ ] rewrite tests/test_data with new format
 [ ] Record when mice rest paws (for IGM durations)
 [ ] replace backend.dispense_water with generalised backend.reward

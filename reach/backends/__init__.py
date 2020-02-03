@@ -50,19 +50,16 @@ class Backend:
             - :class:`session.extend_trial`
 
         """
-        pass
 
     def wait_to_start(self):
         """
         Called once before the training session begins.
         """
-        pass
 
     def disable_spouts(self):
         """
         Called when the spouts will not be used for a while, i.e. to remove power.
         """
-        pass
 
     def position_spouts(self, position, spout_number=None):
         """
@@ -77,21 +74,18 @@ class Backend:
             The spout to move. By default, both are moved.
 
         """
-        pass
 
     def wait_for_rest(self):
         """
         Called to wait for the mouse to remain still during the inter-trial interval
         before counting down to the start of a trial.
         """
-        pass
 
     def start_iti(self):
         """
         Assign :class:`session.on_iti_lift` and :class:`session.on_iti_grasp` callbacks
         to events.
         """
-        pass
 
     def start_trial(self, spout_number):
         """
@@ -106,7 +100,6 @@ class Backend:
             The spout number corresponding to this trial's reach target.
 
         """
-        pass
 
     def dispense_water(self, spout_number):
         """
@@ -118,23 +111,19 @@ class Backend:
             The spout number to dispense water from.
 
         """
-        pass
 
     def miss_trial(self):
         """
         Called on a miss trial: when the trial ends and no spouts have been grasped.
         Note this is distinct from an incorrect trial, when the wrong spout was grasped.
         """
-        pass
 
     def end_trial(self):
         """
         Called at the end of each trial.
         """
-        pass
 
     def cleanup(self):
         """
         Called once at the end of the session.
         """
-        pass

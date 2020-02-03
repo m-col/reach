@@ -24,12 +24,12 @@ _SLIDING_WINDOW = 10
 
 
 class TrialDeque(deque):
+    """
+    This lets the Session do e.g. recent_trials.shaping to return a list containing the
+    values stored in all trials in the deque (which are themselves dicts).
+    """
     def __getattr__(self, name):
-        """
-        This lets the Session do e.g. recent_trials.shaping to return a list containing
-        the values stored in all trials in the deque (which are themselves dicts).
-        """
-        if not len(self):
+        if len(self) == 0:
             return []
         return [x[name] for x in self]
 
@@ -388,7 +388,7 @@ class Session:
             self._extended_trial = True
             self._message('Next trial will be an extended trial')
 
-    def _end_session(self, signal_number=None, frame=None):
+    def _end_session(self, signal_number=None, frame=None):  # pylint: disable=W0613
         """
         End the current training session: uninitialise the raspberry pi, organise
         collected data, and display final training results. This also function serves as
@@ -425,11 +425,17 @@ class Session:
 
     @cache
     def outcomes(self):
+        """
+        Get a list containing the outcomes for all trials.
+        """
         return list(i['outcome'] for i in self.data['trials'])
 
     @cache
     def reward_count(self):
-        return self.outcomes.count(1)
+        """
+        Get the number of rewarded trials.
+        """
+        return self.outcomes.count(1)  # pylint: disable=no-member
 
     @cache
     def reaction_times(self):
