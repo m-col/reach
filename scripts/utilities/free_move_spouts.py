@@ -4,11 +4,11 @@ Move the two spout linear actuators.
 """
 
 
-from reach.raspberry import UtilityPi
+from reach.backends.raspberrypi import Utilities
 
 
-rpi = UtilityPi()
-rpi.free_move_actuators()
+rpi = Utilities()
+rpi.move_actuators()
 
 input("Hit enter to finish.\n")
 

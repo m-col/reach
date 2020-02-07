@@ -4,10 +4,10 @@ Control the two solenoids using the two buttons.
 """
 
 
-from reach.raspberry import UtilityPi
+from reach.backends.raspberrypi import Utilities
 
 
-rpi = UtilityPi()
+rpi = Utilities()
 rpi.toggle_spout_leds()
 
 input("Hit enter to finish.\n")
