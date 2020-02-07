@@ -1,2 +1,6 @@
 from .raspberry import RaspberryPi
-__all__ = ('RaspberryPi',)
+from .utilities import Utilities
+__all__ = (
+    'RaspberryPi',
+    'Utilities',
+)
