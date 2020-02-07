@@ -52,12 +52,14 @@ class RaspberryPi(Backend):
                 'touch': 14,
                 'reward': 16,
                 'actuator': 12,
+                'actuator_reverse': 19,
             },
             {
                 'cue': 22,
                 'touch': 15,
                 'reward': 21,
                 'actuator': 13,
+                'actuator_reverse': 25,
             },
         ),
     }
@@ -72,17 +74,18 @@ class RaspberryPi(Backend):
         Backend.__init__(self)
         self._reward_duration = reward_duration or 0.100
         self._air_puff_duration = air_puff_duration or 0.030
-        self._button_bouncetime = (button_bouncetime or 0.100) * 1000
+        self._button_bouncetime = int((button_bouncetime or 0.100) * 1000)
 
         self._button_pins = RaspberryPi._PIN_NUMBERS['buttons']
-        self.paw_pins = RaspberryPi._PIN_NUMBERS['paw_sensors']
+        self._paw_pins = RaspberryPi._PIN_NUMBERS['paw_sensors']
         self._air_puff = RaspberryPi._PIN_NUMBERS['air_puff']
+        self._target_pins = [x['touch'] for x in RaspberryPi._PIN_NUMBERS['spouts']]
 
         GPIO.setup(
             self._button_pins, GPIO.IN, pull_up_down=GPIO.PUD_UP
         )
         GPIO.setup(
-            self.paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN
+            self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN
         )
         GPIO.setup(
             self._air_puff, GPIO.OUT, initial=False
@@ -98,13 +101,38 @@ class RaspberryPi(Backend):
         """
         Configure callback functions from Session.
         """
-        self.on_iti_lift = _gpio_callback(session.on_iti_lift)
-        self.on_iti_grasp = _gpio_callback(session.on_iti_grasp)
-        self.on_trial_lift = _gpio_callback(session.on_trial_lift)
-        self.on_trial_correct = _gpio_callback(session.on_trial_correct)
-        self.on_trial_incorrect = _gpio_callback(session.on_trial_incorrect)
-        self.on_button.append(_gpio_callback(session.reverse_shaping))
-        self.on_button.append(_gpio_callback(session.extend_trial))
+        self.on_iti_lift = self._gpio_callback(session.on_iti_lift, self._paw_pins)
+        self.on_iti_grasp = self._gpio_callback(session.on_iti_grasp, self._target_pins)
+        self.on_trial_lift = self._gpio_callback(session.on_trial_lift, self._paw_pins)
+        self.on_trial_correct = self._gpio_callback(session.on_trial_correct)
+        self.on_trial_incorrect = self._gpio_callback(session.on_trial_incorrect)
+
+        self.on_button.append(self._gpio_callback(session.reverse_shaping))
+        self.on_button.append(self._gpio_callback(session.extend_trial))
+
+    @staticmethod
+    def _gpio_callback(func, pin_list=None):
+        """
+        Wraps a function so that it can be cleanly called as a RPi.GPIO event callback.
+
+        Parameters
+        ----------
+        func : :class:`function`
+            Function to wrap.
+
+        pin_list : :class:`list` (optional)
+            List of pin numbers. The index of the pin number passed to the wrapper
+            function in this list is passed as the only argument to the wrapped
+            function.
+
+        """
+        if pin_list:
+            def _func(pin):
+                return func(pin_list.index(pin))
+        else:
+            def _func(pin):  # pylint: disable=unused-argument
+                return func()
+        return _func
 
     def wait_to_start(self):
         """
@@ -138,8 +166,8 @@ class RaspberryPi(Backend):
         print("Waiting for rest... ")
         try:
             while not all([
-                GPIO.input(self.paw_pins[0]),
-                GPIO.input(self.paw_pins[1]),
+                GPIO.input(self._paw_pins[0]),
+                GPIO.input(self._paw_pins[1]),
             ]):
                 time.sleep(0.010)
         except RuntimeError:
@@ -152,12 +180,12 @@ class RaspberryPi(Backend):
         """
         self._disable_callbacks()
 
-        for paw in self.paw_pins:
+        for paw in self._paw_pins:
             GPIO.add_event_detect(
                 paw,
                 GPIO.FALLING,
                 callback=self.on_iti_lift,
-                bouncetime=100,
+                bouncetime=300,
             )
 
         for spout in self.spouts:
@@ -169,7 +197,6 @@ class RaspberryPi(Backend):
             )
 
         for index, on_button in enumerate(self.on_button):
-            GPIO.remove_event_detect(self._button_pins[index])
             GPIO.add_event_detect(
                 self._button_pins[index],
                 GPIO.FALLING,
@@ -186,7 +213,7 @@ class RaspberryPi(Backend):
         print("Cue illuminated")
         GPIO.output(self.spouts[spout_number].cue_pin, True)
 
-        for paw_pin in self.paw_pins:
+        for paw_pin in self._paw_pins:
             GPIO.add_event_detect(
                 paw_pin,
                 GPIO.FALLING,
@@ -213,7 +240,7 @@ class RaspberryPi(Backend):
         Remove event detection from all touch sensors at the end of the inter-trial
         interval.
         """
-        for pin in self.paw_pins:
+        for pin in self._paw_pins:
             GPIO.remove_event_detect(pin)
 
         for pin in self._button_pins:
@@ -226,9 +253,9 @@ class RaspberryPi(Backend):
         """
         Dispense water from a specified spout.
         """
-        GPIO.output(self.spouts[spout_number].reward, True)
+        GPIO.output(self.spouts[spout_number].reward_pin, True)
         time.sleep(self._reward_duration)
-        GPIO.output(self.spouts[spout_number].reward, False)
+        GPIO.output(self.spouts[spout_number].reward_pin, False)
 
     def miss_trial(self):
         """
@@ -259,12 +286,3 @@ class RaspberryPi(Backend):
         for spout in self.spouts:
             spout.disable()
         GPIO.cleanup()
-
-
-def _gpio_callback(func):
-    """
-    Wraps a function so that it can be cleanly called as a RPi.GPIO event callback.
-    """
-    def _func(pin):  # pylint: disable=unused-argument
-        return func()
-    return _func

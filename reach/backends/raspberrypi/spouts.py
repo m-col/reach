@@ -21,6 +21,10 @@ class _Actuator:
     """
     This is a base class for linear actuators that are controlled by a raspberry.Spout.
     """
+    def __init__(self, pin, pin2=None):
+        self._pin = pin
+        self._pin2 = pin2
+
     def disable(self):
         """
         Disable the actuators.
@@ -39,15 +43,15 @@ class Actuonix_PG12_P(_Actuator):
     These duty cycles produce 1 mm intervals in position.
     """
     _DUTY_CYCLES = (
-        7.5, 7.7, 7.95, 8.2, 8.4, 8.7, 8.9,
+        7.2, 7.7, 7.95, 8.2, 8.4, 8.7, 8.9,
     )
 
-    def __init__(self, pin):
-        GPIO.setup(pin, GPIO.OUT, initial=False)
-        self._duty_cycle = 0
-        self._pwm = GPIO.PWM(pin, 50)
-        self._pin = pin
+    def __init__(self, pin, pin2=None):
+        _Actuator.__init__(self, pin, pin2)
         self._enabled = False
+        self._duty_cycle = 0
+        GPIO.setup(pin, GPIO.OUT, initial=False)
+        self._pwm = GPIO.PWM(pin, 50)
 
     def _enable(self):
         self._pwm.start(self._duty_cycle)
@@ -90,33 +94,63 @@ class Actuonix_L12_S(_Actuator):
     The step_time attribute is how many milliseconds of 12V input is required to move
     the actuator 1 mm.
     """
-    step_time = 0.014
+    _step_time = 0.200
+    _duty_cycle = 20
+    _frequency = 100
 
-    def __init__(self, pin):
+    def __init__(self, pin, pin2=None):
+        _Actuator.__init__(self, pin, pin2)
+        self._enabled = False
+        self._position = 1
+
         GPIO.setup(pin, GPIO.OUT, initial=False)
-        self._pin = pin
-        self._position = None
+        GPIO.setup(pin2, GPIO.OUT, initial=False)
+        self._pwm = GPIO.PWM(pin, self._frequency)
+        self._pwm2 = GPIO.PWM(pin2, self._frequency)
+        self._pwm.start(0)
+        self._pwm2.start(0)
+
+        self.move(False, 1)
+        self.move(True, 0.120)
 
     def set_position(self, position):
         step = position - self._position
-        self._set_polarity(step)
-        GPIO.output(self._pin, True)
-        time.sleep(Actuonix_L12_S.step_time)
-        GPIO.output(self._pin, False)
+        duration = abs(step * self._step_time)
+        if step > 0:
+            self._pwm.ChangeDutyCycle(self._duty_cycle)
+            time.sleep(duration)
+            self._pwm.ChangeDutyCycle(0)
+        elif step < 0:
+            self._pwm2.ChangeDutyCycle(self._duty_cycle)
+            time.sleep(duration)
+            self._pwm2.ChangeDutyCycle(0)
         self._position = position
 
-    def _set_polarity(self, direction):
+    def disable(self):
+        self._pwm.ChangeDutyCycle(0)
+        self._pwm2.ChangeDutyCycle(0)
+
+    def move(self, retract, duration):
         """
-        This switches the direction that voltage is applied to the actuator to
-        determine which direction it will move.
+        Freely move the actuators by a specified duration.
 
         Parameters
         ----------
-        direction : int
-            A positive value indicates retraction from mouse and increase of
-            self._position, and a negative for advancement toward mouse.
+        advance : :class:`bool`
+            If True, actuators will retract, otherwise they will advance.
+
+        duration : :class`float`
+            Duration in seconds to apply power.
 
         """
+        pwm = self._pwm if retract else self._pwm2
+        pwm.ChangeDutyCycle(self._duty_cycle)
+        time.sleep(duration)
+        pwm.ChangeDutyCycle(0)
+
+    def __del__(self):
+        self._pwm.stop()
+        self._pwm2.stop()
 
 
 class Spout:
@@ -140,12 +174,13 @@ class Spout:
         self.touch_pin = pins['touch']
         self.reward_pin = pins['reward']
         self.actuator_pin = pins['actuator']
+        self.actuator_reverse_pin = pins['actuator_reverse']
 
         if actuator is None:
-            actuator = Actuonix_L12_S
+            actuator = Actuonix_PG12_P
         elif not isinstance(actuator, _Actuator):
-            SystemError(f'Unknown actuator: {actuator}')
-        self._actuator = actuator(self.actuator_pin)
+            raise SystemError(f'Unknown actuator: {actuator}')
+        self._actuator = actuator(self.actuator_pin, self.actuator_reverse_pin)
 
         GPIO.setup(self.cue_pin, GPIO.OUT, initial=False)
         GPIO.setup(self.touch_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -163,3 +198,12 @@ class Spout:
         Set the position of the spout using the actuator.
         """
         self._actuator.set_position(position)
+
+    def __getattr__(self, attr):
+        """
+        Forward any unfound attributes to the actuators.
+        """
+        if hasattr(self._actuator, attr):
+            return getattr(self._actuator, attr)
+        else:
+            raise AttributeError
