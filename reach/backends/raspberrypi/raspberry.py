@@ -81,15 +81,9 @@ class RaspberryPi(Backend):
         self._air_puff = RaspberryPi._PIN_NUMBERS['air_puff']
         self._target_pins = [x['touch'] for x in RaspberryPi._PIN_NUMBERS['spouts']]
 
-        GPIO.setup(
-            self._button_pins, GPIO.IN, pull_up_down=GPIO.PUD_UP
-        )
-        GPIO.setup(
-            self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN
-        )
-        GPIO.setup(
-            self._air_puff, GPIO.OUT, initial=False
-        )
+        GPIO.setup(self._button_pins, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self._air_puff, GPIO.OUT, initial=False)
 
         self.spouts = [
             spouts.Spout(RaspberryPi._PIN_NUMBERS['spouts'][0], actuator),
@@ -97,42 +91,16 @@ class RaspberryPi(Backend):
         ]
         self.on_button = []
 
+        self._is_trial = False
+        self._current_target_spout = 0
+        self.session = None
+
     def configure_callbacks(self, session):
         """
-        Configure callback functions from Session.
+        Store session to later get session methods that will be executed in GPIO
+        callback functions.
         """
-        self.on_iti_lift = self._gpio_callback(session.on_iti_lift, self._paw_pins)
-        self.on_iti_grasp = self._gpio_callback(session.on_iti_grasp, self._target_pins)
-        self.on_trial_lift = self._gpio_callback(session.on_trial_lift, self._paw_pins)
-        self.on_trial_correct = self._gpio_callback(session.on_trial_correct)
-        self.on_trial_incorrect = self._gpio_callback(session.on_trial_incorrect)
-
-        self.on_button.append(self._gpio_callback(session.reverse_shaping))
-        self.on_button.append(self._gpio_callback(session.extend_trial))
-
-    @staticmethod
-    def _gpio_callback(func, pin_list=None):
-        """
-        Wraps a function so that it can be cleanly called as a RPi.GPIO event callback.
-
-        Parameters
-        ----------
-        func : :class:`function`
-            Function to wrap.
-
-        pin_list : :class:`list` (optional)
-            List of pin numbers. The index of the pin number passed to the wrapper
-            function in this list is passed as the only argument to the wrapped
-            function.
-
-        """
-        if pin_list:
-            def _func(pin):
-                return func(pin_list.index(pin))
-        else:
-            def _func(pin):  # pylint: disable=unused-argument
-                return func()
-        return _func
+        self.session = session
 
     def wait_to_start(self):
         """
@@ -141,16 +109,74 @@ class RaspberryPi(Backend):
         """
         input("Press enter to begin.\n")
 
+        for paw in self._paw_pins:
+            GPIO.add_event_detect(
+                paw,
+                GPIO.FALLING,
+                callback=self._paw_callback,
+                bouncetime=250,
+            )
+
+        for spout in self.spouts:
+            GPIO.add_event_detect(
+                spout.touch_pin,
+                GPIO.RISING,
+                callback=self._spout_callback,
+                bouncetime=100,
+            )
+
+        for button in self._button_pins:
+            GPIO.add_event_detect(
+                button,
+                GPIO.FALLING,
+                callback=self._button_callback,
+                bouncetime=self._button_bouncetime,
+            )
+
+    def _paw_callback(self, pin):
+        """
+        Callback function assigned to paw sesnsors by GPIO.add_event_detect.
+        """
+        paw = self._paw_pins.index(pin)
+        if self._is_trial:
+            self.session.on_trial_lift(paw)
+        else:
+            self.session.on_iti_lift(paw)
+
+    def _spout_callback(self, pin):
+        """
+        Callback function assigned to spout sensors by GPIO.add_event_detect.
+        """
+        spout = 0 if pin == self.spouts[0].touch_pin else 1
+        if self._is_trial:
+            if self._current_target_spout == spout:
+                self.session.on_trial_correct(spout)
+            else:
+                self.session.on_trial_incorrect(spout)
+        else:
+            self.session.on_iti_grasp(spout)
+
+    def _button_callback(self, pin):
+        """
+        Callback function assigned to buttons by GPIO.add_event_detect.
+        """
+        button = self._button_pins.index(pin)
+        if button == 1:
+            session.reverse_shaping()
+        elif button == 2:
+            session.extend_trial()
+
     def disable_spouts(self):
         """
-        Sets duty cycle of actuators to 0 to hold them stationary.
+        Disable the spouts from movement, if they support it.
         """
         for spout in self.spouts:
             spout.disable()
 
     def position_spouts(self, position, spout_number=None):
         """
-        Move one or both spouts to specified position.         """
+        Move one or both spouts to specified position.
+        """
         if position < 1:
             position = 1
         elif position > 7:
@@ -178,76 +204,17 @@ class RaspberryPi(Backend):
         """
         Assign callback functions to touch sensors and buttons.
         """
-        self._disable_callbacks()
-
-        for paw in self._paw_pins:
-            GPIO.add_event_detect(
-                paw,
-                GPIO.FALLING,
-                callback=self.on_iti_lift,
-                bouncetime=300,
-            )
-
-        for spout in self.spouts:
-            GPIO.add_event_detect(
-                spout.touch_pin,
-                GPIO.RISING,
-                callback=self.on_iti_grasp,
-                bouncetime=100,
-            )
-
-        for index, on_button in enumerate(self.on_button):
-            GPIO.add_event_detect(
-                self._button_pins[index],
-                GPIO.FALLING,
-                callback=on_button,
-                bouncetime=self._button_bouncetime,
-            )
+        self._is_trial = False
 
     def start_trial(self, spout_number):
         """
         Illuminate a cue, record the time, and add callback functions to be executed
         upon grasp of target spouts during trial.
         """
-        self._disable_callbacks()
-        print("Cue illuminated")
+        self._is_trial = True
         GPIO.output(self.spouts[spout_number].cue_pin, True)
-
-        for paw_pin in self._paw_pins:
-            GPIO.add_event_detect(
-                paw_pin,
-                GPIO.FALLING,
-                callback=self.on_trial_lift,
-                bouncetime=1000,
-            )
-
-        GPIO.add_event_detect(
-            self.spouts[spout_number].touch_pin,
-            GPIO.RISING,
-            callback=self.on_trial_correct,
-            bouncetime=1000,
-        )
-
-        GPIO.add_event_detect(
-            self.spouts[1 - spout_number].touch_pin,
-            GPIO.RISING,
-            callback=self.on_trial_incorrect,
-            bouncetime=1000,
-        )
-
-    def _disable_callbacks(self):
-        """
-        Remove event detection from all touch sensors at the end of the inter-trial
-        interval.
-        """
-        for pin in self._paw_pins:
-            GPIO.remove_event_detect(pin)
-
-        for pin in self._button_pins:
-            GPIO.remove_event_detect(pin)
-
-        for spout in self.spouts:
-            GPIO.remove_event_detect(spout.touch_pin)
+        self._current_target_spout = spout_number
+        print("Cue illuminated")
 
     def dispense_water(self, spout_number):
         """
@@ -275,7 +242,6 @@ class RaspberryPi(Backend):
         """
         Disable target spout LED and remove spout touch sensors event callbacks.
         """
-        self._disable_callbacks()
         for spout in self.spouts:
             GPIO.output(spout.cue_pin, False)
 
@@ -283,6 +249,14 @@ class RaspberryPi(Backend):
         """
         Clean up and uninitialise pins.
         """
+        for pin in self._paw_pins:
+            GPIO.remove_event_detect(pin)
+
+        for pin in self._button_pins:
+            GPIO.remove_event_detect(pin)
+
         for spout in self.spouts:
             spout.disable()
+            GPIO.remove_event_detect(spout.touch_pin)
+
         GPIO.cleanup()
