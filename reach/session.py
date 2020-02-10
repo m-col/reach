@@ -136,7 +136,7 @@ class Session:
         self.data['resets'] = []
         self.data['spontaneous_reaches'] = []
 
-        if previous_data:
+        if previous_data and previous_data['trials']:
             self._recent_trials.extend(previous_data['trials'])
             self._spout_position = self._recent_trials[-1]['spout_position']
             self._cue_duration = self._recent_trials[-1]['cue_duration']
