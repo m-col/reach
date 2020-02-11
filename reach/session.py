@@ -231,6 +231,8 @@ class Session:
 
         elif num_hits == 0:
             self._water_at_cue_onset = True
+
+        if self._water_at_cue_onset:
             self._message('Shaping.')
 
     def _inter_trial_interval(self):
