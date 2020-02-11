@@ -150,9 +150,9 @@ class RaspberryPi(Backend):
         spout = 0 if pin == self.spouts[0].touch_pin else 1
         if self._is_trial:
             if self._current_target_spout == spout:
-                self.session.on_trial_correct(spout)
+                self.session.on_trial_correct()
             else:
-                self.session.on_trial_incorrect(spout)
+                self.session.on_trial_incorrect()
         else:
             self.session.on_iti_grasp(spout)
 
