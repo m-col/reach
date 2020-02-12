@@ -367,8 +367,7 @@ class Session:
         self.data['trials'][-1]['end'] = time.time()
         self._backend.end_trial()
         self._outcome = 2
-        if self._water_at_cue_onset:
-            self._backend.miss_trial()
+        self._backend.miss_trial()
 
     def reverse_shaping(self):
         """
