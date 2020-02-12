@@ -162,9 +162,9 @@ class RaspberryPi(Backend):
         """
         button = self._button_pins.index(pin)
         if button == 1:
-            session.reverse_shaping()
+            self.session.reverse_shaping()
         elif button == 2:
-            session.extend_trial()
+            self.session.extend_trial()
 
     def disable_spouts(self):
         """
