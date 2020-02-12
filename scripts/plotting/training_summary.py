@@ -8,6 +8,7 @@ across days.
 import sys
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 
 from reach import Cohort
@@ -16,8 +17,13 @@ from reach import Cohort
 def main(cohort):
     fig, axes = plt.subplots(5, 1, sharex=True)
 
+    results = pd.DataFrame()
+    for mouse in cohort.results:
+        results = results.append(pd.DataFrame(mouse))
+    results['hit_rate'] = results['correct'] / results['trials']
+
     sns.lineplot(
-        data=cohort.results,
+        data=results,
         x='day',
         y='trials',
         hue='mouse_id',
@@ -26,7 +32,7 @@ def main(cohort):
     )
 
     sns.lineplot(
-        data=cohort.results,
+        data=results,
         x='day',
         y='correct',
         hue='mouse_id',
@@ -35,7 +41,7 @@ def main(cohort):
     )
 
     sns.lineplot(
-        data=cohort.results,
+        data=results,
         x='day',
         y='hit_rate',
         hue='mouse_id',
@@ -44,7 +50,7 @@ def main(cohort):
     )
 
     sns.lineplot(
-        data=cohort.results,
+        data=results,
         x='day',
         y='incorrect',
         hue='mouse_id',

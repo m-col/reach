@@ -455,6 +455,35 @@ class Session:
                 reaction_times.append(trial['end'] - trial['start'])
         return reaction_times
 
+    @cache
+    def results(self):
+        """
+        Return session training data in a pandas DataFrame.
+
+        Returns
+        -------
+        :class:`dict`
+            containing basic high-level metrics of the training session, and any other
+            metadata found in :class:`Session.data`.
+
+        """
+        results = self.data.copy()
+        results['missed'] = self.outcomes.count(0)
+        results['correct'] = self.outcomes.count(1)
+        results['incorrect'] = self.outcomes.count(2)
+        results['trials'] = len(self.data['trials'])
+        results['resets'] = len(self.data['resets'])
+        results['resets_l'] = len([x for x in self.data['resets'] if x[1] == 0])
+        results['resets_r'] = len([x for x in self.data['resets'] if x[1] == 1])
+        results['spontaneous_reaches'] = len(self.data['spontaneous_reaches'])
+        results['spontaneous_reaches_l'] = len(
+            [x for x in self.data['spontaneous_reaches'] if x[1] == 0]
+        )
+        results['spontaneous_reaches_r'] = len(
+            [x for x in self.data['spontaneous_reaches'] if x[1] == 1]
+        )
+        return results
+
 
 def print_results(session):
     """

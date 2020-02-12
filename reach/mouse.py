@@ -206,9 +206,23 @@ class Mouse:
             incorrect reach.
 
         """
-        successes = []
-        for session in self.training_data:
-            successes.append(
-                list(i['outcome'] for i in session.data['trials'])
-            )
-        return successes
+        return [session.outcomes for session in self.training_data]
+
+    @cache
+    def results(self):
+        """
+        Return training data for all sessions in a pandas DataFrame.
+
+        Returns
+        -------
+        :class:`list` of :class:`dict`\s
+            Each dict is :class:`Session.results`, with the day number and mouse ID
+            added.
+
+        """
+        results = []
+        for day, session in enumerate(self.training_data):
+            session.results['day'] = day + 1
+            session.results['mouse_id'] = self.mouse_id
+            results.append(session.results)
+        return results
