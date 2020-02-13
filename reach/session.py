@@ -53,7 +53,7 @@ class Session:
         self._outcome = 0
         self._iti_broken = False
         self._current_spout = 0
-        self._water_at_cue_onset = None
+        self._water_at_cue_onset = True
         self._backend = None
         self._message = print
         self._extended_trial = False
@@ -138,6 +138,7 @@ class Session:
 
         if previous_data and previous_data['trials']:
             self._recent_trials.extend(previous_data['trials'])
+            self._water_at_cue_onset = self._recent_trials[-1]['shaping']
             self._spout_position = self._recent_trials[-1]['spout_position']
             self._cue_duration = self._recent_trials[-1]['cue_duration']
 
