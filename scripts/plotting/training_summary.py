@@ -27,7 +27,7 @@ def main(cohort):
         x='day',
         y='trials',
         hue='mouse_id',
-        legend=False,
+        legend='brief',
         ax=axes[0],
     )
 
