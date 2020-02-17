@@ -430,7 +430,7 @@ class Session:
         """
         Get a list containing the outcomes for all trials.
         """
-        return list(i['outcome'] for i in self.data['trials'])
+        return list(i.get('outcome') for i in self.data['trials'])
 
     @cache
     def reward_count(self):
