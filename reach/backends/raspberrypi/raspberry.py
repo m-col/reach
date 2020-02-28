@@ -202,14 +202,13 @@ class RaspberryPi(Backend):
 
     def start_iti(self):
         """
-        Assign callback functions to touch sensors and buttons.
+        Change state to ITI.
         """
         self._is_trial = False
 
     def start_trial(self, spout_number):
         """
-        Illuminate a cue, record the time, and add callback functions to be executed
-        upon grasp of target spouts during trial.
+        Change state to trial.
         """
         self._is_trial = True
         GPIO.output(self.spouts[spout_number].cue_pin, True)
@@ -240,14 +239,14 @@ class RaspberryPi(Backend):
 
     def end_trial(self):
         """
-        Disable target spout LED and remove spout touch sensors event callbacks.
+        Disable target spout LEDs.
         """
         for spout in self.spouts:
             GPIO.output(spout.cue_pin, False)
 
     def cleanup(self):
         """
-        Clean up and uninitialise pins.
+        Clean up, remove event callbacks and uninitialise pins.
         """
         for pin in self._paw_pins:
             GPIO.remove_event_detect(pin)
