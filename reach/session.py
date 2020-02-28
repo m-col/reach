@@ -242,6 +242,12 @@ class Session:
 
         During the inter-trial interval we start listening for mouse movements using the
         touch sensors. Shaping can be toggled by pressing the start button.
+
+        Returns
+        -------
+        :class:`bool` : Whether to ITI ended normally rather than due to a manual
+        cancellation of the session.
+
         """
         self._backend.start_iti()
         self._extended_trial = False
