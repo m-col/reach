@@ -11,7 +11,7 @@ experimental mouse. They are used to start training sessions using the
 import json
 import os
 
-from reach.session import Session
+from reach.session import Session, ConditioningSession
 from reach.utilities import cache
 
 
@@ -91,6 +91,7 @@ class Mouse:
         additional_data=None,
         duration=None,
         intertrial_interval=None,
+        conditioning=False,
     ):
         """
         Create a new Session and run it, appending its newly-collected data to the
@@ -111,6 +112,9 @@ class Mouse:
             Min. and max. duration in milliseconds for the inter-trial intervals e.g.
             (4000, 6000)
 
+        conditioning : :class:`bool`, optional
+            Whether the training session is a conditioning session.
+
         """
 
         if self.mouse_id:
@@ -121,10 +125,16 @@ class Mouse:
         else:
             previous_data = None
 
-        new_session = Session()
+        if conditioning:
+            new_session = ConditioningSession()
+        else:
+            new_session = Session()
 
         if additional_data is not None:
             new_session.add_data(additional_data)
+
+        if conditioning:
+            new_session.add_data({'conditioning': True})
 
         new_session.run(
             backend,
