@@ -205,5 +205,4 @@ class Spout:
         """
         if hasattr(self._actuator, attr):
             return getattr(self._actuator, attr)
-        else:
-            raise AttributeError
+        raise AttributeError

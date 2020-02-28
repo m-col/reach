@@ -143,7 +143,7 @@ class Utilities(RaspberryPi):
         print("Press button 0 to trigger air puff.")
         print("Press button 1 to open solenoids.")
 
-        def _air_puff(pin):
+        def _air_puff(pin):  # pylint: disable=unused-argument
             self.air_puff()
 
         GPIO.add_event_detect(
@@ -186,7 +186,7 @@ class Utilities(RaspberryPi):
             bouncetime=500,
         )
 
-        def _dispense(pin):
+        def _dispense(pin):  # pylint: disable=unused-argument
             time.sleep(0.010)
             for spout_number in [0, 1]:
                 self.dispense_water(spout_number)
