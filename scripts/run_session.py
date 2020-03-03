@@ -25,11 +25,6 @@ mouse = Mouse.init_from_file(
     mouse_id=mouse_id,
 )
 
-# Create the backend
-backend = RaspberryPi(
-    reward_duration=60,
-)
-
 # Additional metadata
 metadata = {
     'trainer': trainer,
@@ -39,7 +34,7 @@ metadata = {
 
 # Begin the training session
 mouse.train(
-    backend,
+    RaspberryPi(reward_duration=0.070),  # raspberry pi backend
     additional_data=metadata,
     duration=1800,
     intertrial_interval=(4000, 6000),
@@ -55,7 +50,8 @@ if notes == 'rm':
     print('Not saving new training data.')
 
 else:
-    if 'outcome' in mouse[-1].data['trials']:
+    trials = mouse[-1].data['trials']
+    if trials and 'outcome' in trials[0]:
         mouse.save_data_to_file(data_dir)
     else:
         confirm = input('There were no new trials. Still save data? [Y/n]')
