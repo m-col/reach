@@ -507,7 +507,7 @@ class ConditioningSession(Session):
         rests. ITIs are only reset if the spouts are touched.
         """
         self._backend.start_iti()
-        self._extended_trial = False
+        self._water_at_cue_onset = False
         self._iti_broken = True
 
         while self._iti_broken:
@@ -549,7 +549,6 @@ class ConditioningSession(Session):
         """
         self._iti_broken = True
         self.data['spontaneous_reaches'].append((time.time(), side))
-        self._message('Spontaneous reach made!')
 
     def on_trial_lift(self, side):
         """
@@ -569,6 +568,7 @@ class ConditioningSession(Session):
         self.data['trials'][-1]['end'] = time.time()
         self._backend.end_trial()
         self._outcome = 1
+        self._backend.dispense_water(self._current_spout)
 
     def on_trial_incorrect(self):
         """
@@ -577,7 +577,6 @@ class ConditioningSession(Session):
         self.data['trials'][-1]['end'] = time.time()
         self._backend.end_trial()
         self._outcome = 2
-        self._backend.miss_trial()
 
 
 def print_results(session):
