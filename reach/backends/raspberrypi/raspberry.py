@@ -258,4 +258,10 @@ class RaspberryPi(Backend):
             spout.disable()
             GPIO.remove_event_detect(spout.touch_pin)
 
+    def __del__(self):
+        """
+        Cleanup only upon garbage-collection to prevent GPIO mode runtime errors in the
+        event that callback functions still operate on GPIO pins after self.cleanup
+        (though ideally this should never happen).
+        """
         GPIO.cleanup()
