@@ -140,7 +140,9 @@ class Session:
             self._recent_trials.extend(previous_data['trials'])
             self._water_at_cue_onset = self._recent_trials[-1]['shaping']
             self._spout_position = self._recent_trials[-1]['spout_position']
-            self._cue_duration = self._recent_trials[-1]['cue_duration']
+            self._cue_duration = min(
+                self._recent_trials[-1]['cue_duration'], self._cue_duration
+            )
 
         self._backend.position_spouts(self._spout_position)
         self._display_training_settings()
