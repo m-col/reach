@@ -56,11 +56,6 @@ class Backend:
         Called once before the training session begins.
         """
 
-    def disable_spouts(self):
-        """
-        Called when the spouts will not be used for a while, i.e. to remove power.
-        """
-
     def position_spouts(self, position, spout_number=None):
         """
         Called to move one or both spouts to a specified position.

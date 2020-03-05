@@ -154,7 +154,6 @@ class Session:
             sys.exit(1)
 
         signal.signal(signal.SIGINT, self._end_session)
-        self._backend.disable_spouts()
         self._trial_loop()
         self._end_session()
 
@@ -222,8 +221,6 @@ class Session:
                     self._message(
                         f'Spouts progressed to position {self._spout_position}'
                     )
-                    time.sleep(1)
-                    self._backend.disable_spouts()
 
             elif len(set(self._recent_trials.spout_position[-3:])) == 1:
                 if self._cue_duration > 2000:

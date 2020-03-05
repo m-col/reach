@@ -13,6 +13,7 @@ under one Spout class.
 """
 
 
+import threading
 import time
 import RPi.GPIO as GPIO  # pylint: disable=import-error
 
@@ -24,11 +25,6 @@ class _Actuator:
     def __init__(self, pin, pin2=None):
         self._pin = pin
         self._pin2 = pin2
-
-    def disable(self):
-        """
-        Disable the actuators.
-        """
 
     def set_position(self, position):
         """
@@ -48,43 +44,34 @@ class Actuonix_PG12_P(_Actuator):
 
     def __init__(self, pin, pin2=None):
         _Actuator.__init__(self, pin, pin2)
-        self._enabled = False
-        self._duty_cycle = 0
         GPIO.setup(pin, GPIO.OUT, initial=False)
         self._pwm = GPIO.PWM(pin, 50)
-
-    def _enable(self):
+        self._duty_cycle = 0
         self._pwm.start(self._duty_cycle)
-        self._enabled = True
-
-    def _set_duty_cycle(self, duty_cycle):
-        """
-        Set duty cycle of actuator PWM.
-        """
-        if not duty_cycle == 0:
-            if duty_cycle > 9.5:
-                duty_cycle = 9.5
-            elif duty_cycle < 7.3:
-                duty_cycle = 7.3
-
-        self._duty_cycle = duty_cycle
-        self._pwm.ChangeDutyCycle(duty_cycle)
-
-    def disable(self):
-        """
-        Disable PWM.
-        """
-        if self._enabled:
-            self._set_duty_cycle(0)
-            self._pwm.stop()
+        self._disable_thread = None
 
     def set_position(self, position):
         """
         Move the actuator to a determined position.
         """
-        if not self._enabled:
-            self._enable()
-        self._set_duty_cycle(Actuonix_PG12_P._DUTY_CYCLES[position - 1])
+        duty_cycle = Actuonix_PG12_P._DUTY_CYCLES[position - 1]
+        if not duty_cycle == 0:
+            if duty_cycle > 9.5:
+                duty_cycle = 9.5
+            elif duty_cycle < 7.2:
+                duty_cycle = 7.2
+
+        if self._disable_thread and self._disable_thread.isAlive():
+            time.sleep(1)
+        self._pwm.ChangeDutyCycle(duty_cycle)
+        self._duty_cycle = duty_cycle
+        # wait a second and remove power in background
+        self._disable_thread = threading.Thread(target=self._disable)
+        self._disable_thread.start()
+
+    def _disable(self):
+        time.sleep(1)
+        self._pwm.ChangeDutyCycle(0)
 
 
 class Actuonix_L12_S(_Actuator):
@@ -126,10 +113,6 @@ class Actuonix_L12_S(_Actuator):
             self._pwm2.ChangeDutyCycle(0)
         self._position = position
 
-    def disable(self):
-        self._pwm.ChangeDutyCycle(0)
-        self._pwm2.ChangeDutyCycle(0)
-
     def move(self, retract, duration):
         """
         Freely move the actuators by a specified duration.
@@ -149,7 +132,9 @@ class Actuonix_L12_S(_Actuator):
         pwm.ChangeDutyCycle(0)
 
     def __del__(self):
+        self._pwm.ChangeDutyCycle(0)
         self._pwm.stop()
+        self._pwm2.ChangeDutyCycle(0)
         self._pwm2.stop()
 
 
@@ -186,12 +171,11 @@ class Spout:
         GPIO.setup(self.touch_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.reward_pin, GPIO.OUT, initial=False)
 
-    def disable(self):
+    def cleanup(self):
         """
-        Disable actuator and close solenoid valve.
+        Close solenoid valve.
         """
         GPIO.output(self.reward_pin, False)
-        self._actuator.disable()
 
     def set_position(self, position):
         """

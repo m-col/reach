@@ -166,13 +166,6 @@ class RaspberryPi(Backend):
         elif button == 2:
             self.session.extend_trial()
 
-    def disable_spouts(self):
-        """
-        Disable the spouts from movement, if they support it.
-        """
-        for spout in self.spouts:
-            spout.disable()
-
     def position_spouts(self, position, spout_number=None):
         """
         Move one or both spouts to specified position.
@@ -255,7 +248,7 @@ class RaspberryPi(Backend):
             GPIO.remove_event_detect(pin)
 
         for spout in self.spouts:
-            spout.disable()
+            spout.cleanup()
             GPIO.remove_event_detect(spout.touch_pin)
 
     def __del__(self):
