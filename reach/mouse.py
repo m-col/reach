@@ -92,6 +92,7 @@ class Mouse:
         duration=None,
         intertrial_interval=None,
         conditioning=False,
+        hook=None,
     ):
         """
         Create a new Session and run it, appending its newly-collected data to the
@@ -115,6 +116,9 @@ class Mouse:
         conditioning : :class:`bool`, optional
             Whether the training session is a conditioning session.
 
+        hook : :class:`callable`, optional
+            An object that will be called at the end of every trial.
+
         """
 
         if self.mouse_id:
@@ -136,14 +140,14 @@ class Mouse:
         if conditioning:
             new_session.add_data({'conditioning': True})
 
+        self.training_data.append(new_session)
         new_session.run(
             backend,
             previous_data=previous_data,
             duration=duration,
             intertrial_interval=intertrial_interval,
+            hook=hook,
         )
-
-        self.training_data.append(new_session)
 
     def save_data_to_file(self, data_dir):
         """

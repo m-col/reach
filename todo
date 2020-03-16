@@ -5,10 +5,7 @@ core code
 ---------
 
 [ ] update curses following backend refactor
-[ ] Record when mice rest paws (for IGM durations)
 [ ] replace backend.dispense_water with generalised backend.reward
-
-extra code
-----------
-
-[ ] tests for Backend subclasses?
+[ ] IR break beam instead of touch sensors - does this need codework?
+[x] add optional hook that can be executed at the end of every trial
+[ ] rename 'conditioning' to 'freely_moving'

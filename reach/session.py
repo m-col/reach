@@ -60,6 +60,7 @@ class Session:
         self._cue_duration = 10000
         self._recent_trials = TrialDeque([], _SLIDING_WINDOW)
         self._spout_position = 1
+        self._hook = None
 
     @classmethod
     def init_all_from_file(cls, full_path):
@@ -100,6 +101,7 @@ class Session:
         duration=None,
         intertrial_interval=None,
         previous_data=None,
+        hook=None,
     ):
         """
         Begin a training session.
@@ -120,12 +122,16 @@ class Session:
             Training data from the previous session, which if provided will be used when
             calculating initial cue duration, spout position and shaping status.
 
+        hook : :class:`callable`, optional
+            An object that will be called at the end of every trial.
+
         """
         if not isinstance(backend, reach.backends.Backend):
             raise SystemError(
                 'Provided backend is not an instance of reach.backend.Backend'
             )
         self._backend = backend
+        self._hook = hook
 
         if hasattr(self._backend, 'message'):
             self._message = self._backend.message
@@ -197,6 +203,8 @@ class Session:
             if self._inter_trial_interval():
                 self._trial()
                 self._message(f"Total rewards: {self._reward_count}")
+                if self._hook is not None:
+                    self._hook()
                 now = time.time()
 
             if self._outcome == 3:
