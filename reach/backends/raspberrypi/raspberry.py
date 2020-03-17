@@ -41,6 +41,11 @@ class RaspberryPi(Backend):
         The bouncetime in seconds assigned to the buttons to prevent accidental
         double-pressing. Default: 0.100
 
+    pin_numbers : :class:`dict`, optional
+        A dictionary mapping raspberry pi GPIO pin numbers to components. This should be
+        formatted exactly as :class:`RaspberryPi._PIN_NUMBERS`, with only the pin values
+        changed.
+
     """
     _PIN_NUMBERS = {
         'buttons': (2, 3, 4, 7),
@@ -70,24 +75,27 @@ class RaspberryPi(Backend):
         reward_duration=None,
         air_puff_duration=None,
         button_bouncetime=None,
+        pin_numbers=None,
     ):
         Backend.__init__(self)
         self._reward_duration = reward_duration or 0.100
         self._air_puff_duration = air_puff_duration or 0.030
         self._button_bouncetime = int((button_bouncetime or 0.100) * 1000)
 
-        self._button_pins = RaspberryPi._PIN_NUMBERS['buttons']
-        self._paw_pins = RaspberryPi._PIN_NUMBERS['paw_sensors']
-        self._air_puff = RaspberryPi._PIN_NUMBERS['air_puff']
-        self._target_pins = [x['touch'] for x in RaspberryPi._PIN_NUMBERS['spouts']]
+        if pin_numbers is None:
+            pin_numbers = RaspberryPi._PIN_NUMBERS
+        self._button_pins = pin_numbers['buttons']
+        self._paw_pins = pin_numbers['paw_sensors']
+        self._air_puff = pin_numbers['air_puff']
+        self._target_pins = [x['touch'] for x in pin_numbers['spouts']]
 
         GPIO.setup(self._button_pins, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self._air_puff, GPIO.OUT, initial=False)
 
         self.spouts = [
-            spouts.Spout(RaspberryPi._PIN_NUMBERS['spouts'][0], actuator),
-            spouts.Spout(RaspberryPi._PIN_NUMBERS['spouts'][1], actuator),
+            spouts.Spout(pin_numbers['spouts'][0], actuator),
+            spouts.Spout(pin_numbers['spouts'][1], actuator),
         ]
         self.on_button = []
 
@@ -184,10 +192,7 @@ class RaspberryPi(Backend):
         """
         print("Waiting for rest... ")
         try:
-            while not all([
-                GPIO.input(self._paw_pins[0]),
-                GPIO.input(self._paw_pins[1]),
-            ]):
+            while not all([GPIO.input(pin) for pin in self._paw_pins]):
                 time.sleep(0.010)
         except RuntimeError:
             # Ignore GPIO error when Ctrl-C cancels training
