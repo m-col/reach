@@ -65,18 +65,18 @@ class Session:
         self._hook = None
 
     @classmethod
-    def init_all_from_file(cls, full_path):
+    def init_all_from_file(cls, data_file):
         """
         Generate a :class:`list` of :class:`Session` objects from data stored in a
         Training JSON.
 
         Parameters
         ----------
-        full_path : :class:`str`
+        data_file : :class:`str`
             Full path to file containing existing training data.
 
         """
-        with open(full_path, "r") as fd:
+        with open(data_file, "r") as fd:
             previous_data = json.load(fd)
 
         training_data = [cls(data=data) for data in previous_data]

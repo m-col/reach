@@ -34,7 +34,6 @@ class Mouse:
     """
 
     def __init__(self, mouse_id=None, training_data=None):
-
         if training_data is None:
             training_data = []
 
@@ -73,10 +72,10 @@ class Mouse:
         if not os.path.isdir(data_dir):
             raise SystemError(f"Could not find directory {data_dir}")
 
-        full_path = os.path.join(data_dir, f"{mouse_id}.json")
+        data_file = os.path.join(data_dir, f"{mouse_id}.json")
 
-        if os.path.isfile(full_path):
-            training_data = Session.init_all_from_file(full_path)
+        if os.path.isfile(data_file):
+            training_data = Session.init_all_from_file(data_file)
             mouse = cls(mouse_id=mouse_id, training_data=training_data)
 
         else:
@@ -160,15 +159,15 @@ class Mouse:
 
         """
         if os.path.isdir(data_dir):
-            full_path = os.path.join(data_dir, f"{self.mouse_id}.json")
+            data_file = os.path.join(data_dir, f"{self.mouse_id}.json")
         else:
-            full_path = f"./{self.mouse_id}_temp.json"
+            data_file = f"./{self.mouse_id}_temp.json"
 
         data = [i.data for i in self.training_data]
-        with open(full_path, "w") as fd:
+        with open(data_file, "w") as fd:
             json.dump(data, fd)
 
-        print(f"Data was saved in {full_path}")
+        print(f"Data was saved in {data_file}")
 
     def get_session_reaction_times(self, session_number):
         """

@@ -33,7 +33,7 @@ class Cohort(Sequence):
         self.mouse_ids = mouse_ids or []
 
     @classmethod
-    def init_from_files(cls, data_dir=None, mouse_ids=None):
+    def init_from_files(cls, data_dir, mouse_ids):
         """
         Initialise the cohort of mice using training files stored within the same
         folder.
