@@ -19,6 +19,7 @@ class Utilities(RaspberryPi):
     A representation of a Raspberry Pi that exposes utilities for testing the training
     hardware.
     """
+
     def __init__(self):
         RaspberryPi.__init__(self)
         self.spout_position = 1
@@ -31,16 +32,13 @@ class Utilities(RaspberryPi):
 
         def _print_number(pin):
             if GPIO.input(pin):
-                print(f'You released button: {self._button_pins.index(pin)}')
+                print(f"You released button: {self._button_pins.index(pin)}")
             else:
-                print(f'You pressed button: {self._button_pins.index(pin)}')
+                print(f"You pressed button: {self._button_pins.index(pin)}")
 
         for pin in self._button_pins:
             GPIO.add_event_detect(
-                pin,
-                GPIO.BOTH,
-                callback=_print_number,
-                bouncetime=500,
+                pin, GPIO.BOTH, callback=_print_number, bouncetime=500,
             )
 
     def hold_open_solenoid(self):
@@ -58,10 +56,7 @@ class Utilities(RaspberryPi):
 
         for pin in self._button_pins[0:2]:
             GPIO.add_event_detect(
-                pin,
-                GPIO.BOTH,
-                callback=_toggle,
-                bouncetime=20,
+                pin, GPIO.BOTH, callback=_toggle, bouncetime=20,
             )
 
     def test_sensors(self):
@@ -82,18 +77,12 @@ class Utilities(RaspberryPi):
 
         for pin in spout_pins:
             GPIO.add_event_detect(
-                pin,
-                GPIO.BOTH,
-                callback=_print_touch,
-                bouncetime=10,
+                pin, GPIO.BOTH, callback=_print_touch, bouncetime=10,
             )
 
         for pin in self._paw_pins:
             GPIO.add_event_detect(
-                pin,
-                GPIO.BOTH,
-                callback=_print_touch,
-                bouncetime=10,
+                pin, GPIO.BOTH, callback=_print_touch, bouncetime=10,
             )
 
     def toggle_spout_leds(self):
@@ -111,10 +100,7 @@ class Utilities(RaspberryPi):
 
         for pin in self._button_pins[0:2]:
             GPIO.add_event_detect(
-                pin,
-                GPIO.FALLING,
-                callback=_toggle,
-                bouncetime=500,
+                pin, GPIO.FALLING, callback=_toggle, bouncetime=500,
             )
 
     def test_reward_volume(self):
@@ -129,10 +115,7 @@ class Utilities(RaspberryPi):
 
         for pin in self._button_pins[0:2]:
             GPIO.add_event_detect(
-                pin,
-                GPIO.FALLING,
-                callback=_dispense,
-                bouncetime=500,
+                pin, GPIO.FALLING, callback=_dispense, bouncetime=500,
             )
 
     def test_air_puffs(self):
@@ -147,25 +130,18 @@ class Utilities(RaspberryPi):
             self.air_puff()
 
         GPIO.add_event_detect(
-            self._button_pins[0],
-            GPIO.FALLING,
-            callback=_air_puff,
-            bouncetime=500,
+            self._button_pins[0], GPIO.FALLING, callback=_air_puff, bouncetime=500,
         )
 
         def _toggle(pin):
             time.sleep(0.010)
             for spout in self.spouts:
                 GPIO.output(
-                    spout.reward_pin,
-                    not GPIO.input(pin),
+                    spout.reward_pin, not GPIO.input(pin),
                 )
 
         GPIO.add_event_detect(
-            self._button_pins[1],
-            GPIO.BOTH,
-            callback=_toggle,
-            bouncetime=20,
+            self._button_pins[1], GPIO.BOTH, callback=_toggle, bouncetime=20,
         )
 
     def test_reward_volume_with_air_puffs(self):
@@ -180,10 +156,7 @@ class Utilities(RaspberryPi):
         print("Press button 1 to dispense water.")
 
         GPIO.add_event_detect(
-            self._button_pins[0],
-            GPIO.FALLING,
-            callback=self.air_puff,
-            bouncetime=500,
+            self._button_pins[0], GPIO.FALLING, callback=self.air_puff, bouncetime=500,
         )
 
         def _dispense(pin):  # pylint: disable=unused-argument
@@ -192,10 +165,7 @@ class Utilities(RaspberryPi):
                 self.dispense_water(spout_number)
 
         GPIO.add_event_detect(
-            self._button_pins[1],
-            GPIO.FALLING,
-            callback=_dispense,
-            bouncetime=500,
+            self._button_pins[1], GPIO.FALLING, callback=_dispense, bouncetime=500,
         )
 
     def step_actuators(self):
@@ -217,15 +187,12 @@ class Utilities(RaspberryPi):
                 self.spout_position = 1
             if button_num == 3 or self.spout_position > 7:
                 self.spout_position = 7
-            print(f'Spout position: {self.spout_position}')
+            print(f"Spout position: {self.spout_position}")
             self.position_spouts(self.spout_position)
 
         for pin in self._button_pins:
             GPIO.add_event_detect(
-                pin,
-                GPIO.FALLING,
-                callback=_move_spouts,
-                bouncetime=1000,
+                pin, GPIO.FALLING, callback=_move_spouts, bouncetime=1000,
             )
 
     def move_actuators(self):
@@ -242,8 +209,5 @@ class Utilities(RaspberryPi):
 
         for pin in self._button_pins:
             GPIO.add_event_detect(
-                pin,
-                GPIO.FALLING,
-                callback=_move_spouts,
-                bouncetime=200,
+                pin, GPIO.FALLING, callback=_move_spouts, bouncetime=200,
             )

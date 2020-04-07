@@ -17,6 +17,7 @@ class Mock(Backend):
     """
     A mock instance of a raspberry pi and its GPIO pins.
     """
+
     def wait_to_start(self):
         """
         Print start message and wait for enter key.

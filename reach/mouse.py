@@ -71,9 +71,9 @@ class Mouse:
 
         """
         if not os.path.isdir(data_dir):
-            raise SystemError(f'Could not find directory {data_dir}')
+            raise SystemError(f"Could not find directory {data_dir}")
 
-        full_path = os.path.join(data_dir, f'{mouse_id}.json')
+        full_path = os.path.join(data_dir, f"{mouse_id}.json")
 
         if os.path.isfile(full_path):
             training_data = Session.init_all_from_file(full_path)
@@ -122,7 +122,7 @@ class Mouse:
         """
 
         if self.mouse_id:
-            print(f'Training mouse: {self.mouse_id}')
+            print(f"Training mouse: {self.mouse_id}")
 
         if self.training_data:
             previous_data = self.training_data[-1].data
@@ -138,7 +138,7 @@ class Mouse:
             new_session.add_data(additional_data)
 
         if conditioning:
-            new_session.add_data({'conditioning': True})
+            new_session.add_data({"conditioning": True})
 
         self.training_data.append(new_session)
         new_session.run(
@@ -160,12 +160,12 @@ class Mouse:
 
         """
         if os.path.isdir(data_dir):
-            full_path = os.path.join(data_dir, f'{self.mouse_id}.json')
+            full_path = os.path.join(data_dir, f"{self.mouse_id}.json")
         else:
-            full_path = f'./{self.mouse_id}_temp.json'
+            full_path = f"./{self.mouse_id}_temp.json"
 
         data = [i.data for i in self.training_data]
-        with open(full_path, 'w') as fd:
+        with open(full_path, "w") as fd:
             json.dump(data, fd)
 
         print(f"Data was saved in {full_path}")
@@ -236,7 +236,7 @@ class Mouse:
         """
         results = []
         for day, session in enumerate(self.training_data):
-            session.results['day'] = day + 1
-            session.results['mouse_id'] = self.mouse_id
+            session.results["day"] = day + 1
+            session.results["mouse_id"] = self.mouse_id
             results.append(session.results)
         return results

@@ -22,6 +22,7 @@ class _Actuator:
     """
     This is a base class for linear actuators that are controlled by a raspberry.Spout.
     """
+
     def __init__(self, pin, pin2=None):
         self._pin = pin
         self._pin2 = pin2
@@ -38,8 +39,15 @@ class Actuonix_PG12_P(_Actuator):
 
     These duty cycles produce 1 mm intervals in position.
     """
+
     _DUTY_CYCLES = (
-        7.2, 7.7, 7.95, 8.2, 8.4, 8.7, 8.9,
+        7.2,
+        7.7,
+        7.95,
+        8.2,
+        8.4,
+        8.7,
+        8.9,
     )
 
     def __init__(self, pin, pin2=None):
@@ -81,6 +89,7 @@ class Actuonix_L12_S(_Actuator):
     The step_time attribute is how many milliseconds of 12V input is required to move
     the actuator 1 mm.
     """
+
     _step_time = 0.200
     _duty_cycle = 20
     _frequency = 100
@@ -154,17 +163,18 @@ class Spout:
         Actuonix_L12_S is used.
 
     """
+
     def __init__(self, pins, actuator=None):
-        self.cue_pin = pins['cue']
-        self.touch_pin = pins['touch']
-        self.reward_pin = pins['reward']
-        self.actuator_pin = pins['actuator']
-        self.actuator_reverse_pin = pins['actuator_reverse']
+        self.cue_pin = pins["cue"]
+        self.touch_pin = pins["touch"]
+        self.reward_pin = pins["reward"]
+        self.actuator_pin = pins["actuator"]
+        self.actuator_reverse_pin = pins["actuator_reverse"]
 
         if actuator is None:
             actuator = Actuonix_PG12_P
         elif not isinstance(actuator, _Actuator):
-            raise SystemError(f'Unknown actuator: {actuator}')
+            raise SystemError(f"Unknown actuator: {actuator}")
         self._actuator = actuator(self.actuator_pin, self.actuator_reverse_pin)
 
         GPIO.setup(self.cue_pin, GPIO.OUT, initial=False)

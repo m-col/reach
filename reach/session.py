@@ -28,6 +28,7 @@ class TrialDeque(deque):
     This lets the Session do e.g. recent_trials.shaping to return a list containing the
     values stored in all trials in the deque (which are themselves dicts).
     """
+
     def __getattr__(self, name):
         if len(self) == 0:
             return []
@@ -45,6 +46,7 @@ class Session:
         training data.
 
     """
+
     def __init__(self, data=None):
         self.data = data or {}
 
@@ -74,12 +76,10 @@ class Session:
             Full path to file containing existing training data.
 
         """
-        with open(full_path, 'r') as fd:
+        with open(full_path, "r") as fd:
             previous_data = json.load(fd)
 
-        training_data = [
-            cls(data=data) for data in previous_data
-        ]
+        training_data = [cls(data=data) for data in previous_data]
 
         return training_data
 
@@ -128,26 +128,26 @@ class Session:
         """
         if not isinstance(backend, reach.backends.Backend):
             raise SystemError(
-                'Provided backend is not an instance of reach.backend.Backend'
+                "Provided backend is not an instance of reach.backend.Backend"
             )
         self._backend = backend
         self._hook = hook
 
-        if hasattr(self._backend, 'message'):
+        if hasattr(self._backend, "message"):
             self._message = self._backend.message
 
-        self.data['duration'] = duration or 1800
-        self.data['intertrial_interval'] = intertrial_interval or (4000, 6000)
-        self.data['trials'] = []
-        self.data['resets'] = []
-        self.data['spontaneous_reaches'] = []
+        self.data["duration"] = duration or 1800
+        self.data["intertrial_interval"] = intertrial_interval or (4000, 6000)
+        self.data["trials"] = []
+        self.data["resets"] = []
+        self.data["spontaneous_reaches"] = []
 
-        if previous_data and previous_data['trials']:
-            self._recent_trials.extend(previous_data['trials'])
-            self._water_at_cue_onset = self._recent_trials[-1]['shaping']
-            self._spout_position = self._recent_trials[-1]['spout_position']
+        if previous_data and previous_data["trials"]:
+            self._recent_trials.extend(previous_data["trials"])
+            self._water_at_cue_onset = self._recent_trials[-1]["shaping"]
+            self._spout_position = self._recent_trials[-1]["spout_position"]
             self._cue_duration = min(
-                self._recent_trials[-1]['cue_duration'], self._cue_duration
+                self._recent_trials[-1]["cue_duration"], self._cue_duration
             )
 
         self._backend.position_spouts(self._spout_position)
@@ -158,7 +158,7 @@ class Session:
             self._backend.wait_to_start()
         except KeyboardInterrupt:
             self._backend.cleanup()
-            self._message('Cancelled..')
+            self._message("Cancelled..")
             sys.exit(1)
 
         signal.signal(signal.SIGINT, self._end_session)
@@ -170,9 +170,11 @@ class Session:
         Display the training settings that will be used for the upcoming training
         session.
         """
-        iti_min, iti_max = self.data['intertrial_interval']
+        iti_min, iti_max = self.data["intertrial_interval"]
 
-        self._message(textwrap.dedent(f"""
+        self._message(
+            textwrap.dedent(
+                f"""
             _________________________________
 
             Duration:               {self.data['duration']} s
@@ -180,7 +182,9 @@ class Session:
             Initial cue duration:   {self._cue_duration} ms
             Initial spout position: {self._spout_position}
             _________________________________
-        """))
+        """
+            )
+        )
 
     def _trial_loop(self):
         """
@@ -188,17 +192,19 @@ class Session:
         """
         data = self.data
         now = time.time()
-        data['start_time'] = now
-        data['end_time'] = now + data['duration']
+        data["start_time"] = now
+        data["end_time"] = now + data["duration"]
 
         trial_count = 0
 
-        while now < data['end_time']:
+        while now < data["end_time"]:
             trial_count += 1
             self._outcome = 0
             self._message("_____________________________________")
-            self._message("# -- Starting trial #%i -- %4.0f s -- #"
-                          % (trial_count, now - data['start_time']))
+            self._message(
+                "# -- Starting trial #%i -- %4.0f s -- #"
+                % (trial_count, now - data["start_time"])
+            )
             self._adapt_settings()
             if self._inter_trial_interval():
                 self._trial()
@@ -214,7 +220,7 @@ class Session:
         """
         Adapt live training settings based on recent behavioural performance.
         """
-        if self._recent_trials and self._recent_trials[-1]['outcome'] == 1:
+        if self._recent_trials and self._recent_trials[-1]["outcome"] == 1:
             self._current_spout = random.randint(0, 1)
 
         num_hits = self._recent_trials.outcome.count(1)
@@ -229,19 +235,19 @@ class Session:
                     self._spout_position += 1
                     self._backend.position_spouts(self._spout_position)
                     self._message(
-                        f'Spouts progressed to position {self._spout_position}'
+                        f"Spouts progressed to position {self._spout_position}"
                     )
 
             elif len(set(self._recent_trials.spout_position[-3:])) == 1:
                 if self._cue_duration > 2000:
                     self._cue_duration = max(int(self._cue_duration * 0.9), 2000)
-                    self._message(f'Cue duration decreased to {self._cue_duration} ms')
+                    self._message(f"Cue duration decreased to {self._cue_duration} ms")
 
         elif num_hits == 0:
             self._water_at_cue_onset = True
 
         if self._water_at_cue_onset:
-            self._message('Shaping.')
+            self._message("Shaping.")
 
     def _inter_trial_interval(self):
         """
@@ -265,7 +271,7 @@ class Session:
             self._iti_broken = False
 
             now = time.time()
-            iti_duration = random.uniform(*self.data['intertrial_interval']) / 1000
+            iti_duration = random.uniform(*self.data["intertrial_interval"]) / 1000
             iti_end = now + iti_duration
             self._message(f"Counting down {iti_duration:.2f}s")
 
@@ -282,14 +288,14 @@ class Session:
         Run trial during training session.
         """
         now = time.time()
-        self.data['trials'].append({'start': now})
+        self.data["trials"].append({"start": now})
 
         self._backend.start_trial(self._current_spout)
         if self._water_at_cue_onset:
             self._backend.dispense_water(self._current_spout)
 
         if self._extended_trial:
-            cue_duration = self.data['end_time'] - now
+            cue_duration = self.data["end_time"] - now
         else:
             cue_duration = self._cue_duration / 1000
         cue_end = now + cue_duration
@@ -302,7 +308,7 @@ class Session:
             self._backend.end_trial()
             self._backend.miss_trial()
             self._message("Missed reach")
-            self.data['trials'][-1]['end'] = cue_end
+            self.data["trials"][-1]["end"] = cue_end
 
         elif self._outcome == 1:
             self._message("Successful reach!")
@@ -314,14 +320,16 @@ class Session:
         elif self._outcome == 3:
             return
 
-        self.data['trials'][-1].update(dict(
-            spout=self._current_spout,
-            shaping=self._water_at_cue_onset,
-            cue_duration=cue_duration * 1000,
-            outcome=self._outcome,
-            spout_position=self._spout_position,
-        ))
-        self._recent_trials.append(self.data['trials'][-1])
+        self.data["trials"][-1].update(
+            dict(
+                spout=self._current_spout,
+                shaping=self._water_at_cue_onset,
+                cue_duration=cue_duration * 1000,
+                outcome=self._outcome,
+                spout_position=self._spout_position,
+            )
+        )
+        self._recent_trials.append(self.data["trials"][-1])
 
     def on_iti_lift(self, side):
         """
@@ -335,7 +343,7 @@ class Session:
 
         """
         self._iti_broken = True
-        self.data['resets'].append((time.time(), side))
+        self.data["resets"].append((time.time(), side))
 
     def on_iti_grasp(self, side):
         """
@@ -347,8 +355,8 @@ class Session:
             Which spout was grasped: 0 for left, 1 for right.
 
         """
-        self.data['spontaneous_reaches'].append((time.time(), side))
-        self._message('Spontaneous reach made!')
+        self.data["spontaneous_reaches"].append((time.time(), side))
+        self._message("Spontaneous reach made!")
 
     def on_trial_lift(self, side):
         """
@@ -360,15 +368,15 @@ class Session:
             Which spout side paw was lifted: 0 for left, 1 for right.
 
         """
-        if 'lift_time' not in self.data['trials'][-1]:
-            self.data['trials'][-1]['lift_time'] = time.time()
-            self.data['trials'][-1]['lift_paw'] = side
+        if "lift_time" not in self.data["trials"][-1]:
+            self.data["trials"][-1]["lift_time"] = time.time()
+            self.data["trials"][-1]["lift_paw"] = side
 
     def on_trial_correct(self):
         """
         To be executed upon successful grasp of the reach target during each trial.
         """
-        self.data['trials'][-1]['end'] = time.time()
+        self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
         self._outcome = 1
         if not self._water_at_cue_onset:
@@ -378,7 +386,7 @@ class Session:
         """
         To be executed upon grasp of the incorrect reach target during each trial.
         """
-        self.data['trials'][-1]['end'] = time.time()
+        self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
         self._outcome = 2
         self._backend.miss_trial()
@@ -389,7 +397,7 @@ class Session:
         switches water dispensing between cue onset and grasp for the next trial.
         """
         self._water_at_cue_onset = not self._water_at_cue_onset
-        self._message(f'Water at cue onset: {self._water_at_cue_onset}')
+        self._message(f"Water at cue onset: {self._water_at_cue_onset}")
 
     def extend_trial(self):
         """
@@ -398,10 +406,10 @@ class Session:
         """
         if self._extended_trial:
             self._extended_trial = False
-            self._message('Next trial will NOT be an extended trial')
+            self._message("Next trial will NOT be an extended trial")
         else:
             self._extended_trial = True
-            self._message('Next trial will be an extended trial')
+            self._message("Next trial will be an extended trial")
 
     def _end_session(self, signal_number=None, frame=None):  # pylint: disable=W0613
         """
@@ -428,22 +436,20 @@ class Session:
 
         data = self.data
         if signal_number:
-            data['end_time'] = time.time()
-            data['duration'] = data['end_time'] - data['start_time']
-        data['date'] = time.strftime('%Y-%m-%d')
-        data['start_time'] = time.strftime(
-            '%H:%M:%S', time.localtime(data['start_time'])
+            data["end_time"] = time.time()
+            data["duration"] = data["end_time"] - data["start_time"]
+        data["date"] = time.strftime("%Y-%m-%d")
+        data["start_time"] = time.strftime(
+            "%H:%M:%S", time.localtime(data["start_time"])
         )
-        data['end_time'] = time.strftime(
-            '%H:%M:%S', time.localtime(data['end_time'])
-        )
+        data["end_time"] = time.strftime("%H:%M:%S", time.localtime(data["end_time"]))
 
     @cache
     def outcomes(self):
         """
         Get a list containing the outcomes for all trials.
         """
-        return list(i.get('outcome') for i in self.data['trials'])
+        return list(i.get("outcome") for i in self.data["trials"])
 
     @cache
     def reward_count(self):
@@ -464,9 +470,9 @@ class Session:
 
         """
         reaction_times = []
-        for trial in self.data['trials']:
-            if trial['outcome'] == 1:
-                reaction_times.append(trial['end'] - trial['start'])
+        for trial in self.data["trials"]:
+            if trial["outcome"] == 1:
+                reaction_times.append(trial["end"] - trial["start"])
         return reaction_times
 
     @cache
@@ -482,19 +488,19 @@ class Session:
 
         """
         results = self.data.copy()
-        results['missed'] = self.outcomes.count(0)
-        results['correct'] = self.outcomes.count(1)
-        results['incorrect'] = self.outcomes.count(2)
-        results['trials'] = len(self.data['trials'])
-        results['resets'] = len(self.data['resets'])
-        results['resets_l'] = len([x for x in self.data['resets'] if x[1] == 0])
-        results['resets_r'] = len([x for x in self.data['resets'] if x[1] == 1])
-        results['spontaneous_reaches'] = len(self.data['spontaneous_reaches'])
-        results['spontaneous_reaches_l'] = len(
-            [x for x in self.data['spontaneous_reaches'] if x[1] == 0]
+        results["missed"] = self.outcomes.count(0)
+        results["correct"] = self.outcomes.count(1)
+        results["incorrect"] = self.outcomes.count(2)
+        results["trials"] = len(self.data["trials"])
+        results["resets"] = len(self.data["resets"])
+        results["resets_l"] = len([x for x in self.data["resets"] if x[1] == 0])
+        results["resets_r"] = len([x for x in self.data["resets"] if x[1] == 1])
+        results["spontaneous_reaches"] = len(self.data["spontaneous_reaches"])
+        results["spontaneous_reaches_l"] = len(
+            [x for x in self.data["spontaneous_reaches"] if x[1] == 0]
         )
-        results['spontaneous_reaches_r'] = len(
-            [x for x in self.data['spontaneous_reaches'] if x[1] == 1]
+        results["spontaneous_reaches_r"] = len(
+            [x for x in self.data["spontaneous_reaches"] if x[1] == 1]
         )
         return results
 
@@ -508,6 +514,7 @@ class ConditioningSession(Session):
     This is a slightly trimmed version of :class:`Session` that does not have shaping
     trials or paw rests and their callbacks.
     """
+
     def _inter_trial_interval(self):
         """
         Here we do not wait for mice to stay still as in these sessions there are no paw
@@ -521,7 +528,7 @@ class ConditioningSession(Session):
             self._iti_broken = False
 
             now = time.time()
-            iti_duration = random.uniform(*self.data['intertrial_interval']) / 1000
+            iti_duration = random.uniform(*self.data["intertrial_interval"]) / 1000
             iti_end = now + iti_duration
             self._message(f"Counting down {iti_duration:.2f}s")
 
@@ -555,7 +562,7 @@ class ConditioningSession(Session):
 
         """
         self._iti_broken = True
-        self.data['spontaneous_reaches'].append((time.time(), side))
+        self.data["spontaneous_reaches"].append((time.time(), side))
 
     def on_trial_lift(self, side):
         """
@@ -572,7 +579,7 @@ class ConditioningSession(Session):
         """
         To be executed upon successful grasp of the reach target during each trial.
         """
-        self.data['trials'][-1]['end'] = time.time()
+        self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
         self._outcome = 1
         self._backend.dispense_water(self._current_spout)
@@ -581,7 +588,7 @@ class ConditioningSession(Session):
         """
         To be executed upon grasp of the incorrect reach target during each trial.
         """
-        self.data['trials'][-1]['end'] = time.time()
+        self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
         self._outcome = 2
 
@@ -592,25 +599,27 @@ def print_results(session):
     """
     data = session.data
 
-    if not data['trials']:
+    if not data["trials"]:
         return
-    if 'outcome' not in data['trials'][-1]:
-        data['trials'].pop()
-        if not data['trials']:
+    if "outcome" not in data["trials"][-1]:
+        data["trials"].pop()
+        if not data["trials"]:
             return
 
-    trial_count = len(data['trials'])
+    trial_count = len(data["trials"])
     miss_count = session.outcomes.count(0)
     miss_perc = 100 * miss_count / trial_count
     reward_count = session.outcomes.count(1)
     reward_perc = 100 * reward_count / trial_count
     incorrect_count = session.outcomes.count(2)
     incorrect_perc = 100 * incorrect_count / trial_count
-    reset_pins = [y for x, y in data['resets']]
+    reset_pins = [y for x, y in data["resets"]]
     left_resets = reset_pins.count(0)
     right_resets = reset_pins.count(1)
 
-    print(textwrap.dedent(f"""
+    print(
+        textwrap.dedent(
+            f"""
         _________________________________
         # __________ The End __________ #
 
@@ -623,4 +632,6 @@ def print_results(session):
             left paw:      {left_resets}
             right paw:     {right_resets}
         # _____________________________ #
-    """))
+    """
+        )
+    )

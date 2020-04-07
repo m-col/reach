@@ -50,12 +50,7 @@ class Cohort(Sequence):
         mice = []
 
         for mouse in mouse_ids:
-            mice.append(
-                Mouse.init_from_file(
-                    data_dir=data_dir,
-                    mouse_id=mouse,
-                )
-            )
+            mice.append(Mouse.init_from_file(data_dir=data_dir, mouse_id=mouse,))
 
         return cls(mice, mouse_ids)
 
@@ -90,16 +85,17 @@ class Cohort(Sequence):
         Get trial data for all mice and sessions as a pandas DataFrame.
         """
         import pandas as pd  # pylint: disable=import-outside-toplevel
+
         trials = pd.DataFrame()
 
         for i, mouse in enumerate(self.mice):
             mouse_df = pd.DataFrame()
             for j, session in enumerate(mouse.training_data):
-                df = pd.DataFrame(session.data['trials'])
+                df = pd.DataFrame(session.data["trials"])
                 mouse_df = mouse_df.append(df.assign(day=j + 1), sort=False)
             trials = trials.append(mouse_df.assign(mouse_id=self.mouse_ids[i]))
 
-        trials['reaction_time'] = trials.end - trials.start
+        trials["reaction_time"] = trials.end - trials.start
         return trials
 
     @cache

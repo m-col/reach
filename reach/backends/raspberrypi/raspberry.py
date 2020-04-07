@@ -47,24 +47,25 @@ class RaspberryPi(Backend):
         changed.
 
     """
+
     _PIN_NUMBERS = {
-        'buttons': (2, 3, 4, 7),
-        'paw_sensors': (5, 6),
-        'air_puff': 18,
-        'spouts': (
+        "buttons": (2, 3, 4, 7),
+        "paw_sensors": (5, 6),
+        "air_puff": 18,
+        "spouts": (
             {
-                'cue': 23,
-                'touch': 14,
-                'reward': 16,
-                'actuator': 12,
-                'actuator_reverse': 19,
+                "cue": 23,
+                "touch": 14,
+                "reward": 16,
+                "actuator": 12,
+                "actuator_reverse": 19,
             },
             {
-                'cue': 22,
-                'touch': 15,
-                'reward': 21,
-                'actuator': 13,
-                'actuator_reverse': 25,
+                "cue": 22,
+                "touch": 15,
+                "reward": 21,
+                "actuator": 13,
+                "actuator_reverse": 25,
             },
         ),
     }
@@ -84,18 +85,18 @@ class RaspberryPi(Backend):
 
         if pin_numbers is None:
             pin_numbers = RaspberryPi._PIN_NUMBERS
-        self._button_pins = pin_numbers['buttons']
-        self._paw_pins = pin_numbers['paw_sensors']
-        self._air_puff = pin_numbers['air_puff']
-        self._target_pins = [x['touch'] for x in pin_numbers['spouts']]
+        self._button_pins = pin_numbers["buttons"]
+        self._paw_pins = pin_numbers["paw_sensors"]
+        self._air_puff = pin_numbers["air_puff"]
+        self._target_pins = [x["touch"] for x in pin_numbers["spouts"]]
 
         GPIO.setup(self._button_pins, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self._air_puff, GPIO.OUT, initial=False)
 
         self.spouts = [
-            spouts.Spout(pin_numbers['spouts'][0], actuator),
-            spouts.Spout(pin_numbers['spouts'][1], actuator),
+            spouts.Spout(pin_numbers["spouts"][0], actuator),
+            spouts.Spout(pin_numbers["spouts"][1], actuator),
         ]
         self.on_button = []
 
@@ -119,10 +120,7 @@ class RaspberryPi(Backend):
 
         for paw in self._paw_pins:
             GPIO.add_event_detect(
-                paw,
-                GPIO.FALLING,
-                callback=self._paw_callback,
-                bouncetime=250,
+                paw, GPIO.FALLING, callback=self._paw_callback, bouncetime=250,
             )
 
         for spout in self.spouts:

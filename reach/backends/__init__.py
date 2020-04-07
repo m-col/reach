@@ -11,7 +11,7 @@ subclass.
 """
 
 
-__all__ = ('Backend',)
+__all__ = ("Backend",)
 
 
 class Backend:
@@ -21,6 +21,7 @@ class Backend:
 
     Spout number can be 0 for the left spout or 1 for the right spout.
     """
+
     def __init__(self):
         self.on_iti_lift = None
         self.on_iti_grasp = None

@@ -19,14 +19,14 @@ See :repo:`scripts/plotting/cohort_reaction_times.py
 
 """
 
-__version__ = '2020-02-28.6'
+__version__ = "2020-04-07.1"
 
 from reach.cohort import Cohort
 from reach.mouse import Mouse
 from reach.session import Session
 
 __all__ = [
-    'Cohort',
-    'Mouse',
-    'Session',
+    "Cohort",
+    "Mouse",
+    "Session",
 ]

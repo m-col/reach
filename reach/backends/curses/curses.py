@@ -25,7 +25,7 @@ def _get_str_dims(string):
     """
     Get width and height of a multiline string.
     """
-    height = string.count('\n')
+    height = string.count("\n")
     width = 0
     for substr in string.splitlines():
         if len(substr) > width:
@@ -40,18 +40,13 @@ def _addstr_multiline(win, y_pos, x_pos, string, attr=None):
     if attr is None:
         for y, line in enumerate(string.splitlines()):
             win.addstr(
-                y_pos + y,
-                x_pos,
-                line,
+                y_pos + y, x_pos, line,
             )
 
     else:
         for y, line in enumerate(string.splitlines()):
             win.addstr(
-                y_pos + y,
-                x_pos,
-                line,
-                attr,
+                y_pos + y, x_pos, line, attr,
             )
 
 
@@ -89,6 +84,7 @@ class _KeyMonitor(threading.Thread):
         executed when their respective key is pressed.
 
     """
+
     def __init__(self, win, callbacks):
         threading.Thread.__init__(self)
         self.event = threading.Event()
@@ -152,6 +148,7 @@ class Curses(RPiReal):
         pressed during the inter-trial interval.
 
     """
+
     def __init__(self):
         """
         Initialise virtual raspberry pi and draw rig on screen.
@@ -161,12 +158,9 @@ class Curses(RPiReal):
         self._stdscr = _initialise_curses()
         self._dimensions = self._stdscr.getmaxyx()
 
-        self._feed = curses.newwin(
-            self._dimensions[0] - 18, self._dimensions[1],
-            0, 0,
-        )
+        self._feed = curses.newwin(self._dimensions[0] - 18, self._dimensions[1], 0, 0,)
         self._feed.border()
-        self._feed_text = [''] * (self._dimensions[1] - 2)
+        self._feed_text = [""] * (self._dimensions[1] - 2)
 
         self._rig, rig_x_pos = self._draw_rig()
 
@@ -196,10 +190,7 @@ class Curses(RPiReal):
         """
         Draw curses version of training rig.
         """
-        rig = curses.newwin(
-            17, self._dimensions[1],
-            int(self._dimensions[0] - 18), 0,
-        )
+        rig = curses.newwin(17, self._dimensions[1], int(self._dimensions[0] - 18), 0,)
         rig.border()
 
         _, rig_width = _get_str_dims(drawings.RIG_TEMPLATE)
@@ -220,9 +211,7 @@ class Curses(RPiReal):
 
         for y, line in enumerate(mouse.splitlines()):
             self._rig.addstr(
-                y_pos + y,
-                x_pos,
-                line,
+                y_pos + y, x_pos, line,
             )
 
     def message(self, string):
@@ -231,12 +220,10 @@ class Curses(RPiReal):
         """
         for line in string.splitlines():
             self._feed_text.extend(
-                textwrap.wrap(line, width=self._dimensions[0] - 6) or ['']
+                textwrap.wrap(line, width=self._dimensions[0] - 6) or [""]
             )
 
-        for y, line in enumerate(
-                self._feed_text[-(self._dimensions[0] - 22):]
-        ):
+        for y, line in enumerate(self._feed_text[-(self._dimensions[0] - 22) :]):
             self._feed.addstr(y + 2, 3, line)
             self._feed.clrtoeol()
 
@@ -252,7 +239,7 @@ class Curses(RPiReal):
         try:
             while True:
                 key = self._feed.getkey()
-                if key == '1':
+                if key == "1":
                     return True
 
         except curses.error:
@@ -265,14 +252,16 @@ class Curses(RPiReal):
         """
         self._monitor = _KeyMonitor(
             self._feed,
-            dict([
-                ('v', lambda: reset_iti(self.paw_pins[0])),
-                ('n', lambda: reset_iti(self.paw_pins[1])),
-                ('g', lambda: increase_spont_reaches(self.spouts[0].touch)),
-                ('h', lambda: increase_spont_reaches(self.spouts[1].touch)),
-                ('1', self._button_callbacks[0]),
-                ('2', self._button_callbacks[0]),
-            ]),
+            dict(
+                [
+                    ("v", lambda: reset_iti(self.paw_pins[0])),
+                    ("n", lambda: reset_iti(self.paw_pins[1])),
+                    ("g", lambda: increase_spont_reaches(self.spouts[0].touch)),
+                    ("h", lambda: increase_spont_reaches(self.spouts[1].touch)),
+                    ("1", self._button_callbacks[0]),
+                    ("2", self._button_callbacks[0]),
+                ]
+            ),
         )
         self._monitor.start()
 
@@ -336,20 +325,22 @@ class Curses(RPiReal):
         self.message("Cue illuminated")
 
         if spout_number == 0:
-            correct_key = 'g'
-            incorrect_key = 'h'
+            correct_key = "g"
+            incorrect_key = "h"
         elif spout_number == 1:
-            correct_key = 'h'
-            incorrect_key = 'g'
+            correct_key = "h"
+            incorrect_key = "g"
 
         self._monitor = _KeyMonitor(
             self._feed,
-            dict([
-                ('v', lambda: lift_func(self.paw_pins[0])),
-                ('n', lambda: lift_func(self.paw_pins[1])),
-                (correct_key, lambda: reward_func(spout_number)),
-                (incorrect_key, lambda: incorrect_func(abs(spout_number - 1))),
-            ]),
+            dict(
+                [
+                    ("v", lambda: lift_func(self.paw_pins[0])),
+                    ("n", lambda: lift_func(self.paw_pins[1])),
+                    (correct_key, lambda: reward_func(spout_number)),
+                    (incorrect_key, lambda: incorrect_func(abs(spout_number - 1))),
+                ]
+            ),
         )
         self._monitor.start()
 
@@ -367,9 +358,7 @@ class Curses(RPiReal):
 
         """
         self._rig.addstr(
-            *self._water_pos[spout_number],
-            drawings.WATER,
-            curses.color_pair(2),
+            *self._water_pos[spout_number], drawings.WATER, curses.color_pair(2),
         )
         self._rig.refresh()
 
@@ -381,10 +370,7 @@ class Curses(RPiReal):
         self.disable_callbacks()
         for target in self._target_pos:
             _addstr_multiline(
-                self._rig,
-                *target,
-                drawings.TARGET,
-                attr=curses.color_pair(0),
+                self._rig, *target, drawings.TARGET, attr=curses.color_pair(0),
             )
         self._rig.refresh()
 

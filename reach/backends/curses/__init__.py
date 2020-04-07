@@ -1,2 +1,3 @@
 from .mock import Curses
-__all__ = ('Curses',)
+
+__all__ = ("Curses",)
