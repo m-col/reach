@@ -488,9 +488,9 @@ class Session:
 
         """
         results = self.data.copy()
-        results["missed"] = self.outcomes.count(0)
-        results["correct"] = self.outcomes.count(1)
-        results["incorrect"] = self.outcomes.count(2)
+        results["missed"] = self.outcomes.count(0)  # pylint: disable=E1101
+        results["correct"] = self.outcomes.count(1)  # pylint: disable=E1101
+        results["incorrect"] = self.outcomes.count(2)  # pylint: disable=E1101
         results["trials"] = len(self.data["trials"])
         results["resets"] = len(self.data["resets"])
         results["resets_l"] = len([x for x in self.data["resets"] if x[1] == 0])
