@@ -3,6 +3,7 @@ help:
 	@echo 'make clean:           Remove the compiled files (*.pyc, *.pyo)'
 	@echo 'make pylint:          Test using pylint'
 	@echo 'make flake8:          Test using flake8'
+	@echo 'make black:           Run black formatter'
 	@echo 'make todo:            Look for TODO and XXX markers in the source code'
 
 clean:
@@ -19,6 +20,10 @@ pylint:
 flake8:
 	@echo "Running flake8..."
 	flake8 $(TEST_PATHS)
+
+black:
+	@echo "Running black..."
+	black $(TEST_PATHS)
 
 todo:
 	-@grep --color -Ion '\(TODO\|XXX\).*' -r reach
