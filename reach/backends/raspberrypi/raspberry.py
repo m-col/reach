@@ -85,15 +85,20 @@ class RaspberryPi(Backend):
 
         if pin_numbers is None:
             pin_numbers = RaspberryPi._PIN_NUMBERS
-        self._button_pins = pin_numbers["buttons"]
-        self._paw_pins = pin_numbers["paw_sensors"]
-        self._air_puff = pin_numbers["air_puff"]
+
+        self._button_pins = pin_numbers.get('buttons', None)
+        if self._button_pins:
+            GPIO.setup(self._button_pins, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+        self._paw_pins = pin_numbers.get('paw_sensors', None)
+        if self._paw_pins:
+            GPIO.setup(self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+        self._air_puff = pin_numbers.get('air_puff', None)
+        if self._air_puff:
+            GPIO.setup(self._air_puff, GPIO.OUT, initial=False)
+
         self._target_pins = [x["touch"] for x in pin_numbers["spouts"]]
-
-        GPIO.setup(self._button_pins, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(self._air_puff, GPIO.OUT, initial=False)
-
         self.spouts = [
             spouts.Spout(pin_numbers["spouts"][0], actuator),
             spouts.Spout(pin_numbers["spouts"][1], actuator),
@@ -118,10 +123,11 @@ class RaspberryPi(Backend):
         """
         input("Press enter to begin.\n")
 
-        for paw in self._paw_pins:
-            GPIO.add_event_detect(
-                paw, GPIO.FALLING, callback=self._paw_callback, bouncetime=250,
-            )
+        if self._paw_pins:
+            for paw in self._paw_pins:
+                GPIO.add_event_detect(
+                    paw, GPIO.FALLING, callback=self._paw_callback, bouncetime=250,
+                )
 
         for spout in self.spouts:
             GPIO.add_event_detect(
@@ -131,13 +137,14 @@ class RaspberryPi(Backend):
                 bouncetime=100,
             )
 
-        for button in self._button_pins:
-            GPIO.add_event_detect(
-                button,
-                GPIO.FALLING,
-                callback=self._button_callback,
-                bouncetime=self._button_bouncetime,
-            )
+        if self._button_pins:
+            for button in self._button_pins:
+                GPIO.add_event_detect(
+                    button,
+                    GPIO.FALLING,
+                    callback=self._button_callback,
+                    bouncetime=self._button_bouncetime,
+                )
 
     def _paw_callback(self, pin):
         """
@@ -244,11 +251,13 @@ class RaspberryPi(Backend):
         """
         Clean up, remove event callbacks and uninitialise pins.
         """
-        for pin in self._paw_pins:
-            GPIO.remove_event_detect(pin)
+        if self._paw_pins:
+            for pin in self._paw_pins:
+                GPIO.remove_event_detect(pin)
 
-        for pin in self._button_pins:
-            GPIO.remove_event_detect(pin)
+        if self._button_pins:
+            for pin in self._button_pins:
+                GPIO.remove_event_detect(pin)
 
         for spout in self.spouts:
             spout.cleanup()
