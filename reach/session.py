@@ -102,6 +102,7 @@ class Session:
         intertrial_interval=None,
         previous_data=None,
         hook=None,
+        timeout=None,
     ):
         """
         Begin a training session.
@@ -125,6 +126,9 @@ class Session:
         hook : :class:`callable`, optional
             An object that will be called at the end of every trial.
 
+        timeout : :class:`int`, optional
+            Duration in milliseconds of a timeout to wait after an incorrect trial.
+
         """
         if not isinstance(backend, reach.backends.Backend):
             raise SystemError(
@@ -137,6 +141,7 @@ class Session:
             self._message = self._backend.message
 
         self.data["duration"] = duration or 1800
+        self.data["timeout"] = timeout or 5000
         self.data["intertrial_interval"] = intertrial_interval or (4000, 6000)
         self.data["trials"] = []
         self.data["resets"] = []
@@ -196,6 +201,7 @@ class Session:
         data["end_time"] = now + data["duration"]
 
         trial_count = 0
+        timeout = data["timeout"] / 1000
 
         while now < data["end_time"]:
             trial_count += 1
@@ -215,6 +221,9 @@ class Session:
 
             if self._outcome == 3:
                 break
+
+            if self._outcome == 2:
+                time.sleep(timeout)
 
     def _adapt_settings(self):
         """

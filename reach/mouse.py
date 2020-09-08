@@ -92,6 +92,7 @@ class Mouse:
         intertrial_interval=None,
         conditioning=False,
         hook=None,
+        timeout=None,
     ):
         """
         Create a new Session and run it, appending its newly-collected data to the
@@ -117,6 +118,9 @@ class Mouse:
 
         hook : :class:`callable`, optional
             An object that will be called at the end of every trial.
+
+        timeout : :class:`callable`, optional
+            Duration in milliseconds of a timeout to wait after an incorrect trial.
 
         """
 
@@ -146,6 +150,7 @@ class Mouse:
             duration=duration,
             intertrial_interval=intertrial_interval,
             hook=hook,
+            timeout=timeout,
         )
 
     def save_data_to_file(self, data_dir):
