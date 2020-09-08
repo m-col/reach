@@ -230,7 +230,8 @@ class RaspberryPi(Backend):
         """
         Trigger air puff to remove non-collected water at the end of a missed trial.
         """
-        self.air_puff()
+        if self._air_puff:
+            self.air_puff()
 
     def air_puff(self):
         """
