@@ -7,6 +7,8 @@ This script shows an example of how a training session can be run.
 """
 
 
+import functools
+
 from reach import Mouse
 from reach.backends.raspberrypi import RaspberryPi
 
@@ -38,6 +40,7 @@ mouse.train(
     additional_data=metadata,
     duration=1800,
     intertrial_interval=(4000, 6000),
+    hook=functools.partial(mouse.save_data_to_file, '/tmp'),
 )
 
 # Collect some extra notes

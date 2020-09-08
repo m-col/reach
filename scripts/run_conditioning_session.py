@@ -15,6 +15,8 @@ then move onto head-restrained sessions and should not need shaping trials.
 """
 
 
+import functools
+
 from reach import Mouse
 from reach.backends.raspberrypi import RaspberryPi
 
@@ -47,6 +49,7 @@ mouse.train(
     duration=1800,
     intertrial_interval=(4000, 6000),
     conditioning=True,
+    hook=functools.partial(mouse.save_data_to_file, '/tmp'),
 )
 
 # Collect some extra notes

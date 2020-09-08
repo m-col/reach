@@ -4,8 +4,8 @@ todo list
 core code
 ---------
 
-[ ] update curses following backend refactor
+[ ] remove 'water at cue onset'
+[ ] remove curses backend
 [ ] replace backend.dispense_water with generalised backend.reward
 [ ] IR break beam instead of touch sensors - does this need codework?
-[x] add optional hook that can be executed at the end of every trial
 [ ] rename 'conditioning' to 'freely_moving'
