@@ -222,9 +222,6 @@ class Session:
             if self._outcome == 3:
                 break
 
-            if self._outcome == 2:
-                time.sleep(timeout)
-
     def _adapt_settings(self):
         """
         Adapt live training settings based on recent behavioural performance.
@@ -325,6 +322,7 @@ class Session:
 
         elif self._outcome == 2:
             self._message("Incorrect reach!")
+            time.sleep(timeout)
 
         elif self._outcome == 3:
             return

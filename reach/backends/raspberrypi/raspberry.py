@@ -203,12 +203,6 @@ class RaspberryPi(Backend):
             # Ignore GPIO error when Ctrl-C cancels training
             pass
 
-    def start_iti(self):
-        """
-        Change state to ITI.
-        """
-        self._is_trial = False
-
     def start_trial(self, spout_number):
         """
         Change state to trial.
@@ -245,6 +239,7 @@ class RaspberryPi(Backend):
         """
         Disable target spout LEDs.
         """
+        self._is_trial = False
         for spout in self.spouts:
             GPIO.output(spout.cue_pin, False)
 
