@@ -141,7 +141,7 @@ class Session:
             self._message = self._backend.message
 
         self.data["duration"] = duration or 1800
-        self.data["timeout"] = timeout or 5000
+        self.data["timeout"] = timeout or 8000
         self.data["intertrial_interval"] = intertrial_interval or (4000, 6000)
         self.data["trials"] = []
         self.data["resets"] = []
@@ -201,7 +201,6 @@ class Session:
         data["end_time"] = now + data["duration"]
 
         trial_count = 0
-        timeout = data["timeout"] / 1000
 
         while now < data["end_time"]:
             trial_count += 1
@@ -322,7 +321,7 @@ class Session:
 
         elif self._outcome == 2:
             self._message("Incorrect reach!")
-            time.sleep(timeout)
+            time.sleep(self.data["timeout"] / 1000)
 
         elif self._outcome == 3:
             return
