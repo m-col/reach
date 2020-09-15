@@ -42,9 +42,3 @@ class Mock(Backend):
         Pretend to dispense water from a specified spout.
         """
         time.sleep(0.050)
-
-    def miss_trial(self):
-        """
-        Pretend to produce a puff of air.
-        """
-        time.sleep(0.050)

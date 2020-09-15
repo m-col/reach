@@ -118,56 +118,6 @@ class Utilities(RaspberryPi):
                 pin, GPIO.FALLING, callback=_dispense, bouncetime=500,
             )
 
-    def test_air_puffs(self):
-        """
-        Trigger air puffs upon press of button 0.
-        """
-        self._air_puff_duration = float(input("Specify duration to puff air in s: "))
-        print("Press button 0 to trigger air puff.")
-        print("Press button 1 to open solenoids.")
-
-        def _air_puff(pin):  # pylint: disable=unused-argument
-            self.air_puff()
-
-        GPIO.add_event_detect(
-            self._button_pins[0], GPIO.FALLING, callback=_air_puff, bouncetime=500,
-        )
-
-        def _toggle(pin):
-            time.sleep(0.010)
-            for spout in self.spouts:
-                GPIO.output(
-                    spout.reward_pin, not GPIO.input(pin),
-                )
-
-        GPIO.add_event_detect(
-            self._button_pins[1], GPIO.BOTH, callback=_toggle, bouncetime=20,
-        )
-
-    def test_reward_volume_with_air_puffs(self):
-        """
-        Trigger air puffs upon press of button 0 with specified water volume
-        dispensed to both spouts upon press of button 1.
-        """
-        self._reward_duration = float(input("Specify duration to dispense in ms: "))
-        self._air_puff_duration = float(input("Specify duration to puff air in ms: "))
-
-        print("Press button 0 to trigger air puff.")
-        print("Press button 1 to dispense water.")
-
-        GPIO.add_event_detect(
-            self._button_pins[0], GPIO.FALLING, callback=self.air_puff, bouncetime=500,
-        )
-
-        def _dispense(pin):  # pylint: disable=unused-argument
-            time.sleep(0.010)
-            for spout_number in [0, 1]:
-                self.dispense_water(spout_number)
-
-        GPIO.add_event_detect(
-            self._button_pins[1], GPIO.FALLING, callback=_dispense, bouncetime=500,
-        )
-
     def step_actuators(self):
         """
         Move the actuator positions along steps using the buttons.

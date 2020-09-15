@@ -33,10 +33,6 @@ class RaspberryPi(Backend):
         The duration in seconds for which the solenoid valves will be opened when
         dispensing water rewards. Default: 0.100 seconds.
 
-    air_puff_duration : :class:`float`, optional
-        The duration in seconds for which the air puffs will be delivered. Default:
-        0.030 seconds.
-
     button_bouncetime : :class:`float`, optional
         The bouncetime in seconds assigned to the buttons to prevent accidental
         double-pressing. Default: 0.100
@@ -51,7 +47,6 @@ class RaspberryPi(Backend):
     _PIN_NUMBERS = {
         "buttons": (2, 3, 4, 7),
         "paw_sensors": (5, 6),
-        "air_puff": 18,
         "spouts": (
             {
                 "cue": 23,
@@ -74,13 +69,11 @@ class RaspberryPi(Backend):
         self,
         actuator=None,
         reward_duration=None,
-        air_puff_duration=None,
         button_bouncetime=None,
         pin_numbers=None,
     ):
         Backend.__init__(self)
         self._reward_duration = reward_duration or 0.100
-        self._air_puff_duration = air_puff_duration or 0.030
         self._button_bouncetime = int((button_bouncetime or 0.100) * 1000)
 
         if pin_numbers is None:
@@ -93,10 +86,6 @@ class RaspberryPi(Backend):
         self._paw_pins = pin_numbers.get('paw_sensors', None)
         if self._paw_pins:
             GPIO.setup(self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-        self._air_puff = pin_numbers.get('air_puff', None)
-        if self._air_puff:
-            GPIO.setup(self._air_puff, GPIO.OUT, initial=False)
 
         self._target_pins = [x["touch"] for x in pin_numbers["spouts"]]
         self.spouts = [
@@ -219,21 +208,6 @@ class RaspberryPi(Backend):
         GPIO.output(self.spouts[spout_number].reward_pin, True)
         time.sleep(self._reward_duration)
         GPIO.output(self.spouts[spout_number].reward_pin, False)
-
-    def miss_trial(self):
-        """
-        Trigger air puff to remove non-collected water at the end of a missed trial.
-        """
-        if self._air_puff:
-            self.air_puff()
-
-    def air_puff(self):
-        """
-        Trigger an air puff.
-        """
-        GPIO.output(self._air_puff, True)
-        time.sleep(self._air_puff_duration)
-        GPIO.output(self._air_puff, False)
 
     def end_trial(self):
         """
