@@ -5,6 +5,4 @@ core code
 ---------
 
 [ ] remove curses backend
-[ ] replace backend.dispense_water with generalised backend.reward
-[ ] IR break beam instead of touch sensors - does this need codework?
 [ ] rename 'conditioning' to 'freely_moving'

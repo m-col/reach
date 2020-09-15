@@ -38,7 +38,7 @@ class Mock(Backend):
         """
         print("Cue illuminated")
 
-    def dispense_water(self, spout_number):
+    def give_reward(self, spout_number):
         """
         Pretend to dispense water from a specified spout.
         """

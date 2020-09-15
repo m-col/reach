@@ -404,7 +404,7 @@ class Session:
         self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
         self._outcome = Outcomes.CORRECT
-        self._backend.dispense_water(self._current_spout)
+        self._backend.give_reward(self._current_spout)
 
     def on_trial_incorrect(self):
         """
@@ -599,7 +599,7 @@ class ConditioningSession(Session):
         self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
         self._outcome = Outcomes.CORRECT
-        self._backend.dispense_water(self._current_spout)
+        self._backend.give_reward(self._current_spout)
 
     def on_trial_incorrect(self):
         """

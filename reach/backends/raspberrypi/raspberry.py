@@ -168,9 +168,9 @@ class RaspberryPi(Backend):
         self._current_target_spout = spout_number
         print("Cue illuminated")
 
-    def dispense_water(self, spout_number):
+    def give_reward(self, spout_number):
         """
-        Dispense water from a specified spout.
+        Dispense water reward.
         """
         GPIO.output(self.spouts[spout_number].reward_pin, True)
         time.sleep(self._reward_duration)

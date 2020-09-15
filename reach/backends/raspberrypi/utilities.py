@@ -94,7 +94,7 @@ class Utilities(RaspberryPi):
         print("Press button 0 or 1 to dispense from corresponding spout.")
 
         def _dispense(pin):
-            self.dispense_water(self._button_pins.index(pin))
+            self.give_reward(self._button_pins.index(pin))
 
         for pin in self._button_pins[0:2]:
             GPIO.add_event_detect(

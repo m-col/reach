@@ -93,14 +93,14 @@ class Backend:
 
         """
 
-    def dispense_water(self, spout_number):
+    def give_reward(self, spout_number):
         """
-        Dispense water from a specified spout.
+        Give a reward.
 
         Parameters
         ----------
         spout_number : :class:`int`
-            The spout number to dispense water from.
+            The spout number to give reward from.
 
         """
 
