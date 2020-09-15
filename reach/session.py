@@ -19,21 +19,21 @@ import reach.backends
 from reach.utilities import cache
 
 
-# Number of recent trials used to calculate adaptive task settings
-_SLIDING_WINDOW = 10
 
 
-class TrialDeque(deque):
+class SlidingTrialList(deque):
     """
-    This lets the Session do e.g. recent_trials.spout_position to return a list
-    containing the values stored in all trials in the deque (which are themselves
-    dicts).
+    A list of fixed length self._WINDOW, the number of recent trials used to calculate
+    adaptive task settings for upcoming trials.
     """
+    WINDOW = 15
 
-    def __getattr__(self, name):
-        if len(self) == 0:
-            return []
-        return [x[name] for x in self]
+    def __init__(self):
+        deque.__init__(self, [], self.WINDOW)
+
+    def get_hit_rate(self):
+        num_hits = [i for i in self if i['outcome'] == 1]
+        return num_hits / self.WINDOW
 
 
 class Session:
@@ -52,6 +52,7 @@ class Session:
         self.data = data or {}
 
         # These attributes track state during training
+        self._recent_trials = SlidingTrialList()
         self._reward_count = 0
         self._outcome = 0
         self._iti_broken = False
@@ -60,7 +61,6 @@ class Session:
         self._message = print
         self._extended_trial = False
         self._cue_duration = 10000
-        self._recent_trials = TrialDeque([], _SLIDING_WINDOW)
         self._spout_position = 1
         self._hook = None
 
@@ -152,8 +152,9 @@ class Session:
             self._spout_position = self._recent_trials[-1]["spout_position"]
             self._cue_duration = min(
                 self._recent_trials[-1]["cue_duration"], self._cue_duration
-            )
+            )  # we do this in case the last trial was extended
 
+        self._current_spout = random.randint(0, 1)
         self._backend.position_spouts(self._spout_position)
         self._display_training_settings()
         self._backend.configure_callbacks(self)
@@ -227,19 +228,14 @@ class Session:
         if self._recent_trials and self._recent_trials[-1]["outcome"] == 1:
             self._current_spout = random.randint(0, 1)
 
-        num_hits = self._recent_trials.outcome.count(1)
-
-        if num_hits >= _SLIDING_WINDOW * 0.90:
-            if self._spout_position < 7:
-                if len(set(self._recent_trials.spout_position[-3:])) == 1:
+        if self._recent_trials.get_hit_rate() >= 0.90:
+            if len(set([i['spout_position'] for i in self._recent_trials[-3:]])) == 1:
+                if self._spout_position < 7:
                     self._spout_position += 1
                     self._backend.position_spouts(self._spout_position)
-                    self._message(
-                        f"Spouts progressed to position {self._spout_position}"
-                    )
+                    self._message(f"Spouts progressed to position {self._spout_position}")
 
-            elif len(set(self._recent_trials.spout_position[-3:])) == 1:
-                if self._cue_duration > 2000:
+                elif self._cue_duration > 2000:
                     self._cue_duration = max(int(self._cue_duration * 0.9), 2000)
                     self._message(f"Cue duration decreased to {self._cue_duration} ms")
 
