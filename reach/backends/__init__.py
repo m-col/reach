@@ -44,12 +44,6 @@ class Backend:
             - :class:`session.on_trial_correct`
             - :class:`session.on_trial_incorrect`
 
-        Additional methods from session can be assigned to callbacks (e.g. to buttons)
-        to extend functionality to the session. E.g.:
-
-            - :class:`session.reverse_shaping`
-            - :class:`session.extend_trial`
-
         """
 
     def wait_to_start(self):

@@ -29,10 +29,6 @@ class RaspberryPi(Backend):
         The duration in seconds for which the solenoid valves will be opened when
         dispensing water rewards. Default: 0.100 seconds.
 
-    button_bouncetime : :class:`float`, optional
-        The bouncetime in seconds assigned to the buttons to prevent accidental
-        double-pressing. Default: 0.100
-
     pin_numbers : :class:`dict`, optional
         A dictionary mapping raspberry pi GPIO pin numbers to components. This should be
         formatted exactly as :class:`RaspberryPi._PIN_NUMBERS`, with only the pin values
@@ -41,7 +37,6 @@ class RaspberryPi(Backend):
     """
 
     _PIN_NUMBERS = {
-        "buttons": (2, 3, 4, 7),
         "paw_sensors": (5, 6),
         "spouts": (
             {
@@ -62,19 +57,13 @@ class RaspberryPi(Backend):
     def __init__(
         self,
         reward_duration=None,
-        button_bouncetime=None,
         pin_numbers=None,
     ):
         Backend.__init__(self)
         self._reward_duration = reward_duration or 0.100
-        self._button_bouncetime = int((button_bouncetime or 0.100) * 1000)
 
         if pin_numbers is None:
             pin_numbers = RaspberryPi._PIN_NUMBERS
-
-        self._button_pins = pin_numbers.get('buttons', None)
-        if self._button_pins:
-            GPIO.setup(self._button_pins, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         self._paw_pins = pin_numbers.get('paw_sensors', None)
         if self._paw_pins:
@@ -85,7 +74,6 @@ class RaspberryPi(Backend):
             spouts.Spout(pin_numbers["spouts"][0]),
             spouts.Spout(pin_numbers["spouts"][1]),
         ]
-        self.on_button = []
 
         self._is_trial = False
         self._current_target_spout = 0
@@ -119,15 +107,6 @@ class RaspberryPi(Backend):
                 bouncetime=100,
             )
 
-        if self._button_pins:
-            for button in self._button_pins:
-                GPIO.add_event_detect(
-                    button,
-                    GPIO.FALLING,
-                    callback=self._button_callback,
-                    bouncetime=self._button_bouncetime,
-                )
-
     def _paw_callback(self, pin):
         """
         Callback function assigned to paw sesnsors by GPIO.add_event_detect.
@@ -150,16 +129,6 @@ class RaspberryPi(Backend):
                 self.session.on_trial_incorrect()
         else:
             self.session.on_iti_grasp(spout)
-
-    def _button_callback(self, pin):
-        """
-        Callback function assigned to buttons by GPIO.add_event_detect.
-        """
-        button = self._button_pins.index(pin)
-        if button == 1:
-            self.session.reverse_shaping()
-        elif button == 2:
-            self.session.extend_trial()
 
     def position_spouts(self, position, spout_number=None):
         """
@@ -216,10 +185,6 @@ class RaspberryPi(Backend):
         """
         if self._paw_pins:
             for pin in self._paw_pins:
-                GPIO.remove_event_detect(pin)
-
-        if self._button_pins:
-            for pin in self._button_pins:
                 GPIO.remove_event_detect(pin)
 
         for spout in self.spouts:

@@ -276,7 +276,7 @@ class Session:
         Run inter-trial interval during training session.
 
         During the inter-trial interval we start listening for mouse movements using the
-        touch sensors. Shaping can be toggled by pressing the start button.
+        touch sensors.
 
         Returns
         -------
@@ -416,8 +416,8 @@ class Session:
 
     def extend_trial(self):
         """
-        Can be assigned to a button to stop the next trial from timing out, instead
-        leaving the cue illuminated until grasped.
+        Stop the next trial from timing out, instead leaving the cue illuminated until
+        grasped.
         """
         if self._extended_trial:
             self._extended_trial = False

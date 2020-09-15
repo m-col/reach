@@ -24,23 +24,6 @@ class Utilities(RaspberryPi):
         RaspberryPi.__init__(self)
         self.spout_position = 1
 
-    def test_buttons(self):
-        """
-        When either button is pressed, print its number.
-        """
-        print("Press the buttons to print their corresponding numbers.")
-
-        def _print_number(pin):
-            if GPIO.input(pin):
-                print(f"You released button: {self._button_pins.index(pin)}")
-            else:
-                print(f"You pressed button: {self._button_pins.index(pin)}")
-
-        for pin in self._button_pins:
-            GPIO.add_event_detect(
-                pin, GPIO.BOTH, callback=_print_number, bouncetime=500,
-            )
-
     def hold_open_solenoid(self):
         """
         Hold open a target's solenoid continuous while a button is held.
