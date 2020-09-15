@@ -19,6 +19,24 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
 
+class Pins:
+    paw_sensors = (5, 6)
+    spouts = [
+        {
+            "cue": 23,
+            "touch": 14,
+            "reward": 16,
+            "actuator": 12,
+        },
+        {
+            "cue": 22,
+            "touch": 15,
+            "reward": 21,
+            "actuator": 13,
+        },
+    ]
+
+
 class RaspberryPi(Backend):
     """
     An instance of a raspberry pi and its GPIO pins.
@@ -29,31 +47,12 @@ class RaspberryPi(Backend):
         The duration in seconds for which the solenoid valves will be opened when
         dispensing water rewards. Default: 0.100 seconds.
 
-    pin_numbers : :class:`dict`, optional
-        A dictionary mapping raspberry pi GPIO pin numbers to components. This should be
-        formatted exactly as :class:`RaspberryPi._PIN_NUMBERS`, with only the pin values
-        changed.
+    pin_numbers : :class:`Pins`, optional
+        A subclass of :class:`Pins` mapping raspberry pi GPIO pin numbers to components.
+        It should have all of the same attributes as the original class, but values can
+        be changed.
 
     """
-
-    _PIN_NUMBERS = {
-        "paw_sensors": (5, 6),
-        "spouts": (
-            {
-                "cue": 23,
-                "touch": 14,
-                "reward": 16,
-                "actuator": 12,
-            },
-            {
-                "cue": 22,
-                "touch": 15,
-                "reward": 21,
-                "actuator": 13,
-            },
-        ),
-    }
-
     def __init__(
         self,
         reward_duration=None,
@@ -61,24 +60,23 @@ class RaspberryPi(Backend):
     ):
         Backend.__init__(self)
         self._reward_duration = reward_duration or 0.100
-
-        if pin_numbers is None:
-            pin_numbers = RaspberryPi._PIN_NUMBERS
-
-        self._paw_pins = pin_numbers.get('paw_sensors', None)
-        if self._paw_pins:
-            GPIO.setup(self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-        self._target_pins = [x["touch"] for x in pin_numbers["spouts"]]
-        self.spouts = [
-            spouts.Spout(pin_numbers["spouts"][0]),
-            spouts.Spout(pin_numbers["spouts"][1]),
-        ]
-
         self._is_trial = False
         self._current_target_spout = 0
         self._finish = False
         self.session = None
+
+        if not pin_numbers:
+            pin_numbers = Pins
+
+        self._paw_pins = pin_numbers.paw_sensors
+        if self._paw_pins:
+            GPIO.setup(self._paw_pins, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+        self._target_pins = [x["touch"] for x in pin_numbers.spouts]
+        self.spouts = [
+            spouts.Spout(pin_numbers.spouts[0]),
+            spouts.Spout(pin_numbers.spouts[1]),
+        ]
 
     def configure_callbacks(self, session):
         """
@@ -95,9 +93,9 @@ class RaspberryPi(Backend):
         input("Press enter to begin.\n")
 
         if self._paw_pins:
-            for paw in self._paw_pins:
+            for pin in self._paw_pins:
                 GPIO.add_event_detect(
-                    paw, GPIO.FALLING, callback=self._paw_callback, bouncetime=250,
+                    pin, GPIO.FALLING, callback=self._paw_callback, bouncetime=250,
                 )
 
         for spout in self.spouts:
@@ -147,6 +145,9 @@ class RaspberryPi(Backend):
         """
         Block execution and wait until both paw sensors are held.
         """
+        if not self._paw_pins:
+            return True
+
         print("Waiting for rest... ")
         try:
             while not all([GPIO.input(pin) for pin in self._paw_pins]):
