@@ -66,7 +66,7 @@ class SlidingTrialList(deque):
         """
         Return the proportion of trials in the sliding window that were successful.
         """
-        num_hits = [i for i in self if i['outcome'] == 1]
+        num_hits = len([i for i in self if i['outcome'] == 1])
         return num_hits / self.WINDOW
 
 
