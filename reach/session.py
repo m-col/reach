@@ -25,8 +25,9 @@ _SLIDING_WINDOW = 10
 
 class TrialDeque(deque):
     """
-    This lets the Session do e.g. recent_trials.shaping to return a list containing the
-    values stored in all trials in the deque (which are themselves dicts).
+    This lets the Session do e.g. recent_trials.spout_position to return a list
+    containing the values stored in all trials in the deque (which are themselves
+    dicts).
     """
 
     def __getattr__(self, name):
@@ -55,7 +56,6 @@ class Session:
         self._outcome = 0
         self._iti_broken = False
         self._current_spout = 0
-        self._water_at_cue_onset = True
         self._backend = None
         self._message = print
         self._extended_trial = False
@@ -121,7 +121,7 @@ class Session:
 
         previous_data : :class:`dict` of training data, optional
             Training data from the previous session, which if provided will be used when
-            calculating initial cue duration, spout position and shaping status.
+            calculating initial cue duration and spout position.
 
         hook : :class:`callable`, optional
             An object that will be called at the end of every trial.
@@ -149,7 +149,6 @@ class Session:
 
         if previous_data and previous_data["trials"]:
             self._recent_trials.extend(previous_data["trials"])
-            self._water_at_cue_onset = self._recent_trials[-1]["shaping"]
             self._spout_position = self._recent_trials[-1]["spout_position"]
             self._cue_duration = min(
                 self._recent_trials[-1]["cue_duration"], self._cue_duration
@@ -231,10 +230,6 @@ class Session:
         num_hits = self._recent_trials.outcome.count(1)
 
         if num_hits >= _SLIDING_WINDOW * 0.90:
-            self._water_at_cue_onset = False
-            if self._recent_trials.shaping.count(False) < 3:
-                return
-
             if self._spout_position < 7:
                 if len(set(self._recent_trials.spout_position[-3:])) == 1:
                     self._spout_position += 1
@@ -247,12 +242,6 @@ class Session:
                 if self._cue_duration > 2000:
                     self._cue_duration = max(int(self._cue_duration * 0.9), 2000)
                     self._message(f"Cue duration decreased to {self._cue_duration} ms")
-
-        elif num_hits == 0:
-            self._water_at_cue_onset = True
-
-        if self._water_at_cue_onset:
-            self._message("Shaping.")
 
     def _inter_trial_interval(self):
         """
@@ -299,8 +288,6 @@ class Session:
         self.data["trials"].append({"start": now})
 
         self._backend.start_trial(self._current_spout)
-        if self._water_at_cue_onset:
-            self._backend.dispense_water(self._current_spout)
 
         if self._extended_trial:
             cue_duration = self.data["end_time"] - now
@@ -332,7 +319,6 @@ class Session:
         self.data["trials"][-1].update(
             dict(
                 spout=self._current_spout,
-                shaping=self._water_at_cue_onset,
                 cue_duration=cue_duration * 1000,
                 outcome=self._outcome,
                 spout_position=self._spout_position,
@@ -388,8 +374,7 @@ class Session:
         self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
         self._outcome = 1
-        if not self._water_at_cue_onset:
-            self._backend.dispense_water(self._current_spout)
+        self._backend.dispense_water(self._current_spout)
 
     def on_trial_incorrect(self):
         """
@@ -399,14 +384,6 @@ class Session:
         self._backend.end_trial()
         self._outcome = 2
         self._backend.miss_trial()
-
-    def reverse_shaping(self):
-        """
-        Can be assigned to a button to reverse the state of the shaping boolean i.e.
-        switches water dispensing between cue onset and grasp for the next trial.
-        """
-        self._water_at_cue_onset = not self._water_at_cue_onset
-        self._message(f"Water at cue onset: {self._water_at_cue_onset}")
 
     def extend_trial(self):
         """
@@ -520,8 +497,7 @@ class ConditioningSession(Session):
     the reach targets with more flexibility and freedom than in the head-restrained
     setup, facilitating association of the reach targets with water.
 
-    This is a slightly trimmed version of :class:`Session` that does not have shaping
-    trials or paw rests and their callbacks.
+    This is a slightly trimmed version of :class:`Session` that does not have paw rests.
     """
 
     def _inter_trial_interval(self):
@@ -530,7 +506,6 @@ class ConditioningSession(Session):
         rests. ITIs are only reset if the spouts are touched.
         """
         self._backend.start_iti()
-        self._water_at_cue_onset = False
         self._iti_broken = True
 
         while self._iti_broken:
