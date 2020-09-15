@@ -68,8 +68,10 @@ class Backend:
     def wait_for_rest(self):
         """
         Called to wait for the mouse to remain still during the inter-trial interval
-        before counting down to the start of a trial.
+        before counting down to the start of a trial. Must return True, or False due to
+        a session cancellation.
         """
+        return True
 
     def start_iti(self):
         """

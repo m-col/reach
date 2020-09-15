@@ -30,6 +30,7 @@ class Mock(Backend):
         """
         print("Waiting for rest... ")
         time.sleep(1)
+        return True
 
     def start_trial(self, spout_number):
         """

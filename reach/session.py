@@ -290,7 +290,8 @@ class Session:
         self._iti_broken = True
 
         while self._iti_broken:
-            self._backend.wait_for_rest()
+            if not self._backend.wait_for_rest():
+                return False
             self._iti_broken = False
 
             now = time.time()

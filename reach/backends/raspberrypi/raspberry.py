@@ -77,6 +77,7 @@ class RaspberryPi(Backend):
 
         self._is_trial = False
         self._current_target_spout = 0
+        self._finish = False
         self.session = None
 
     def configure_callbacks(self, session):
@@ -150,9 +151,12 @@ class RaspberryPi(Backend):
         try:
             while not all([GPIO.input(pin) for pin in self._paw_pins]):
                 time.sleep(0.010)
-        except RuntimeError:
+                if self._finish:
+                    return False
+        except (RuntimeError, KeyboardInterrupt):
             # Ignore GPIO error when Ctrl-C cancels training
-            pass
+            return False
+        return True
 
     def start_trial(self, spout_number):
         """
@@ -183,6 +187,7 @@ class RaspberryPi(Backend):
         """
         Clean up, remove event callbacks and uninitialise pins.
         """
+        self._finish = True
         if self._paw_pins:
             for pin in self._paw_pins:
                 GPIO.remove_event_detect(pin)
