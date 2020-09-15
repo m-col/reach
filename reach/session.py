@@ -45,6 +45,13 @@ ITI resets:        {reset_count}
 """
 
 
+class Outcomes:
+    MISSED = 0
+    CORRECT = 1
+    INCORRECT = 2
+    CANCELLED = 3
+
+
 class SlidingTrialList(deque):
     """
     A list of fixed length self._WINDOW, the number of recent trials used to calculate
@@ -241,7 +248,7 @@ class Session:
                     self._hook()
                 now = time.time()
 
-            if self._outcome == 3:
+            if self._outcome == Outcomes.CANCELLED:
                 break
 
     def _adapt_settings(self):
@@ -290,7 +297,7 @@ class Session:
             self._message(f"Counting down {iti_duration:.2f}s")
 
             while now < iti_end and not self._iti_broken:
-                if self._outcome == 3:
+                if self._outcome == Outcomes.CANCELLED:
                     return False
                 time.sleep(0.020)
                 now = time.time()
@@ -319,21 +326,21 @@ class Session:
             time.sleep(0.008)
             now = time.time()
 
-        if self._outcome == 0:
+        if self._outcome == Outcomes.MISSED:
             self._backend.end_trial()
             self._backend.miss_trial()
             self._message("Missed reach")
             self.data["trials"][-1]["end"] = cue_end
 
-        elif self._outcome == 1:
+        elif self._outcome == Outcomes.CORRECT:
             self._message("Successful reach!")
             self._reward_count += 1
 
-        elif self._outcome == 2:
+        elif self._outcome == Outcomes.INCORRECT:
             self._message("Incorrect reach!")
             time.sleep(self.data["timeout"] / 1000)
 
-        elif self._outcome == 3:
+        elif self._outcome == Outcomes.CANCELLED:
             return
 
         self.data["trials"][-1].update(
@@ -393,7 +400,7 @@ class Session:
         """
         self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
-        self._outcome = 1
+        self._outcome = Outcomes.CORRECT
         self._backend.dispense_water(self._current_spout)
 
     def on_trial_incorrect(self):
@@ -402,7 +409,7 @@ class Session:
         """
         self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
-        self._outcome = 2
+        self._outcome = Outcomes.INCORRECT
         self._backend.miss_trial()
 
     def extend_trial(self):
@@ -432,11 +439,11 @@ class Session:
             Passed to function by signal.signal; ignored.
 
         """
-        if self._outcome == 3:
+        if self._outcome == Outcomes.CANCELLED:
             return
 
         self._message = print
-        self._outcome = 3
+        self._outcome = Outcomes.CANCELLED
         self._backend.cleanup()
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -537,7 +544,7 @@ class ConditioningSession(Session):
             self._message(f"Counting down {iti_duration:.2f}s")
 
             while now < iti_end and not self._iti_broken:
-                if self._outcome == 3:
+                if self._outcome == Outcomes.CANCELLED:
                     return False
                 time.sleep(0.020)
                 now = time.time()
@@ -588,7 +595,7 @@ class ConditioningSession(Session):
         """
         self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
-        self._outcome = 1
+        self._outcome = Outcomes.CORRECT
         self._backend.dispense_water(self._current_spout)
 
     def on_trial_incorrect(self):
@@ -597,7 +604,7 @@ class ConditioningSession(Session):
         """
         self.data["trials"][-1]["end"] = time.time()
         self._backend.end_trial()
-        self._outcome = 2
+        self._outcome = Outcomes.INCORRECT
 
 
 def print_results(session):
