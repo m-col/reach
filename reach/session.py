@@ -259,7 +259,9 @@ class Session:
             self._current_spout = random.randint(0, 1)
 
         if self._recent_trials.get_hit_rate() >= 0.90:
-            if len(set([i['spout_position'] for i in self._recent_trials[-3:]])) == 1:
+            # check to see if the spout was in the same position during the last 5 trials
+            positions = [self._recent_trials[i]['spout_position'] for i in range(-5, 0)]
+            if len(set(positions)) == 1:
                 if self._spout_position < 7:
                     self._spout_position += 1
                     self._backend.position_spouts(self._spout_position)
