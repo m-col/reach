@@ -18,22 +18,7 @@ import time
 import RPi.GPIO as GPIO  # pylint: disable=import-error
 
 
-class _Actuator:
-    """
-    This is a base class for linear actuators that are controlled by a raspberry.Spout.
-    """
-
-    def __init__(self, pin, pin2=None):
-        self._pin = pin
-        self._pin2 = pin2
-
-    def set_position(self, position):
-        """
-        Set the position of the actuators.
-        """
-
-
-class Actuonix_PG12_P(_Actuator):
+class Actuonix_PG12_P:
     """
     Actuonix PQ12-P Linear Actuator (20mm stroke, 63:1 ratio, 6V)
 
@@ -51,7 +36,8 @@ class Actuonix_PG12_P(_Actuator):
     )
 
     def __init__(self, pin, pin2=None):
-        _Actuator.__init__(self, pin, pin2)
+        self._pin = pin
+        self._pin2 = pin2
         GPIO.setup(pin, GPIO.OUT, initial=False)
         self._pwm = GPIO.PWM(pin, 50)
         self._duty_cycle = 0
@@ -82,71 +68,6 @@ class Actuonix_PG12_P(_Actuator):
         self._pwm.ChangeDutyCycle(0)
 
 
-class Actuonix_L12_S(_Actuator):
-    """
-    Actuonix L12-S Linear Actuator (10mm stroke, 210:1 ratio, 12V)
-
-    The step_time attribute is how many milliseconds of 12V input is required to move
-    the actuator 1 mm.
-    """
-
-    _step_time = 0.200
-    _duty_cycle = 20
-    _frequency = 100
-
-    def __init__(self, pin, pin2=None):
-        _Actuator.__init__(self, pin, pin2)
-        self._enabled = False
-        self._position = 1
-
-        GPIO.setup(pin, GPIO.OUT, initial=False)
-        GPIO.setup(pin2, GPIO.OUT, initial=False)
-        self._pwm = GPIO.PWM(pin, self._frequency)
-        self._pwm2 = GPIO.PWM(pin2, self._frequency)
-        self._pwm.start(0)
-        self._pwm2.start(0)
-
-        self.move(False, 1)
-        self.move(True, 0.120)
-
-    def set_position(self, position):
-        step = position - self._position
-        duration = abs(step * self._step_time)
-        if step > 0:
-            self._pwm.ChangeDutyCycle(self._duty_cycle)
-            time.sleep(duration)
-            self._pwm.ChangeDutyCycle(0)
-        elif step < 0:
-            self._pwm2.ChangeDutyCycle(self._duty_cycle)
-            time.sleep(duration)
-            self._pwm2.ChangeDutyCycle(0)
-        self._position = position
-
-    def move(self, retract, duration):
-        """
-        Freely move the actuators by a specified duration.
-
-        Parameters
-        ----------
-        advance : :class:`bool`
-            If True, actuators will retract, otherwise they will advance.
-
-        duration : :class`float`
-            Duration in seconds to apply power.
-
-        """
-        pwm = self._pwm if retract else self._pwm2
-        pwm.ChangeDutyCycle(self._duty_cycle)
-        time.sleep(duration)
-        pwm.ChangeDutyCycle(0)
-
-    def __del__(self):
-        self._pwm.ChangeDutyCycle(0)
-        self._pwm.stop()
-        self._pwm2.ChangeDutyCycle(0)
-        self._pwm2.stop()
-
-
 class Spout:
     """
     This object represents and controls a single target spout, which controls a cue and
@@ -158,25 +79,15 @@ class Spout:
     pins : dict
         Dictionary containing pin numbers for cue, touch, reward and actuator.
 
-    actuator : class, optional
-        Class used to control the spout's linear actuator. By default, the
-        Actuonix_L12_S is used.
-
     """
 
-    def __init__(self, pins, actuator=None):
+    def __init__(self, pins):
         self.cue_pin = pins["cue"]
         self.touch_pin = pins["touch"]
         self.reward_pin = pins["reward"]
         self.actuator_pin = pins["actuator"]
-        self.actuator_reverse_pin = pins["actuator_reverse"]
 
-        if actuator is None:
-            actuator = Actuonix_PG12_P
-        elif not isinstance(actuator, _Actuator):
-            raise SystemError(f"Unknown actuator: {actuator}")
-        self._actuator = actuator(self.actuator_pin, self.actuator_reverse_pin)
-
+        self._actuator = Actuonix_PG12_P(self.actuator_pin)
         GPIO.setup(self.cue_pin, GPIO.OUT, initial=False)
         GPIO.setup(self.touch_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.reward_pin, GPIO.OUT, initial=False)

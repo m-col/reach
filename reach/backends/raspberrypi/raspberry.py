@@ -25,10 +25,6 @@ class RaspberryPi(Backend):
 
     Parameters
     ---------
-    actuator : :class:`class`, optional
-        An instance of reach.backends.raspberrypi.spouts._Actuator or a subclass. By
-        default, reach.backends.raspberrypi.spouts.Actuonix_L12_S will be used.
-
     reward_duration : :class:`float`, optional
         The duration in seconds for which the solenoid valves will be opened when
         dispensing water rewards. Default: 0.100 seconds.
@@ -53,21 +49,18 @@ class RaspberryPi(Backend):
                 "touch": 14,
                 "reward": 16,
                 "actuator": 12,
-                "actuator_reverse": 19,
             },
             {
                 "cue": 22,
                 "touch": 15,
                 "reward": 21,
                 "actuator": 13,
-                "actuator_reverse": 25,
             },
         ),
     }
 
     def __init__(
         self,
-        actuator=None,
         reward_duration=None,
         button_bouncetime=None,
         pin_numbers=None,
@@ -89,8 +82,8 @@ class RaspberryPi(Backend):
 
         self._target_pins = [x["touch"] for x in pin_numbers["spouts"]]
         self.spouts = [
-            spouts.Spout(pin_numbers["spouts"][0], actuator),
-            spouts.Spout(pin_numbers["spouts"][1], actuator),
+            spouts.Spout(pin_numbers["spouts"][0]),
+            spouts.Spout(pin_numbers["spouts"][1]),
         ]
         self.on_button = []
 
