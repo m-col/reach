@@ -20,19 +20,19 @@ GPIO.setmode(GPIO.BCM)
 
 
 class Pins:
-    paw_sensors = (5, 6)
+    paw_sensors = [12]
     spouts = [
         {
-            "cue": 23,
+            "cue": 7,
             "touch": 14,
-            "reward": 16,
-            "actuator": 12,
+            "reward": 6,
+            "actuator": 2,
         },
         {
-            "cue": 22,
+            "cue": 8,
             "touch": 15,
-            "reward": 21,
-            "actuator": 13,
+            "reward": 9,
+            "actuator": 4,
         },
     ]
 
@@ -59,7 +59,7 @@ class RaspberryPi(Backend):
         pin_numbers=None,
     ):
         Backend.__init__(self)
-        self._reward_duration = reward_duration or 0.100
+        self._reward_duration = reward_duration or 0.070
         self._is_trial = False
         self._current_target_spout = 0
         self._finish = False
