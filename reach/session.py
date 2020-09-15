@@ -11,7 +11,6 @@ import json
 import random
 import signal
 import sys
-import textwrap
 import time
 from collections import deque
 
@@ -19,6 +18,31 @@ import reach.backends
 from reach.utilities import cache
 
 
+settings_fstring = """
+_________________________________
+
+Duration:               {duration} s
+Inter-trial interval:   {iti_min} - {iti_max} ms
+Initial cue duration:   {cue_duration} ms
+Initial spout position: {spout_position}
+Timeout penalty:        {timeout} ms
+_________________________________
+"""
+
+results_fstring = """
+_________________________________
+# __________ The End __________ #
+
+Trials:            {trial_count}
+Correct reaches:   {reward_count} ({reward_perc:0.1f}%)
+Incorrect reaches: {incorrect_count} ({incorrect_perc:0.1f}%)
+Missed cues:       {miss_count} ({miss_perc:0.1f}%)
+Spont. reaches:    {spont_count}
+ITI resets:        {reset_count}
+    left paw:      {left_resets}
+    right paw:     {right_resets}
+# _____________________________ #
+"""
 
 
 class SlidingTrialList(deque):
@@ -32,6 +56,9 @@ class SlidingTrialList(deque):
         deque.__init__(self, [], self.WINDOW)
 
     def get_hit_rate(self):
+        """
+        Return the proportion of trials in the sliding window that were successful.
+        """
         num_hits = [i for i in self if i['outcome'] == 1]
         return num_hits / self.WINDOW
 
@@ -47,7 +74,6 @@ class Session:
         training data.
 
     """
-
     def __init__(self, data=None):
         self.data = data or {}
 
@@ -75,13 +101,16 @@ class Session:
         data_file : :class:`str`
             Full path to file containing existing training data.
 
+        Returns
+        -------
+        :class:`list`
+            List of :class:`Session` instances.
+
         """
         with open(data_file, "r") as fd:
             previous_data = json.load(fd)
 
-        training_data = [cls(data=data) for data in previous_data]
-
-        return training_data
+        return [cls(data=data) for data in previous_data]
 
     def add_data(self, data):
         """
@@ -131,9 +160,8 @@ class Session:
 
         """
         if not isinstance(backend, reach.backends.Backend):
-            raise SystemError(
-                "Provided backend is not an instance of reach.backend.Backend"
-            )
+            raise TypeError("Provided backend is not an instance of reach.backend.Backend")
+
         self._backend = backend
         self._hook = hook
 
@@ -164,7 +192,7 @@ class Session:
         except KeyboardInterrupt:
             self._backend.cleanup()
             self._message("Cancelled..")
-            sys.exit(1)
+            return
 
         signal.signal(signal.SIGINT, self._end_session)
         self._trial_loop()
@@ -177,19 +205,14 @@ class Session:
         """
         iti_min, iti_max = self.data["intertrial_interval"]
 
-        self._message(
-            textwrap.dedent(
-                f"""
-            _________________________________
-
-            Duration:               {self.data['duration']} s
-            Inter-trial interval:   {iti_min} - {iti_max} ms
-            Initial cue duration:   {self._cue_duration} ms
-            Initial spout position: {self._spout_position}
-            _________________________________
-        """
-            )
-        )
+        self._message(settings_fstring.format(
+            duration=self.data['duration'],
+            iti_min=iti_min,
+            iti_max=iti_max,
+            cue_duration=self._cue_duration,
+            spout_position=self._spout_position,
+            timeout=self.data['timeout'],
+        ))
 
     def _trial_loop(self):
         """
@@ -248,8 +271,9 @@ class Session:
 
         Returns
         -------
-        :class:`bool` : Whether to ITI ended normally rather than due to a manual
-        cancellation of the session.
+        :class:`bool`
+            Whether to ITI ended normally rather than due to a manual cancellation of
+            the session.
 
         """
         self._backend.start_iti()
@@ -590,31 +614,21 @@ def print_results(session):
             return
 
     trial_count = len(data["trials"])
-    miss_count = session.outcomes.count(0)
-    miss_perc = 100 * miss_count / trial_count
     reward_count = session.outcomes.count(1)
-    reward_perc = 100 * reward_count / trial_count
     incorrect_count = session.outcomes.count(2)
-    incorrect_perc = 100 * incorrect_count / trial_count
+    miss_count = session.outcomes.count(0)
     reset_pins = [y for x, y in data["resets"]]
-    left_resets = reset_pins.count(0)
-    right_resets = reset_pins.count(1)
 
-    print(
-        textwrap.dedent(
-            f"""
-        _________________________________
-        # __________ The End __________ #
-
-        Trials:            {trial_count}
-        Correct reaches:   {reward_count} ({reward_perc:0.1f}%)
-        Incorrect reaches: {incorrect_count} ({incorrect_perc:0.1f}%)
-        Missed cues:       {miss_count} ({miss_perc:0.1f}%)
-        Spont. reaches:    {len(data['spontaneous_reaches'])}
-        ITI resets:        {len(data['resets'])}
-            left paw:      {left_resets}
-            right paw:     {right_resets}
-        # _____________________________ #
-    """
-        )
-    )
+    print(results_fstring.format(
+        trial_count=trial_count,
+        reward_count=reward_count,
+        reward_perc=100 * reward_count / trial_count,
+        incorrect_count=incorrect_count,
+        incorrect_perc=100 * incorrect_count / trial_count,
+        miss_count=miss_count,
+        miss_perc=100 * miss_count / trial_count,
+        spont_count=len(data['spontaneous_reaches']),
+        reset_count=len(data['resets']),
+        left_resets=reset_pins.count(0),
+        right_resets=reset_pins.count(1),
+    ))

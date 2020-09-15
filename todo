@@ -4,7 +4,6 @@ todo list
 core code
 ---------
 
-[ ] remove 'water at cue onset'
 [ ] remove curses backend
 [ ] replace backend.dispense_water with generalised backend.reward
 [ ] IR break beam instead of touch sensors - does this need codework?

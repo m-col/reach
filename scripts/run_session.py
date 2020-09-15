@@ -10,6 +10,7 @@ This script shows an example of how a training session can be run.
 import functools
 
 from reach import Mouse
+from reach.session import print_results
 from reach.backends.raspberrypi import RaspberryPi
 
 
@@ -60,6 +61,8 @@ else:
         confirm = input('There were no new trials. Still save data? [Y/n]')
         if confirm != 'n':
             mouse.save_data_to_file(data_dir)
+
+print_results(mouse[-1])
 
 # Print remaining water that mouse requires
 reward_count = mouse[-1].reward_count
