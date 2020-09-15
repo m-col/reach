@@ -286,6 +286,9 @@ class Session:
                 time.sleep(0.020)
                 now = time.time()
 
+            if self._iti_broken:
+                time.sleep(self.data["timeout"] / 1000)
+
         return True
 
     def _trial(self):
@@ -543,6 +546,9 @@ class ConditioningSession(Session):
                     return False
                 time.sleep(0.020)
                 now = time.time()
+
+            if self._iti_broken:
+                time.sleep(self.data["timeout"] / 1000)
 
         return True
 
