@@ -1,0 +1,6 @@
+# Some example scripts use these for plotting:
+matplotlib
+seaborn
+
+# Some utilities in the RaspberryPi backend use this:
+readchar
