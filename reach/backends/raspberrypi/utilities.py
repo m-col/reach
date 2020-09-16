@@ -105,10 +105,10 @@ class Utilities(RaspberryPi):
 
     def step_actuators(self):
         """
-        Move the actuator positions along steps using the buttons.
+        Move the actuator positions along steps.
         """
-        print("Press button 0 or 1 to step actuator back or foward.")
-        print("Press button 2 or 3 to retract or advance actuator fully.")
+        print("Press right or left key to step actuator back or foward.")
+        print("Press up or down key to retract or advance actuator fully.")
 
         spout_position = 1
         self.position_spouts(spout_position)
