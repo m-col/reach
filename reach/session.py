@@ -381,6 +381,7 @@ class Session:
             Which spout was grasped: 0 for left, 1 for right.
 
         """
+        self._iti_broken = True
         self.data["spontaneous_reaches"].append((time.time(), side))
         self._message("Spontaneous reach made!")
 
@@ -520,95 +521,6 @@ class Session:
             [x for x in self.data["spontaneous_reaches"] if x[1] == 1]
         )
         return results
-
-
-class ConditioningSession(Session):
-    """
-    Controls a conditioning session, during which freely-moving mice can interact with
-    the reach targets with more flexibility and freedom than in the head-restrained
-    setup, facilitating association of the reach targets with water.
-
-    This is a slightly trimmed version of :class:`Session` that does not have paw rests.
-    """
-
-    def _inter_trial_interval(self):
-        """
-        Here we do not wait for mice to stay still as in these sessions there are no paw
-        rests. ITIs are only reset if the spouts are touched.
-        """
-        self._backend.start_iti()
-        self._iti_broken = True
-
-        while self._iti_broken:
-            self._iti_broken = False
-
-            now = time.time()
-            iti_duration = random.uniform(*self.data["intertrial_interval"]) / 1000
-            iti_end = now + iti_duration
-            self._message(f"Counting down {iti_duration:.2f}s")
-
-            while now < iti_end and not self._iti_broken:
-                if self._outcome == Outcomes.CANCELLED:
-                    return False
-                time.sleep(0.020)
-                now = time.time()
-
-            if self._iti_broken:
-                time.sleep(self.data["timeout"] / 1000)
-
-        return True
-
-    def on_iti_lift(self, side):
-        """
-        Not executed during conditional sessions due to absence of paw rests.
-
-        Parameters
-        ----------
-        side : :class:`int`
-            Usually this is which paw side triggered the callback.
-
-        """
-
-    def on_iti_grasp(self, side):
-        """
-        To be executed when a spontaneous reach is made during the inter-trial interval.
-
-        Parameters
-        ----------
-        side : :class:`int`
-            Which spout was grasped: 0 for left, 1 for right.
-
-        """
-        self._iti_broken = True
-        self.data["spontaneous_reaches"].append((time.time(), side))
-
-    def on_trial_lift(self, side):
-        """
-        Not executed during conditional sessions due to absence of paw rests.
-
-        Parameters
-        ----------
-        side : :class:`int`
-            Usually this is which paw side triggered the callback.
-
-        """
-
-    def on_trial_correct(self):
-        """
-        To be executed upon successful grasp of the reach target during each trial.
-        """
-        self.data["trials"][-1]["end"] = time.time()
-        self._backend.end_trial()
-        self._outcome = Outcomes.CORRECT
-        self._backend.give_reward(self._current_spout)
-
-    def on_trial_incorrect(self):
-        """
-        To be executed upon grasp of the incorrect reach target during each trial.
-        """
-        self.data["trials"][-1]["end"] = time.time()
-        self._backend.end_trial()
-        self._outcome = Outcomes.INCORRECT
 
 
 def print_results(session):
