@@ -10,7 +10,6 @@ training sessions and record data.
 import json
 import random
 import signal
-import sys
 import time
 from collections import deque
 
@@ -46,6 +45,9 @@ ITI resets:        {reset_count}
 
 
 class Outcomes:
+    """
+    These values label all possible trial outcomes.
+    """
     TBD = 0
     MISSED = 0
     CORRECT = 1
@@ -539,7 +541,7 @@ def print_results(session):
     trial_count = len(data["trials"])
     reward_count = session.outcomes.count(Outcomes.CORRECT)
     incorrect_count = session.outcomes.count(Outcomes.INCORRECT)
-    miss_count = session.outcomes.count(OUTCOMES.MISSED)
+    miss_count = session.outcomes.count(Outcomes.MISSED)
     reset_pins = [y for x, y in data["resets"]]
 
     print(results_fstring.format(
