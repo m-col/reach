@@ -11,14 +11,15 @@ It requires the readchar library: https://github.com/magmax/python-readchar
 
 import time
 import RPi.GPIO as GPIO  # pylint: disable=import-error
-from readchar import readchar
+import readchar
 
 from .raspberry import RaspberryPi
 
-UP_KEY = '\x1b[A'
-DOWN_KEY = '\x1b[B'
-RIGHT_KEY = '\x1b[C'
-LEFT_KEY = '\x1b[D'
+UP_KEY = readchar.key.UP
+DOWN_KEY = readchar.key.DOWN
+RIGHT_KEY = readchar.key.RIGHT
+LEFT_KEY = readchar.key.LEFT
+EXIT = readchar.key.SPACE
 
 
 class Utilities(RaspberryPi):
@@ -35,11 +36,10 @@ class Utilities(RaspberryPi):
         spout_pins = [i.touch_pin for i in self.spouts]
 
         def _print_touch(pin):
-            if pin == self._paw_pins[0]:
-                print(f"Left:    {GPIO.input(pin)}")
-            elif pin == self._paw_pins[1]:
-                print(f"Right:   {GPIO.input(pin)}")
-            else:
+            if pin in self._paw_pins:
+                index = self._paw_pins.index(pin)
+                print(f"Paw pin {index}:    {GPIO.input(pin)}")
+            if pin in spout_pins:
                 print(f"Spout {spout_pins.index(pin) + 1}: {GPIO.input(pin)}")
 
         for pin in spout_pins:
@@ -52,22 +52,27 @@ class Utilities(RaspberryPi):
                 pin, GPIO.BOTH, callback=_print_touch, bouncetime=10,
             )
 
-    def toggle_solenoid(self):
+        input("Press enter key to stop.\n")
+
+    def toggle_solenoids(self):
         """
         Open and close the water reward solenoids individually.
         """
         print("Press the left or right keys to open and close the corresponding solenoid.")
+        print("Press space key to stop.")
 
         left_open = False
         right_open = False
 
         while True:
-            key = readchar()
+            key = readchar.readkey()
             if key == LEFT_KEY:
-                GPIO.output(self.spouts[0].reward_pin, not left_open)
+                left_open = not left_open
+                GPIO.output(self.spouts[0].reward_pin, left_open)
             elif key == RIGHT_KEY:
-                GPIO.output(self.spouts[1].reward_pin, not right_open)
-            else:
+                right_open = not right_open
+                GPIO.output(self.spouts[1].reward_pin, right_open)
+            elif key == EXIT:
                 break
 
     def toggle_spout_leds(self):
@@ -75,32 +80,36 @@ class Utilities(RaspberryPi):
         Toggle the two target spout LEDs.
         """
         print("Press the left or right keys to toggle the corresponding LED.")
+        print("Press space key to stop.")
 
         left_on = False
         right_on = False
 
         while True:
-            key = readchar()
+            key = readchar.readkey()
             if key == LEFT_KEY:
-                GPIO.output(self.spouts[0].cue_pin, not left_on)
+                left_on = not left_on
+                GPIO.output(self.spouts[0].cue_pin, left_on)
             elif key == RIGHT_KEY:
-                GPIO.output(self.spouts[1].cue_pin, not right_on)
-            else:
+                right_on = not right_on
+                GPIO.output(self.spouts[1].cue_pin, right_on)
+            elif key == EXIT:
                 break
 
-    def test_reward_volume(self):
+    def dispense_reward_volume(self):
         """
         Measure volume of water dispensed by a specified duration.
         """
         print("Press the left or right key to dispense a reward from the corresponding spout.")
+        print("Press space key to stop.")
 
         while True:
-            key = readchar()
+            key = readchar.readkey()
             if key == LEFT_KEY:
                 self.give_reward(0)
             elif key == RIGHT_KEY:
                 self.give_reward(1)
-            else:
+            elif key == EXIT:
                 break
 
     def step_actuators(self):
@@ -109,12 +118,13 @@ class Utilities(RaspberryPi):
         """
         print("Press right or left key to step actuator back or foward.")
         print("Press up or down key to retract or advance actuator fully.")
+        print("Press space key to stop.")
 
         spout_position = 1
         self.position_spouts(spout_position)
 
         while True:
-            key = readchar()
+            key = readchar.readkey()
             if key == LEFT_KEY:
                 if spout_position > 1:
                     spout_position -= 1
@@ -125,7 +135,7 @@ class Utilities(RaspberryPi):
                 spout_position = 1
             elif key == UP_KEY:
                 spout_position = 7
-            else:
+            elif key == EXIT:
                 break
             print(f"Spout position: {spout_position}")
             self.position_spouts(spout_position)
