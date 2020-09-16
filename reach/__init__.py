@@ -19,7 +19,7 @@ See :repo:`scripts/plotting/cohort_reaction_times.py
 
 """
 
-__version__ = "2020-09-15.5"
+__version__ = "2020-09-16.1"
 
 from reach.cohort import Cohort
 from reach.mouse import Mouse

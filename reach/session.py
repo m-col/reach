@@ -46,6 +46,7 @@ ITI resets:        {reset_count}
 
 
 class Outcomes:
+    TBD = 0
     MISSED = 0
     CORRECT = 1
     INCORRECT = 2
@@ -66,7 +67,7 @@ class SlidingTrialList(deque):
         """
         Return the proportion of trials in the sliding window that were successful.
         """
-        num_hits = len([i for i in self if i['outcome'] == 1])
+        num_hits = len([i for i in self if i['outcome'] == Outcomes.CORRECT])
         return num_hits / self.WINDOW
 
 
@@ -87,7 +88,7 @@ class Session:
         # These attributes track state during training
         self._recent_trials = SlidingTrialList()
         self._reward_count = 0
-        self._outcome = 0
+        self._outcome = Outcomes.TBD
         self._iti_broken = False
         self._current_spout = 0
         self._backend = None
@@ -234,7 +235,7 @@ class Session:
 
         while now < data["end_time"]:
             trial_count += 1
-            self._outcome = 0
+            self._outcome = Outcomes.TBD
             self._message("_____________________________________")
             self._message(
                 "# -- Starting trial #%i -- %4.0f s -- #"
@@ -255,7 +256,7 @@ class Session:
         """
         Adapt live training settings based on recent behavioural performance.
         """
-        if self._recent_trials and self._recent_trials[-1]["outcome"] == 1:
+        if self._recent_trials and self._recent_trials[-1]["outcome"] == Outcomes.CORRECT:
             self._current_spout = random.randint(0, 1)
 
         if self._recent_trials.get_hit_rate() >= 0.90:
@@ -472,7 +473,7 @@ class Session:
         """
         Get the number of rewarded trials.
         """
-        return self.outcomes.count(1)  # pylint: disable=no-member
+        return self.outcomes.count(Outcomes.CORRECT)  # pylint: disable=no-member
 
     @cache
     def reaction_times(self):
@@ -487,7 +488,7 @@ class Session:
         """
         reaction_times = []
         for trial in self.data["trials"]:
-            if trial["outcome"] == 1:
+            if trial["outcome"] == Outcomes.CORRECT:
                 reaction_times.append(trial["end"] - trial["start"])
         return reaction_times
 
@@ -504,9 +505,9 @@ class Session:
 
         """
         results = self.data.copy()
-        results["missed"] = self.outcomes.count(0)  # pylint: disable=E1101
-        results["correct"] = self.outcomes.count(1)  # pylint: disable=E1101
-        results["incorrect"] = self.outcomes.count(2)  # pylint: disable=E1101
+        results["missed"] = self.outcomes.count(Outcomes.MISSED)  # pylint: disable=E1101
+        results["correct"] = self.outcomes.count(Outcomes.CORRECT)  # pylint: disable=E1101
+        results["incorrect"] = self.outcomes.count(Outcomes.INCORRECT)  # pylint: disable=E1101
         results["trials"] = len(self.data["trials"])
         results["resets"] = len(self.data["resets"])
         results["resets_l"] = len([x for x in self.data["resets"] if x[1] == 0])
@@ -624,9 +625,9 @@ def print_results(session):
             return
 
     trial_count = len(data["trials"])
-    reward_count = session.outcomes.count(1)
-    incorrect_count = session.outcomes.count(2)
-    miss_count = session.outcomes.count(0)
+    reward_count = session.outcomes.count(Outcomes.CORRECT)
+    incorrect_count = session.outcomes.count(Outcomes.INCORRECT)
+    miss_count = session.outcomes.count(OUTCOMES.MISSED)
     reset_pins = [y for x, y in data["resets"]]
 
     print(results_fstring.format(
