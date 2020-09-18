@@ -10,6 +10,7 @@ experimental mouse. They are used to start training sessions using the
 
 import json
 import os
+import tempfile
 
 from reach.session import Session
 from reach.utilities import cache
@@ -153,16 +154,18 @@ class Mouse:
             Directory into which to save training data.
 
         """
-        if os.path.isdir(data_dir):
-            data_file = os.path.join(data_dir, f"{self.mouse_id}.json")
-        else:
-            data_file = f"./{self.mouse_id}_temp.json"
-
         data = [i.data for i in self.training_data]
-        with open(data_file, "w") as fd:
-            json.dump(data, fd)
 
-        print(f"Data was saved in {data_file}")
+        try:
+            path = os.path.join(data_dir, f"{self.mouse_id}.json")
+            with open(path, "w") as fd:
+                json.dump(data, fd)
+        except FileNotFoundError:
+            path = os.path.join(tempfile.tempdir(), f"{self.mouse_id}.json")
+            with open(path, "w") as fd:
+                json.dump(data, fd)
+
+        print(f"Data was saved in {path}")
 
     def get_session_reaction_times(self, session_number):
         """
