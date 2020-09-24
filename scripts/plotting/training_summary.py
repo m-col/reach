@@ -20,7 +20,6 @@ def main(cohort):
     results = pd.DataFrame()
     for mouse in cohort.results:
         results = results.append(pd.DataFrame(mouse))
-    results['hit_rate'] = results['correct'] / results['trials']
 
     sns.lineplot(
         data=results,
@@ -30,6 +29,8 @@ def main(cohort):
         legend='brief',
         ax=axes[0],
     )
+    axes[0].set_ylim(bottom=0)
+    axes[0].set_ylabel('No.\ntrials', rotation="horizontal", ha="right")
 
     sns.lineplot(
         data=results,
@@ -39,15 +40,20 @@ def main(cohort):
         legend=False,
         ax=axes[1],
     )
+    axes[1].set_ylim(bottom=0)
+    axes[1].set_ylabel('No.\ncorrect', rotation="horizontal", ha="right")
 
+    results['Hit rate'] = results['correct'] / results['trials']
     sns.lineplot(
         data=results,
         x='day',
-        y='hit_rate',
+        y='Hit rate',
         hue='mouse_id',
         legend=False,
         ax=axes[2],
     )
+    axes[2].set_ylim(bottom=0, top=1)
+    axes[2].set_ylabel('Hit rate', rotation="horizontal", ha="right")
 
     sns.lineplot(
         data=results,
@@ -57,7 +63,12 @@ def main(cohort):
         legend=False,
         ax=axes[3],
     )
+    axes[3].set_ylim(bottom=0)
+    axes[3].set_ylabel('No.\nincorrect', rotation="horizontal", ha="right")
 
+    axes[4].axhline(0, color='#aaa', alpha=0.5, ls='--')
+    # 1.5 here is an arbitrary threshold of ability to discriminate
+    axes[4].axhline(1.5, color='#aaa', alpha=0.5, ls=':')
     sns.lineplot(
         data=results,
         x='day',
@@ -66,7 +77,10 @@ def main(cohort):
         legend=False,
         ax=axes[4],
     )
+    axes[4].set_ylim(top=2)
+    axes[4].set_ylabel("d'", rotation="horizontal", ha="right")
 
+    axes[5].axhline(7, color='#aaa', alpha=0.5, ls='--')
     sns.lineplot(
         data=cohort.trials,
         x='day',
@@ -75,6 +89,8 @@ def main(cohort):
         legend=False,
         ax=axes[5],
     )
+    axes[5].set_ylim(bottom=0, top=8)
+    axes[5].set_ylabel('Spout\nposition\n(mm)', rotation="horizontal", ha="right")
 
     plt.show()
 
