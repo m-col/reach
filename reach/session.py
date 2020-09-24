@@ -505,7 +505,8 @@ class Session:
         where "hits" (H) is success rate of left-target trials that involved reaching
         movements, and "false alarms" (FA) is incorrect rate of right-target trials that
         involved reaching movements. This metric does not account for miss trials where
-        no reaches were made.
+        no reaches were made. A loglinear correction is used to account for extreme
+        values (Hautus, 1995).
 
         """
         def z(p):
@@ -521,12 +522,9 @@ class Session:
                 else:
                     rights.append(outcome)
 
-        try:
-            H = lefts.count(Outcomes.CORRECT) / len(lefts)
-            FA = rights.count(Outcomes.INCORRECT) / len(rights)
-            d_prime = z(FA) - z(H)
-        except ZeroDivisionError:
-            d_prime = None
+        H = (lefts.count(Outcomes.CORRECT) + 0.5) / (len(lefts) + 1)
+        FA = (rights.count(Outcomes.INCORRECT) + 0.5) / (len(rights) + 1)
+        d_prime = z(FA) - z(H)
         return d_prime
 
     @cache
