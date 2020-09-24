@@ -15,7 +15,7 @@ from reach import Cohort
 
 
 def main(cohort):
-    fig, axes = plt.subplots(5, 1, sharex=True)
+    fig, axes = plt.subplots(6, 1, sharex=True)
 
     results = pd.DataFrame()
     for mouse in cohort.results:
@@ -59,12 +59,21 @@ def main(cohort):
     )
 
     sns.lineplot(
+        data=results,
+        x='day',
+        y='d_prime',
+        hue='mouse_id',
+        legend=False,
+        ax=axes[4],
+    )
+
+    sns.lineplot(
         data=cohort.trials,
         x='day',
         y='spout_position',
         hue='mouse_id',
         legend=False,
-        ax=axes[4],
+        ax=axes[5],
     )
 
     plt.show()

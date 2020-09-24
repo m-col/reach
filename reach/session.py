@@ -12,6 +12,7 @@ import random
 import signal
 import time
 from collections import deque
+from statistics import NormalDist
 
 import reach.backends
 from reach.utilities import cache
@@ -496,6 +497,39 @@ class Session:
         return reaction_times
 
     @cache
+    def d_prime(self):
+        """
+        Get the d' value for this session.
+
+        d' is calculated as: d' = z(FA) - z(H)
+        where "hits" (H) is success rate of left-target trials that involved reaching
+        movements, and "false alarms" (FA) is incorrect rate of right-target trials that
+        involved reaching movements. This metric does not account for miss trials where
+        no reaches were made.
+
+        """
+        def z(p):
+            return - NormalDist().inv_cdf(p)
+
+        lefts = []
+        rights = []
+        for trial in self.data['trials']:
+            outcome = trial.get("outcome")
+            if outcome in (Outcomes.CORRECT, Outcomes.INCORRECT):
+                if trial.get('spout') == 0:
+                    lefts.append(outcome)
+                else:
+                    rights.append(outcome)
+
+        try:
+            H = lefts.count(Outcomes.CORRECT) / len(lefts)
+            FA = rights.count(Outcomes.INCORRECT) / len(rights)
+            d_prime = z(FA) - z(H)
+        except ZeroDivisionError:
+            d_prime = None
+        return d_prime
+
+    @cache
     def results(self):
         """
         Return session training data in a pandas DataFrame.
@@ -522,6 +556,7 @@ class Session:
         results["spontaneous_reaches_r"] = len(
             [x for x in self.data["spontaneous_reaches"] if x[1] == 1]
         )
+        results["d_prime"] = self.d_prime
         return results
 
 
