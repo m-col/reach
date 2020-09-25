@@ -167,24 +167,6 @@ class Mouse:
 
         print(f"Data was saved in {path}")
 
-    def get_session_reaction_times(self, session_number):
-        """
-        Get reaction times for a training session.
-
-        Parameters
-        ----------
-        session_number : :class:`int`
-            The session number for the session we are want reaction times for.
-
-        Returns
-        -------
-        :class:`list` of :class:`ints`\s
-            Chronological list of reaction times in milliseconds.
-
-        """
-        session = self.training_data[session_number]
-        return session.reaction_times
-
     @cache
     def reaction_times(self):
         """
