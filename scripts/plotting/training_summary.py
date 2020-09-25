@@ -66,9 +66,9 @@ def main(cohort):
     axes[3].set_ylim(bottom=0)
     axes[3].set_ylabel('No.\nincorrect', rotation="horizontal", ha="right")
 
-    axes[4].axhline(0, color='#aaa', alpha=0.5, ls='--')
+    axes[4].axhline(0, color='#aaaaaa', alpha=0.5, ls='--')
     # 1.5 here is an arbitrary threshold of ability to discriminate
-    axes[4].axhline(1.5, color='#aaa', alpha=0.5, ls=':')
+    axes[4].axhline(1.5, color='#aaaaaa', alpha=0.5, ls=':')
     sns.lineplot(
         data=results,
         x='day',
@@ -80,7 +80,7 @@ def main(cohort):
     axes[4].set_ylim(top=2)
     axes[4].set_ylabel("d'", rotation="horizontal", ha="right")
 
-    axes[5].axhline(7, color='#aaa', alpha=0.5, ls='--')
+    axes[5].axhline(7, color='#aaaaaa', alpha=0.5, ls='--')
     sns.lineplot(
         data=cohort.trials,
         x='day',
