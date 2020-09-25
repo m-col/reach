@@ -456,9 +456,8 @@ class Session:
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
         data = self.data
-        if signal_number:
-            data["end_time"] = time.time()
-            data["duration"] = data["end_time"] - data["start_time"]
+        data["end_time"] = time.time()
+        data["duration"] = data["end_time"] - data["start_time"]
         data["date"] = time.strftime("%Y-%m-%d")
         data["start_time"] = time.strftime(
             "%H:%M:%S", time.localtime(data["start_time"])
