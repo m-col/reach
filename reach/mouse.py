@@ -7,7 +7,6 @@ experimental mouse. They are used to start training sessions using the
 :class:`Mouse.train()` method.
 """
 
-
 import json
 import os
 import tempfile
@@ -33,7 +32,6 @@ class Mouse:
         The mouse's training data.
 
     """
-
     def __init__(self, mouse_id=None, training_data=None):
         if training_data is None:
             training_data = []
@@ -80,7 +78,7 @@ class Mouse:
             mouse = cls(mouse_id=mouse_id, training_data=training_data)
 
         else:
-            print("Initialising empty Mouse object.")
+            print("Training a new mouse.")
             mouse = cls(mouse_id=mouse_id)
 
         return mouse

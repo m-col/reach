@@ -10,7 +10,6 @@ To create a new backend, copy this file and re-implement some or all of the meth
 subclass.
 """
 
-
 __all__ = ("Backend",)
 
 

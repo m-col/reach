@@ -5,7 +5,6 @@ Utilities
 Miscellaneous utilities.
 """
 
-
 import functools
 
 

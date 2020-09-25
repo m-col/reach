@@ -6,7 +6,6 @@ Sessions
 training sessions and record data.
 """
 
-
 import json
 import random
 import signal
@@ -16,7 +15,6 @@ from statistics import NormalDist
 
 import reach.backends
 from reach.utilities import cache
-
 
 settings_fstring = """
 _________________________________
@@ -58,7 +56,7 @@ class Outcomes:
 
 class SlidingTrialList(deque):
     """
-    A list of fixed length self._WINDOW, the number of recent trials used to calculate
+    A list of fixed length self.WINDOW, the number of recent trials used to calculate
     adaptive task settings for upcoming trials.
     """
     WINDOW = 15
@@ -233,7 +231,6 @@ class Session:
         now = time.time()
         data["start_time"] = now
         data["end_time"] = now + data["duration"]
-
         trial_count = 0
 
         while now < data["end_time"]:
@@ -459,9 +456,7 @@ class Session:
         data["end_time"] = time.time()
         data["duration"] = data["end_time"] - data["start_time"]
         data["date"] = time.strftime("%Y-%m-%d")
-        data["start_time"] = time.strftime(
-            "%H:%M:%S", time.localtime(data["start_time"])
-        )
+        data["start_time"] = time.strftime("%H:%M:%S", time.localtime(data["start_time"]))
         data["end_time"] = time.strftime("%H:%M:%S", time.localtime(data["end_time"]))
 
     @cache

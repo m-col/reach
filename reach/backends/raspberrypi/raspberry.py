@@ -7,7 +7,6 @@ used to operate the training box hardware during behavioural training.
 
 """
 
-
 import time
 import RPi.GPIO as GPIO  # pylint: disable=import-error
 

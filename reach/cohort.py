@@ -6,7 +6,6 @@ Cohorts
 mice. Iterating over a cohort returns its :class:`Mouse` instances.
 """
 
-
 from collections.abc import Sequence
 
 from reach.mouse import Mouse
@@ -27,7 +26,6 @@ class Cohort(Sequence):
         A list of mouse IDs.
 
     """
-
     def __init__(self, mice=None, mouse_ids=None):
         self.mice = mice or []
         self.mouse_ids = mouse_ids or []

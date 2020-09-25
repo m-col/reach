@@ -7,7 +7,6 @@ at times sleep to emulate a real raspberry pi backend.
 
 """
 
-
 import time
 
 from .. import Backend
