@@ -8,8 +8,8 @@ experimental mouse. They are used to start training sessions using the
 """
 
 import json
-import os
 import tempfile
+from pathlib import Path
 
 from reach.session import Session
 from reach.utilities import cache
@@ -68,12 +68,13 @@ class Mouse:
             JSON if json_path is a folder.
 
         """
-        if not os.path.isdir(data_dir):
+        data_dir = Path(data_dir)
+        if not data_dir.exists():
             raise SystemError(f"Could not find directory {data_dir}")
 
-        data_file = os.path.join(data_dir, f"{mouse_id}.json")
+        data_file = data_dir / f"{mouse_id}.json"
 
-        if os.path.isfile(data_file):
+        if data_file.exists():
             training_data = Session.init_all_from_file(data_file)
             mouse = cls(mouse_id=mouse_id, training_data=training_data)
 
@@ -153,15 +154,19 @@ class Mouse:
 
         """
         data = [i.data for i in self.training_data]
+        data_dir = Path(data_dir)
 
+        def write(path):
+            with path.open(mode='w') as fd:
+                json.dump(data, fd)
         try:
-            path = os.path.join(data_dir, f"{self.mouse_id}.json")
-            with open(path, "w") as fd:
-                json.dump(data, fd)
+            write(data_dir / f"{self.mouse_id}.json")
         except FileNotFoundError:
-            path = os.path.join(tempfile.tempdir(), f"{self.mouse_id}.json")
-            with open(path, "w") as fd:
-                json.dump(data, fd)
+            write(Path(tempfile.tempdir()) / f"{self.mouse_id}.json")
+        except Exception as e:
+            write(Path(tempfile.tempdir()) / f"{self.mouse_id}.json")
+            print(f"Exception raised while saving: {type(e)}")
+            print("Please report this.")
 
         print(f"Data was saved in {path}")
 
