@@ -54,6 +54,14 @@ class Outcomes:
     CANCELLED = 3
 
 
+class Targets:
+    """
+    These represent the 2 target positions.
+    """
+    LEFT = 0
+    RIGHT = 1
+
+
 class SlidingTrialList(deque):
     """
     A list of fixed length self.WINDOW, the number of recent trials used to calculate
@@ -91,7 +99,7 @@ class Session:
         self._reward_count = 0
         self._outcome = Outcomes.TBD
         self._iti_broken = False
-        self._current_spout = 0
+        self._current_spout = Targets.LEFT
         self._backend = None
         self._message = print
         self._extended_trial = False
@@ -191,7 +199,7 @@ class Session:
                 self._recent_trials[-1]["cue_duration"], self._cue_duration
             )  # we do this in case the last trial was extended
 
-        self._current_spout = random.randint(0, 1)
+        self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
         self._backend.position_spouts(self._spout_position)
         self._display_training_settings()
         self._backend.configure_callbacks(self)
@@ -257,7 +265,7 @@ class Session:
         Adapt live training settings based on recent behavioural performance.
         """
         if self._recent_trials and self._recent_trials[-1]["outcome"] == Outcomes.CORRECT:
-            self._current_spout = random.randint(0, 1)
+            self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
 
         if self._recent_trials.get_hit_rate() >= 0.90:
             # check to see if the spout was in the same position during the last 5 trials
@@ -511,7 +519,7 @@ class Session:
         for trial in self.data['trials']:
             outcome = trial.get("outcome")
             if outcome in (Outcomes.CORRECT, Outcomes.INCORRECT):
-                if trial.get('spout') == 0:
+                if trial.get('spout') == Targets.LEFT:
                     lefts.append(outcome)
                 else:
                     rights.append(outcome)
@@ -539,14 +547,14 @@ class Session:
         results["incorrect"] = self.outcomes.count(Outcomes.INCORRECT)  # pylint: disable=E1101
         results["trials"] = len(self.data["trials"])
         results["resets"] = len(self.data["resets"])
-        results["resets_l"] = len([x for x in self.data["resets"] if x[1] == 0])
-        results["resets_r"] = len([x for x in self.data["resets"] if x[1] == 1])
+        results["resets_l"] = len([x for x in self.data["resets"] if x[1] == Targets.LEFT])
+        results["resets_r"] = len([x for x in self.data["resets"] if x[1] == Targets.RIGHT])
         results["spontaneous_reaches"] = len(self.data["spontaneous_reaches"])
         results["spontaneous_reaches_l"] = len(
-            [x for x in self.data["spontaneous_reaches"] if x[1] == 0]
+            [x for x in self.data["spontaneous_reaches"] if x[1] == Targets.LEFT]
         )
         results["spontaneous_reaches_r"] = len(
-            [x for x in self.data["spontaneous_reaches"] if x[1] == 1]
+            [x for x in self.data["spontaneous_reaches"] if x[1] == Targets.RIGHT]
         )
         results["d_prime"] = self.d_prime
         return results
@@ -581,6 +589,6 @@ def print_results(session):
         miss_perc=100 * miss_count / trial_count,
         spont_count=len(data['spontaneous_reaches']),
         reset_count=len(data['resets']),
-        left_resets=reset_pins.count(0),
-        right_resets=reset_pins.count(1),
+        left_resets=reset_pins.count(Targets.LEFT),
+        right_resets=reset_pins.count(Targets.RIGHT),
     ))

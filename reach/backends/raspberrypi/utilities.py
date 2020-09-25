@@ -13,7 +13,8 @@ import time
 import RPi.GPIO as GPIO  # pylint: disable=import-error
 import readchar
 
-from .raspberry import RaspberryPi
+from reach.session import Targets
+from reach.backends.raspberrypi.raspberry import RaspberryPi
 
 UP_KEY = readchar.key.UP
 DOWN_KEY = readchar.key.DOWN
@@ -68,10 +69,10 @@ class Utilities(RaspberryPi):
             key = readchar.readkey()
             if key == LEFT_KEY:
                 left_open = not left_open
-                GPIO.output(self.spouts[0].reward_pin, left_open)
+                GPIO.output(self.spouts[Targets.LEFT].reward_pin, left_open)
             elif key == RIGHT_KEY:
                 right_open = not right_open
-                GPIO.output(self.spouts[1].reward_pin, right_open)
+                GPIO.output(self.spouts[Targets.RIGHT].reward_pin, right_open)
             elif key == EXIT:
                 break
 
@@ -89,10 +90,10 @@ class Utilities(RaspberryPi):
             key = readchar.readkey()
             if key == LEFT_KEY:
                 left_on = not left_on
-                GPIO.output(self.spouts[0].cue_pin, left_on)
+                GPIO.output(self.spouts[Targets.LEFT].cue_pin, left_on)
             elif key == RIGHT_KEY:
                 right_on = not right_on
-                GPIO.output(self.spouts[1].cue_pin, right_on)
+                GPIO.output(self.spouts[Targets.RIGHT].cue_pin, right_on)
             elif key == EXIT:
                 break
 
@@ -106,9 +107,9 @@ class Utilities(RaspberryPi):
         while True:
             key = readchar.readkey()
             if key == LEFT_KEY:
-                self.give_reward(0)
+                self.give_reward(Targets.LEFT)
             elif key == RIGHT_KEY:
-                self.give_reward(1)
+                self.give_reward(Targets.RIGHT)
             elif key == EXIT:
                 break
 

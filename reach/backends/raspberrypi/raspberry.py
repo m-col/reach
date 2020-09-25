@@ -10,9 +10,9 @@ used to operate the training box hardware during behavioural training.
 import time
 import RPi.GPIO as GPIO  # pylint: disable=import-error
 
-from .. import Backend
-from . import spouts
-
+from reach.session import Targets
+from reach.backends import Backend
+from reach.backends.raspberrypi import spouts
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -60,7 +60,7 @@ class RaspberryPi(Backend):
         Backend.__init__(self)
         self._reward_duration = reward_duration or 0.070
         self._is_trial = False
-        self._current_target_spout = 0
+        self._current_target_spout = Targets.LEFT
         self._finish = False
         self.session = None
 
@@ -73,8 +73,8 @@ class RaspberryPi(Backend):
 
         self._target_pins = [x["touch"] for x in pin_numbers.spouts]
         self.spouts = [
-            spouts.Spout(pin_numbers.spouts[0]),
-            spouts.Spout(pin_numbers.spouts[1]),
+            spouts.Spout(pin_numbers.spouts[Targets.LEFT]),
+            spouts.Spout(pin_numbers.spouts[Targets.RIGHT]),
         ]
 
     def configure_callbacks(self, session):
@@ -119,7 +119,11 @@ class RaspberryPi(Backend):
         """
         Callback function assigned to spout sensors by GPIO.add_event_detect.
         """
-        spout = 0 if pin == self.spouts[0].touch_pin else 1
+        if pin == self.spouts[Targets.LEFT].touch_pin:
+            spout = Targets.LEFT
+        else:
+            spout = Targets.RIGHT
+
         if self._is_trial:
             if self._current_target_spout == spout:
                 self.session.on_trial_correct()
