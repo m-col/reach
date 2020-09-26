@@ -163,9 +163,9 @@ class Mouse:
         try:
             write(data_dir / f"{self.mouse_id}.json")
         except FileNotFoundError:
-            write(Path(tempfile.tempdir()) / f"{self.mouse_id}.json")
-        except Exception as e:
-            write(Path(tempfile.tempdir()) / f"{self.mouse_id}.json")
+            write(Path(tempfile.gettempdir()) / f"{self.mouse_id}.json")
+        except Exception as e:  # pylint: disable=broad-except
+            write(Path(tempfile.gettempdir()) / f"{self.mouse_id}.json")
             print(f"Exception raised while saving: {type(e)}")
             print("Please report this.")
 

@@ -64,7 +64,7 @@ class Backend:
 
         """
 
-    def wait_for_rest(self):
+    def wait_for_rest(self):  # pylint: disable=no-self-use
         """
         Called to wait for the mouse to remain still during the inter-trial interval
         before counting down to the start of a trial. Must return True, or False due to
