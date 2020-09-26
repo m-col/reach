@@ -2,8 +2,11 @@
 """
 Example script plotting metrics to illustrate how well a cohort of mice are training
 across days.
-"""
 
+Usage:
+training_summary.py /path/to/data_dir mouse1 mouse2
+
+"""
 
 import sys
 
@@ -15,11 +18,8 @@ from reach import Cohort
 
 
 def main(cohort):
-    fig, axes = plt.subplots(6, 1, sharex=True)
-
-    results = pd.DataFrame()
-    for mouse in cohort.results:
-        results = results.append(pd.DataFrame(mouse))
+    _, axes = plt.subplots(6, 1, sharex=True)
+    results = pd.DataFrame(cohort.results)
 
     sns.lineplot(
         data=results,
@@ -77,7 +77,7 @@ def main(cohort):
         legend=False,
         ax=axes[4],
     )
-    axes[4].set_ylim(top=2)
+    axes[4].set_ylim(top=2.5)
     axes[4].set_ylabel("d'", rotation="horizontal", ha="right")
 
     axes[5].axhline(7, color='#aaaaaa', alpha=0.5, ls='--')
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         mouse_ids.append(i)
     if not mouse_ids:
         raise SystemError(
-            f'Usage: {__file__} /path/to/json/folder mouse1 mouse2'
+            f'Usage: {__file__} /path/to/data_dir mouse1 mouse2'
         )
 
     cohort = Cohort.init_from_files(

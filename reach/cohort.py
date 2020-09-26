@@ -102,15 +102,13 @@ class Cohort(Sequence):
         Get the high-level results for all training sessions for all mice. This can
         easily be turned into a useful pandas DataFrame:
 
-        >>> results = pandas.DataFrame()
-        >>> for mouse in cohort.results:
-        >>>     results = results.append(pandas.DataFrame(mouse))
+        >>> results = pandas.DataFrame(cohort.results)
 
         Returns
         -------
-        :class:`list` of :class:`list`\s of :class:`dict`\s
-            The sublists correspond to individual mice, and their respective dicts each
-            contain the results for a given training session.
+        :class:`generator`
+            Yields a dict for each training session in the cohort containing that
+            session's results.
 
         """
-        return [mouse.results for mouse in self.mice]
+        return (i for mouse in self.mice for i in mouse.results)
