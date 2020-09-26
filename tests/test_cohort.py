@@ -24,6 +24,7 @@ def test_get_outcomes(cohort):
     outcomes = cohort.get_outcomes()
     assert len(outcomes) == 1  # 1 mouse
     assert len(outcomes[0]) == 8  # 8 sessions
+    assert all(isinstance(t, int) for s in outcomes[0] for t in s)
 
 
 def test_get_trials(cohort):
@@ -35,3 +36,6 @@ def test_get_results(cohort):
     results = list(cohort.get_results())
     assert len(results) == 8  # 8 sessions
     assert all(isinstance(i, dict) for i in results)
+    # Cohort.get_results gives a flattened list, and we only have 1 mouse, so these
+    # should be the same
+    assert results == cohort[0].get_results()
