@@ -8,8 +8,6 @@ and using a reach training box.
 It requires the readchar library: https://github.com/magmax/python-readchar
 """
 
-
-import time
 import RPi.GPIO as GPIO  # pylint: disable=import-error
 import readchar
 
