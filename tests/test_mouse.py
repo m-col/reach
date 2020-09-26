@@ -2,6 +2,8 @@
 Tests for reach.mouse
 """
 
+import tempfile
+
 from reach import Mouse, Session
 
 
@@ -17,8 +19,12 @@ def test_train(mouse):
 
 
 def test_save_data_to_file(mouse):
-    # TODO
-    pass
+    data_dir = tempfile.gettempdir()
+    mouse.save_data_to_file(data_dir)
+    new_mouse = Mouse.init_from_file(data_dir, mouse.mouse_id)
+    new_data = [s.data for s in new_mouse.training_data]
+    old_data = [s.data for s in mouse.training_data]
+    assert new_data == old_data
 
 
 def test_get_reaction_times(mouse):
