@@ -14,7 +14,6 @@ from collections import deque
 from statistics import NormalDist
 
 import reach.backends
-from reach.utilities import cache
 
 settings_fstring = """
 _________________________________
@@ -467,22 +466,13 @@ class Session:
         data["start_time"] = time.strftime("%H:%M:%S", time.localtime(data["start_time"]))
         data["end_time"] = time.strftime("%H:%M:%S", time.localtime(data["end_time"]))
 
-    @cache
-    def outcomes(self):
+    def get_outcomes(self):
         """
         Get a list containing the outcomes for all trials.
         """
         return list(i.get("outcome") for i in self.data["trials"])
 
-    @cache
-    def reward_count(self):
-        """
-        Get the number of rewarded trials.
-        """
-        return self.outcomes.count(Outcomes.CORRECT)  # pylint: disable=no-member
-
-    @cache
-    def reaction_times(self):
+    def get_reaction_times(self):
         """
         List of reaction times for this training session.
 
@@ -498,8 +488,7 @@ class Session:
                 reaction_times.append(trial["end"] - trial["start"])
         return reaction_times
 
-    @cache
-    def d_prime(self):
+    def get_d_prime(self):
         """
         Get the d' value for this session.
 
@@ -529,8 +518,7 @@ class Session:
         d_prime = z(FA) - z(H)
         return d_prime
 
-    @cache
-    def results(self):
+    def get_results(self):
         """
         Return session training data in a pandas DataFrame.
 
@@ -542,9 +530,10 @@ class Session:
 
         """
         results = self.data.copy()
-        results["missed"] = self.outcomes.count(Outcomes.MISSED)  # pylint: disable=E1101
-        results["correct"] = self.outcomes.count(Outcomes.CORRECT)  # pylint: disable=E1101
-        results["incorrect"] = self.outcomes.count(Outcomes.INCORRECT)  # pylint: disable=E1101
+        outcomes = self.get_outcomes()
+        results["missed"] = outcomes.count(Outcomes.MISSED)  # pylint: disable=E1101
+        results["correct"] = outcomes.count(Outcomes.CORRECT)  # pylint: disable=E1101
+        results["incorrect"] = outcomes.count(Outcomes.INCORRECT)  # pylint: disable=E1101
         results["trials"] = len(self.data["trials"])
         results["resets"] = len(self.data["resets"])
         results["resets_l"] = len([x for x in self.data["resets"] if x[1] == Targets.LEFT])
@@ -556,7 +545,7 @@ class Session:
         results["spontaneous_reaches_r"] = len(
             [x for x in self.data["spontaneous_reaches"] if x[1] == Targets.RIGHT]
         )
-        results["d_prime"] = self.d_prime
+        results["d_prime"] = self.get_d_prime()
         return results
 
 
@@ -573,10 +562,11 @@ def print_results(session):
         if not data["trials"]:
             return
 
+    outcomes = session.get_outcomes()
     trial_count = len(data["trials"])
-    reward_count = session.outcomes.count(Outcomes.CORRECT)
-    incorrect_count = session.outcomes.count(Outcomes.INCORRECT)
-    miss_count = session.outcomes.count(Outcomes.MISSED)
+    reward_count = outcomes.count(Outcomes.CORRECT)
+    incorrect_count = outcomes.count(Outcomes.INCORRECT)
+    miss_count = outcomes.count(Outcomes.MISSED)
     reset_pins = [y for x, y in data["resets"]]
 
     print(results_fstring.format(

@@ -12,7 +12,6 @@ import tempfile
 from pathlib import Path
 
 from reach.session import Session
-from reach.utilities import cache
 
 
 class Mouse:
@@ -170,8 +169,7 @@ class Mouse:
 
         print(f"Data was saved in {path}")
 
-    @cache
-    def reaction_times(self):
+    def get_reaction_times(self):
         """
         Get reaction times for all training sessions.
 
@@ -185,12 +183,11 @@ class Mouse:
         reaction_times = []
 
         for session in self.training_data:
-            reaction_times.append(session.reaction_times)
+            reaction_times.append(session.get_reaction_times())
 
         return reaction_times
 
-    @cache
-    def outcomes(self):
+    def get_outcomes(self):
         """
         Get trial outcomes per session.
 
@@ -202,10 +199,9 @@ class Mouse:
             incorrect reach.
 
         """
-        return [session.outcomes for session in self.training_data]
+        return [session.get_outcomes() for session in self.training_data]
 
-    @cache
-    def results(self):
+    def get_results(self):
         """
         Return training data for all sessions in a pandas DataFrame.
 

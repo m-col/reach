@@ -9,7 +9,6 @@ mice. Iterating over a cohort returns its :class:`Mouse` instances.
 from collections.abc import Sequence
 
 from reach.mouse import Mouse
-from reach.utilities import cache
 
 
 class Cohort(Sequence):
@@ -67,8 +66,7 @@ class Cohort(Sequence):
     def __repr__(self):
         return f"Cohort containing mice: {', '.join(self.mouse_ids)}"
 
-    @cache
-    def outcomes(self):
+    def get_outcomes(self):
         """
         Get trial outcomes for all mice across all sessions.
         """
@@ -77,8 +75,7 @@ class Cohort(Sequence):
             outcomes.append(mouse.outcomes)
         return outcomes
 
-    @cache
-    def trials(self):
+    def get_trials(self):
         """
         Get trial data for all mice and sessions as a pandas DataFrame.
         """
@@ -96,8 +93,7 @@ class Cohort(Sequence):
         trials["reaction_time"] = trials.end - trials.start
         return trials
 
-    @cache
-    def results(self):
+    def get_results(self):
         """
         Get the high-level results for all training sessions for all mice. This can
         easily be turned into a useful pandas DataFrame:
