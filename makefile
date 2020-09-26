@@ -10,7 +10,7 @@ clean:
 	find reach -regex .\*\.py[co]\$$ -delete
 	find reach -depth -name __pycache__ -type d -exec rm -r -- {} \;
 
-TEST_PATHS = reach tests
+TEST_PATHS = reach tests/*.py
 
 pylint:
 	@echo "Running pylint..."
