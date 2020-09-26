@@ -176,8 +176,7 @@ class Mouse:
         Returns
         -------
         :class:`list` of :class:`list`\s of :class:`float`\s
-            List containing one list of reaction times per session in
-            milliseconds.
+            List containing one list of reaction times per session in seconds.
 
         """
         reaction_times = []

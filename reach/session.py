@@ -479,7 +479,7 @@ class Session:
         Returns
         -------
         :class:`list` of :class:`float`\s
-            Chronological list of reaction times in milliseconds.
+            Chronological list of reaction times in seconds.
 
         """
         reaction_times = []

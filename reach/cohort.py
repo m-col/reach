@@ -74,7 +74,7 @@ class Cohort(Sequence):
         -------
         :class:`list`
             Nested lists containing reaction times per mouse and per session in
-            milliseconds.
+            seconds.
 
         """
         return (mouse.get_reaction_times() for mouse in self.mice)
