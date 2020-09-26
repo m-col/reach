@@ -1,10 +1,19 @@
+# pylint: disable=redefined-outer-name
 """
 Tests for reach.mouse
 """
 
 import tempfile
 
+import pytest
+
 from reach import Mouse, Session
+
+
+@pytest.fixture
+def mouse(data_dir, mouse_id):
+    m = Mouse.init_from_file(data_dir, mouse_id)
+    yield m
 
 
 def test_mouse(mouse):

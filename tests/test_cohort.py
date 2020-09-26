@@ -1,8 +1,17 @@
+# pylint: disable=redefined-outer-name
 """
 Tests for reach.cohort
 """
 
+import pytest
+
 from reach import Cohort, Mouse, Session
+
+
+@pytest.fixture
+def cohort(data_dir, mouse_id):
+    c = Cohort.init_from_files(data_dir, [mouse_id])
+    yield c
 
 
 def test_cohort(cohort):
