@@ -202,7 +202,10 @@ class Mouse:
 
     def get_results(self):
         """
-        Return training data for all sessions.
+        Return training data for all sessions. This can easily be converted into a
+        pandas DataFrame for analysis:
+
+        >>> results = pandas.DataFrame(mouse.get_results())
 
         Returns
         -------

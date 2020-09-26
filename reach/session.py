@@ -520,7 +520,7 @@ class Session:
 
     def get_results(self):
         """
-        Return session training data in a pandas DataFrame.
+        Return session training data.
 
         Returns
         -------

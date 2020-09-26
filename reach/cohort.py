@@ -45,6 +45,8 @@ class Cohort(Sequence):
 
         """
         mice = []
+        if isinstance(mouse_ids, str):
+            mouse_ids = [mouse_ids]
 
         for mouse in mouse_ids:
             mice.append(Mouse.init_from_file(data_dir=data_dir, mouse_id=mouse,))
