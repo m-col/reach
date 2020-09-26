@@ -98,7 +98,7 @@ class Cohort(Sequence):
 
         for i, mouse in enumerate(self.mice):
             mouse_df = pd.DataFrame()
-            for j, session in enumerate(mouse.training_data):
+            for j, session in enumerate(mouse.data):
                 df = pd.DataFrame(session.data["trials"])
                 mouse_df = mouse_df.append(df.assign(day=j + 1), sort=False)
             trials = trials.append(mouse_df.assign(mouse_id=self.mouse_ids[i]))

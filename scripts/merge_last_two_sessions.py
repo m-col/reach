@@ -57,7 +57,7 @@ if reply == "2":
 elif reply != "1":
     session1.data['notes'] = reply
 
-del mouse.training_data[settings.session_2]
+del mouse.data[settings.session_2]
 print(len(mouse))
 
 reply = input(f"Are you sure? [y/N] ").lower()

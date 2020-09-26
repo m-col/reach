@@ -27,28 +27,28 @@ class Mouse:
     mouse_id : :class:`str`, optional
         The mouse's ID.
 
-    training_data : :class:`list` of :class:`Session` instances.
+    data : :class:`list` of :class:`Session` instances.
         The mouse's training data.
 
     """
-    def __init__(self, mouse_id=None, training_data=None):
-        if training_data is None:
-            training_data = []
+    def __init__(self, mouse_id=None, data=None):
+        if data is None:
+            data = []
 
         self.mouse_id = mouse_id
-        self.training_data = training_data
+        self.data = data
 
     def __getitem__(self, index):
         """
         Allow indexing directly, returning the nth :class:`Session`
         """
-        return self.training_data[index]
+        return self.data[index]
 
     def __len__(self):
         """
         Allow querying of the number of training days completed.
         """
-        return len(self.training_data)
+        return len(self.data)
 
     @classmethod
     def init_from_file(cls, data_dir, mouse_id):
@@ -74,8 +74,8 @@ class Mouse:
         data_file = data_dir / f"{mouse_id}.json"
 
         if data_file.exists():
-            training_data = Session.init_all_from_file(data_file)
-            mouse = cls(mouse_id=mouse_id, training_data=training_data)
+            data = Session.init_all_from_file(data_file)
+            mouse = cls(mouse_id=mouse_id, data=data)
 
         else:
             print("Training a new mouse.")
@@ -122,8 +122,8 @@ class Mouse:
         if self.mouse_id:
             print(f"Training mouse: {self.mouse_id}")
 
-        if self.training_data:
-            previous_data = self.training_data[-1].data
+        if self.data:
+            previous_data = self.data[-1].data
         else:
             previous_data = None
 
@@ -132,7 +132,7 @@ class Mouse:
         if additional_data is not None:
             new_session.add_data(additional_data)
 
-        self.training_data.append(new_session)
+        self.data.append(new_session)
         new_session.run(
             backend,
             previous_data=previous_data,
@@ -152,7 +152,7 @@ class Mouse:
             Directory into which to save training data.
 
         """
-        data = [i.data for i in self.training_data]
+        data = [i.data for i in self.data]
         data_dir = Path(data_dir)
 
         def write(path):
@@ -182,7 +182,7 @@ class Mouse:
         """
         reaction_times = []
 
-        for session in self.training_data:
+        for session in self.data:
             reaction_times.append(session.get_reaction_times())
 
         return reaction_times
@@ -199,7 +199,7 @@ class Mouse:
             incorrect reach.
 
         """
-        return [session.get_outcomes() for session in self.training_data]
+        return [session.get_outcomes() for session in self.data]
 
     def get_results(self):
         """
@@ -213,7 +213,7 @@ class Mouse:
 
         """
         results = []
-        for day, session in enumerate(self.training_data):
+        for day, session in enumerate(self.data):
             session_results = session.get_results()
             session_results["day"] = day + 1
             session_results["mouse_id"] = self.mouse_id

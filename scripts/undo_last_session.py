@@ -41,7 +41,7 @@ mouse = Mouse.init_from_file(
 
 
 # Delete last session and save to file
-del mouse.training_data[-1]
+del mouse.data[-1]
 
 print(f"Deleting the last session for mouse ID: {settings.mouse_id}.")
 reply = input(f"Are you sure? [y/N] ").lower()

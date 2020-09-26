@@ -22,8 +22,8 @@ def test_save_data_to_file(mouse):
     data_dir = tempfile.gettempdir()
     mouse.save_data_to_file(data_dir)
     new_mouse = Mouse.init_from_file(data_dir, mouse.mouse_id)
-    new_data = [s.data for s in new_mouse.training_data]
-    old_data = [s.data for s in mouse.training_data]
+    new_data = [s.data for s in new_mouse.data]
+    old_data = [s.data for s in mouse.data]
     assert new_data == old_data
 
 
