@@ -66,6 +66,19 @@ class Cohort(Sequence):
     def __repr__(self):
         return f"Cohort containing mice: {', '.join(self.mouse_ids)}"
 
+    def get_reaction_times(self):
+        """
+        Get reaction times for all training sessions for all mice.
+
+        Returns
+        -------
+        :class:`list`
+            Nested lists containing reaction times per mouse and per session in
+            milliseconds.
+
+        """
+        return (mouse.get_reaction_times() for mouse in self.mice)
+
     def get_outcomes(self):
         """
         Get trial outcomes for all mice across all sessions.
