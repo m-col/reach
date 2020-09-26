@@ -158,6 +158,8 @@ class Mouse:
         def write(path):
             with path.open(mode='w') as fd:
                 json.dump(data, fd)
+            print(f"Data was saved in {path}")
+
         try:
             write(data_dir / f"{self.mouse_id}.json")
         except FileNotFoundError:
@@ -166,8 +168,6 @@ class Mouse:
             write(Path(tempfile.tempdir()) / f"{self.mouse_id}.json")
             print(f"Exception raised while saving: {type(e)}")
             print("Please report this.")
-
-        print(f"Data was saved in {path}")
 
     def get_reaction_times(self):
         """
