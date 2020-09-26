@@ -10,8 +10,7 @@ clean:
 	find reach -regex .\*\.py[co]\$$ -delete
 	find reach -depth -name __pycache__ -type d -exec rm -r -- {} \;
 
-TEST_PATHS = \
-	reach
+TEST_PATHS = reach tests
 
 pylint:
 	@echo "Running pylint..."
@@ -20,6 +19,10 @@ pylint:
 flake8:
 	@echo "Running flake8..."
 	flake8 $(TEST_PATHS)
+
+test:
+	@echo "Running tests..."
+	pytest tests
 
 black:
 	@echo "Running black..."
