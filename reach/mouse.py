@@ -203,18 +203,19 @@ class Mouse:
 
     def get_results(self):
         """
-        Return training data for all sessions in a pandas DataFrame.
+        Return training data for all sessions.
 
         Returns
         -------
         :class:`list` of :class:`dict`\s
-            Each dict is :class:`Session.results`, with the day number and mouse ID
-            added.
+            Each dict is the output from :class:`Session.get_results()`, with the day
+            number and mouse ID added.
 
         """
         results = []
         for day, session in enumerate(self.training_data):
-            session.results["day"] = day + 1
-            session.results["mouse_id"] = self.mouse_id
-            results.append(session.results)
+            session_results = session.get_results()
+            session_results["day"] = day + 1
+            session_results["mouse_id"] = self.mouse_id
+            results.append(session_results)
         return results

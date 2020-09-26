@@ -72,7 +72,7 @@ class Cohort(Sequence):
         """
         outcomes = []
         for mouse in self.mice:
-            outcomes.append(mouse.outcomes)
+            outcomes.append(mouse.get_outcomes())
         return outcomes
 
     def get_trials(self):
@@ -98,7 +98,7 @@ class Cohort(Sequence):
         Get the high-level results for all training sessions for all mice. This can
         easily be turned into a useful pandas DataFrame:
 
-        >>> results = pandas.DataFrame(cohort.results)
+        >>> results = pandas.DataFrame(cohort.get_results())
 
         Returns
         -------
@@ -107,4 +107,4 @@ class Cohort(Sequence):
             session's results.
 
         """
-        return (i for mouse in self.mice for i in mouse.results)
+        return (i for mouse in self.mice for i in mouse.get_results())
