@@ -33,6 +33,11 @@ def test_run(session):
     pass
 
 
+def test_get_trials(session):
+    trials = session.get_trials()
+    assert all(isinstance(i, dict) for i in trials)
+
+
 def test_get_d_prime(session):
     d_prime = session.get_d_prime()
     assert d_prime == 2.31348411534963

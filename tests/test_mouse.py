@@ -37,8 +37,12 @@ def test_save_data_to_file(mouse):
 
 
 def test_get_trials(mouse):
-    # TODO after updating Cohort.get_trials and adding Mouse.get_trials
-    pass
+    i = 1
+    for t in mouse.get_trials():
+        assert isinstance(t, dict)
+        day = t.get("day")
+        assert day >= i
+        i = day
 
 
 def test_get_results(mouse):
