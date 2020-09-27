@@ -466,27 +466,18 @@ class Session:
         data["start_time"] = time.strftime("%H:%M:%S", time.localtime(data["start_time"]))
         data["end_time"] = time.strftime("%H:%M:%S", time.localtime(data["end_time"]))
 
-    def get_outcomes(self):
+    def get_trials(self):
         """
-        Get a list containing the outcomes for all trials.
-        """
-        return list(i.get("outcome") for i in self.data["trials"])
-
-    def get_reaction_times(self):
-        """
-        List of reaction times for this training session.
+        Get trial data for this session.
 
         Returns
         -------
-        :class:`list` of :class:`float`\s
-            Chronological list of reaction times in seconds.
+        :class:`list` of :class:`dict`\s
+            Chronological list of dicts, where each dict contains information about the
+            nth trial.
 
         """
-        reaction_times = []
-        for trial in self.data["trials"]:
-            if trial["outcome"] == Outcomes.CORRECT:
-                reaction_times.append(trial["end"] - trial["start"])
-        return reaction_times
+        return self.data['trials']
 
     def get_d_prime(self):
         """
@@ -520,17 +511,17 @@ class Session:
 
     def get_results(self):
         """
-        Return session training data.
+        Get the high-level results for this session.
 
         Returns
         -------
         :class:`dict`
-            containing basic high-level metrics of the training session, and any other
-            metadata found in :class:`Session.data`.
+            containing basic metrics of the session, and any other metadata found in
+            :class:`Session.data`.
 
         """
         results = self.data.copy()
-        outcomes = self.get_outcomes()
+        outcomes = [i.get("outcome") for i in self.data["trials"]]
         results["missed"] = outcomes.count(Outcomes.MISSED)  # pylint: disable=E1101
         results["correct"] = outcomes.count(Outcomes.CORRECT)  # pylint: disable=E1101
         results["incorrect"] = outcomes.count(Outcomes.INCORRECT)  # pylint: disable=E1101

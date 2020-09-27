@@ -36,18 +36,6 @@ def test_save_data_to_file(mouse):
     assert new_data == old_data
 
 
-def test_get_reaction_times(mouse):
-    rts = mouse.get_reaction_times()
-    assert len(rts) == 8  # 8 sessions
-    assert all(isinstance(t, float) for s in rts for t in s)
-
-
-def test_get_outcomes(mouse):
-    outcomes = mouse.get_outcomes()
-    assert len(outcomes) == 8  # 8 sessions
-    assert all(isinstance(t, int) for s in outcomes for t in s)
-
-
 def test_get_trials(mouse):
     # TODO after updating Cohort.get_trials and adding Mouse.get_trials
     pass

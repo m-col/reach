@@ -22,20 +22,6 @@ def test_cohort(cohort):
     assert isinstance(cohort[0][0], Session)
 
 
-def test_get_reaction_times(cohort):
-    rts = list(cohort.get_reaction_times())
-    assert len(rts) == 1  # 1 mouse
-    assert len(rts[0]) == 8  # 8 sessions
-    assert all(isinstance(t, float) for s in rts[0] for t in s)
-
-
-def test_get_outcomes(cohort):
-    outcomes = cohort.get_outcomes()
-    assert len(outcomes) == 1  # 1 mouse
-    assert len(outcomes[0]) == 8  # 8 sessions
-    assert all(isinstance(t, int) for s in outcomes[0] for t in s)
-
-
 def test_get_trials(cohort):
     # TODO after updating Cohort.get_trials
     pass

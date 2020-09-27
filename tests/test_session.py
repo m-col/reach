@@ -33,23 +33,6 @@ def test_run(session):
     pass
 
 
-def test_get_outcomes(session):
-    outcomes = session.get_outcomes()
-    assert len(outcomes) == len(session.data['trials']) == 76
-    possible = set(
-        j for i, j in reach.session.Outcomes.__dict__.items() if not i.startswith("_")
-    )
-    assert all(i in possible for i in outcomes)
-
-
-def test_get_reaction_times(session):
-    rts = session.get_reaction_times()
-    assert len(rts) == 41
-    assert all(isinstance(i, float) for i in rts)
-    assert min(rts) > 0
-    assert max(rts) <= 10
-
-
 def test_get_d_prime(session):
     d_prime = session.get_d_prime()
     assert d_prime == 2.31348411534963

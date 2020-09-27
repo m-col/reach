@@ -169,50 +169,28 @@ class Mouse:
             print(f"Exception raised while saving: {type(e)}")
             print("Please report this.")
 
-    def get_reaction_times(self):
+    def get_trials(self):
         """
-        Get reaction times for all training sessions.
+        Get trial data for all sessions.
 
-        Returns
-        -------
-        :class:`list` of :class:`list`\s of :class:`float`\s
-            List containing one list of reaction times per session in seconds.
-
+        This can easily be turned into a useful pandas DataFrame:
+        >>> trials = pd.DataFrame(mouse.get_trials())
         """
-        reaction_times = []
-
-        for session in self.data:
-            reaction_times.append(session.get_reaction_times())
-
-        return reaction_times
-
-    def get_outcomes(self):
-        """
-        Get trial outcomes per session.
-
-        Returns
-        -------
-        :class:`list` of :class:`lists`\s of :class:`int`\s
-            Each inner list is one session, and contains for each trial an :class:`int`
-            representing one possible outcome: 0, miss trial; 1, correct reach; and 2,
-            incorrect reach.
-
-        """
-        return [session.get_outcomes() for session in self.data]
+        trials = []
+        for i, session in enumerate(self.data):
+            ses_trials = session.get_trials()
+            for t in ses_trials:
+                t['day'] = i + 1
+                t['mouse_id'] = self.mouse_id
+            trials.extend(ses_trials)
+        return trials
 
     def get_results(self):
         """
-        Return training data for all sessions. This can easily be converted into a
-        pandas DataFrame for analysis:
+        Get the high-level results for all sessions.
 
+        This can easily be turned into a useful pandas DataFrame:
         >>> results = pandas.DataFrame(mouse.get_results())
-
-        Returns
-        -------
-        :class:`list` of :class:`dict`\s
-            Each dict is the output from :class:`Session.get_results()`, with the day
-            number and mouse ID added.
-
         """
         results = []
         for day, session in enumerate(self.data):

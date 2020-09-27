@@ -20,6 +20,7 @@ from reach import Cohort
 def main(cohort):
     _, axes = plt.subplots(6, 1, sharex=True)
     results = pd.DataFrame(cohort.get_results())
+    trials = pd.DataFrame(cohort.get_trials())
 
     sns.lineplot(
         data=results,
@@ -82,7 +83,7 @@ def main(cohort):
 
     axes[5].axhline(7, color='#aaaaaa', alpha=0.5, ls='--')
     sns.lineplot(
-        data=cohort.get_trials(),
+        data=trials,
         x='day',
         y='spout_position',
         hue='mouse_id',
