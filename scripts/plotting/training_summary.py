@@ -10,6 +10,7 @@ training_summary.py /path/to/data_dir mouse1 mouse2
 
 import sys
 
+import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -21,6 +22,10 @@ def main(cohort):
     _, axes = plt.subplots(6, 1, sharex=True)
     results = pd.DataFrame(cohort.get_results())
     trials = pd.DataFrame(cohort.get_trials())
+
+    results.loc[results["trials"] == 0, "correct"] = np.nan
+    results.loc[results["trials"] == 0, "incorrect"] = np.nan
+    results.loc[results["trials"] == 0, "d_prime"] = np.nan
 
     sns.lineplot(
         data=results,
