@@ -3,6 +3,7 @@
 Tests for reach.mouse
 """
 
+import os
 import tempfile
 
 import pytest
@@ -27,13 +28,14 @@ def test_train(mouse):
     pass
 
 
-def test_save_data_to_file(mouse):
+def test_save_data_to_file(mouse, mouse_id):
     data_dir = tempfile.gettempdir()
     mouse.save_data_to_file(data_dir)
-    new_mouse = Mouse.init_from_file(data_dir, mouse.mouse_id)
+    new_mouse = Mouse.init_from_file(data_dir, mouse_id)
     new_data = [s.data for s in new_mouse.data]
     old_data = [s.data for s in mouse.data]
     assert new_data == old_data
+    os.remove(os.path.join(data_dir,  mouse_id + '.json'))
 
 
 def test_get_trials(mouse):
