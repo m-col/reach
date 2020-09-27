@@ -477,7 +477,7 @@ class Session:
             nth trial.
 
         """
-        return self.data['trials']
+        return self.data['trials'].copy()
 
     def get_d_prime(self):
         """
@@ -521,11 +521,12 @@ class Session:
 
         """
         results = self.data.copy()
-        outcomes = [i.get("outcome") for i in self.data["trials"]]
+        trials = self.get_trials()
+        outcomes = [i.get("outcome") for i in trials]
         results["missed"] = outcomes.count(Outcomes.MISSED)  # pylint: disable=E1101
         results["correct"] = outcomes.count(Outcomes.CORRECT)  # pylint: disable=E1101
         results["incorrect"] = outcomes.count(Outcomes.INCORRECT)  # pylint: disable=E1101
-        results["trials"] = len(self.data["trials"])
+        results["trials"] = len(trials)
         results["resets"] = len(self.data["resets"])
         results["resets_l"] = len([x for x in self.data["resets"] if x[1] == Targets.LEFT])
         results["resets_r"] = len([x for x in self.data["resets"] if x[1] == Targets.RIGHT])
@@ -545,16 +546,17 @@ def print_results(session):
     Print the results of a training session.
     """
     data = session.data
+    trials = session.get_trials()
 
-    if not data["trials"]:
+    if not trials:
         return
-    if "outcome" not in data["trials"][-1]:
-        data["trials"].pop()
-        if not data["trials"]:
+    if "outcome" not in trials[-1]:
+        trials.pop()
+        if not trials:
             return
 
-    outcomes = session.get_outcomes()
-    trial_count = len(data["trials"])
+    outcomes = [i.get("outcome") for i in trials]
+    trial_count = len(trials)
     reward_count = outcomes.count(Outcomes.CORRECT)
     incorrect_count = outcomes.count(Outcomes.INCORRECT)
     miss_count = outcomes.count(Outcomes.MISSED)
