@@ -28,9 +28,26 @@ def test_recent_trials(session):
     assert recent_trials.get_hit_rate() == 0.7333333333333333
 
 
-def test_run(session):
-    #TODO
-    pass
+def test_run(session, backend):
+    hook_flag = 0
+    def hook():
+        nonlocal hook_flag
+        hook_flag += 1
+
+    session.run(
+        backend,
+        duration=10000000,
+        intertrial_interval=(0, 0),
+        timeout=0,
+        hook=hook,
+    )
+    assert hook_flag == 4
+    results = session.get_results()
+    assert results.get('correct') == 1
+    assert results.get('incorrect') == 1
+    assert results.get('missed') == 1
+    assert results.get('resets_l') == 4
+    assert results.get('spontaneous_reaches_l') == 4
 
 
 def test_get_trials(session):
