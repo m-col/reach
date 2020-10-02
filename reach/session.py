@@ -33,6 +33,7 @@ _________________________________
 Trials:            {trial_count}
 Correct reaches:   {reward_count} ({reward_perc:0.1f}%)
 Incorrect reaches: {incorrect_count} ({incorrect_perc:0.1f}%)
+d'                 {d_prime}
 Missed cues:       {miss_count} ({miss_perc:0.1f}%)
 Spont. reaches:    {spont_count}
 ITI resets:        {reset_count}
@@ -568,6 +569,7 @@ def print_results(session):
         reward_perc=100 * reward_count / trial_count,
         incorrect_count=incorrect_count,
         incorrect_perc=100 * incorrect_count / trial_count,
+        d_prime=session.get_d_prime(),
         miss_count=miss_count,
         miss_perc=100 * miss_count / trial_count,
         spont_count=len(data['spontaneous_reaches']),
