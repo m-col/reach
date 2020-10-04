@@ -61,3 +61,19 @@ def test_get_results(mouse):
     results = mouse.get_results()
     assert len(results) == 8  # 8 sessions
     assert all(isinstance(i, dict) for i in results)
+
+
+def test_get_spontaneous_reaches(mouse):
+    sponts = mouse.get_spontaneous_reaches()
+    locations = (reach.session.Targets.LEFT, reach.session.Targets.RIGHT)
+    t = 0
+    d = 0
+    for s in sponts:
+        timing = s.get("timing")
+        assert timing > t
+        t = timing
+        assert s.get("location") in locations
+        assert s.get("mouse_id") is mouse.mouse_id
+        day = s.get("day")
+        assert day >= d
+        d = day

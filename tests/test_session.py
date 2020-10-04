@@ -74,6 +74,16 @@ def test_get_results(session):
     assert results.get('spontaneous_reaches_r') == 56
 
 
+def test_get_spontaneous_reaches(session):
+    sponts = session.get_spontaneous_reaches()
+    locations = (reach.session.Targets.LEFT, reach.session.Targets.RIGHT)
+    t = 0
+    for s in sponts:
+        assert s.get("timing") > t
+        assert s.get("location") in locations
+        t = s.get("timing")
+
+
 def test_print_results(session):
     # This function is not super important so it's fine as long as it doesn't fail.
     reach.session.print_results(session)

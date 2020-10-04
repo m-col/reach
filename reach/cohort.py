@@ -85,3 +85,12 @@ class Cohort(Sequence):
         >>> results = pd.DataFrame(cohort.get_results())
         """
         return (i for mouse in self.mice for i in mouse.get_results())
+
+    def get_spontaneous_reaches(self):
+        """
+        Get the data on spontaneous reach timings and locations for all mice.
+
+        This can easily be turned into a useful pandas DataFrame:
+        >>> spontaneous_reaches = pd.DataFrame(cohort.get_spontaneous_reaches())
+        """
+        return (i for mouse in self.mice for i in mouse.get_spontaneous_reaches())

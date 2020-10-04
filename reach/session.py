@@ -541,6 +541,19 @@ class Session:
         results["d_prime"] = self.get_d_prime()
         return results
 
+    def get_spontaneous_reaches(self):
+        """
+        Get the list of spontaneous reach timings and locations.
+
+        Returns
+        -------
+        :class:`list`
+            A list of (time, location) tuples, where location is equal to Targets.LEFT
+            or Targets.RIGHT.
+
+        """
+        return [dict(timing=t, location=l) for t, l in self.data["spontaneous_reaches"]]
+
 
 def print_results(session):
     """

@@ -199,3 +199,19 @@ class Mouse:
             session_results["mouse_id"] = self.mouse_id
             results.append(session_results)
         return results
+
+    def get_spontaneous_reaches(self):
+        """
+        Get the data on spontaneous reach timings and locations for all sessions.
+
+        This can easily be turned into a useful pandas DataFrame:
+        >>> spontaneous_reaches = pd.DataFrame(mouse.get_spontaneous_reaches())
+        """
+        sponts = []
+        for day, session in enumerate(self.data):
+            session_sponts = session.get_spontaneous_reaches()
+            for i in session_sponts:
+                i['day'] = day + 1
+                i['mouse_id'] = self.mouse_id
+            sponts.extend(session_sponts)
+        return sponts
