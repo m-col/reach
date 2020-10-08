@@ -149,6 +149,7 @@ class Session:
         previous_data=None,
         hook=None,
         timeout=None,
+        single_spout=False,
     ):
         """
         Begin a training session.
@@ -175,6 +176,9 @@ class Session:
         timeout : :class:`int`, optional
             Duration in milliseconds of a timeout to wait after an incorrect trial.
 
+        single_spout : :class:`bool`, optional
+            If True, only the left hand spout (spout 1) will be used. Default: False.
+
         """
         if not isinstance(backend, reach.backends.Backend):
             raise TypeError("Provided backend is not an instance of reach.backend.Backend")
@@ -191,6 +195,7 @@ class Session:
         self.data["trials"] = []
         self.data["resets"] = []
         self.data["spontaneous_reaches"] = []
+        self.data["single_spout"] = single_spout
 
         if previous_data and previous_data["trials"]:
             self._recent_trials.extend(previous_data["trials"])
@@ -199,7 +204,8 @@ class Session:
                 self._recent_trials[-1]["cue_duration"], self._cue_duration
             )  # we do this in case the last trial was extended
 
-        self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
+        if not single_spout:
+            self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
         self._backend.position_spouts(self._spout_position)
         self._display_training_settings()
         self._backend.configure_callbacks(self)
@@ -264,7 +270,11 @@ class Session:
         """
         Adapt live training settings based on recent behavioural performance.
         """
-        if self._recent_trials and self._recent_trials[-1]["outcome"] == Outcomes.CORRECT:
+        if (
+                self._recent_trials
+                and not self.data["single_spout"]
+                and self._recent_trials[-1]["outcome"] == Outcomes.CORRECT
+        ):
             self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
 
         if self._recent_trials.get_hit_rate() >= 0.90:

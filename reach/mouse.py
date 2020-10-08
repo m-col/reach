@@ -91,6 +91,7 @@ class Mouse:
         intertrial_interval=None,
         hook=None,
         timeout=None,
+        single_spout=False,
     ):
         """
         Create a new Session and run it, appending its newly-collected data to the
@@ -117,6 +118,9 @@ class Mouse:
         timeout : :class:`callable`, optional
             Duration in milliseconds of a timeout to wait after an incorrect trial.
 
+        single_spout : :class:`bool`, optional
+            If True, only the left hand spout (spout 1) will be used. Default: False.
+
         """
 
         if self.mouse_id:
@@ -140,6 +144,7 @@ class Mouse:
             intertrial_interval=intertrial_interval,
             hook=hook,
             timeout=timeout,
+            single_spout=single_spout,
         )
 
     def save_data_to_file(self, data_dir):
