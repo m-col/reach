@@ -287,7 +287,7 @@ class Session:
                     self._message(f"Spouts progressed to position {self._spout_position}")
 
                 elif self._cue_duration > 2000:
-                    self._cue_duration = max(int(self._cue_duration * 0.9), 2000)
+                    self._cue_duration = max(int(self._cue_duration * 0.997), 2000)
                     self._message(f"Cue duration decreased to {self._cue_duration} ms")
 
     def _inter_trial_interval(self):
