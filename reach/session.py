@@ -79,6 +79,17 @@ class SlidingTrialList(deque):
         num_hits = len([i for i in self if i['outcome'] == Outcomes.CORRECT])
         return num_hits / self.WINDOW
 
+    def get_touch_rate(self):
+        """
+        Return the proportion of trials in the sliding window that resulted in reaches,
+        whether correct or incorrect.
+        """
+        num_hits = 0
+        for i in self:
+            if i['outcome'] == Outcomes.CORRECT or i['outcome'] == Outcomes.INCORRECT:
+                num_hits += 1
+        return num_hits / self.WINDOW
+
 
 class Session:
     """
@@ -150,6 +161,7 @@ class Session:
         hook=None,
         timeout=None,
         single_spout=False,
+        advance_with_incorrects=False,
     ):
         """
         Begin a training session.
@@ -179,6 +191,11 @@ class Session:
         single_spout : :class:`bool`, optional
             If True, only the left hand spout (spout 1) will be used. Default: False.
 
+        advance_with_incorrects : :class:`bool`, optional
+            If True, advancements between trials in spout position and cue duration can
+            happen as long as the mouse is touch any reach target consistently, rather
+            than reaching only to the current target.
+
         """
         if not isinstance(backend, reach.backends.Backend):
             raise TypeError("Provided backend is not an instance of reach.backend.Backend")
@@ -196,6 +213,7 @@ class Session:
         self.data["resets"] = []
         self.data["spontaneous_reaches"] = []
         self.data["single_spout"] = single_spout
+        self.data["advance_with_incorrects"] = advance_with_incorrects
 
         if previous_data and previous_data["trials"]:
             self._recent_trials.extend(previous_data["trials"])
@@ -277,11 +295,17 @@ class Session:
         ):
             self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
 
-        if self._recent_trials.get_hit_rate() >= 0.90:
+        advance = False
+        if self.data["advance_with_incorrects"]:
+            advance = self._recent_trials.get_touch_rate() >= 0.90
+        else:
+            advance = self._recent_trials.get_hit_rate() >= 0.90
+
+        if advance:
             # check to see if the spout was in the same position during the last 5 trials
             positions = [self._recent_trials[i]['spout_position'] for i in range(-5, 0)]
             if len(set(positions)) == 1:
-                if self._spout_position < 7:
+                if self._spout_position < 4:
                     self._spout_position += 1
                     self._backend.position_spouts(self._spout_position)
                     self._message(f"Spouts progressed to position {self._spout_position}")

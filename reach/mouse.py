@@ -92,6 +92,7 @@ class Mouse:
         hook=None,
         timeout=None,
         single_spout=False,
+        advance_with_incorrects=False,
     ):
         """
         Create a new Session and run it, appending its newly-collected data to the
@@ -121,6 +122,11 @@ class Mouse:
         single_spout : :class:`bool`, optional
             If True, only the left hand spout (spout 1) will be used. Default: False.
 
+        advance_with_incorrects : :class:`bool`, optional
+            If True, advancements between trials in spout position and cue duration can
+            happen as long as the mouse is touch any reach target consistently, rather
+            than reaching only to the current target.
+
         """
 
         if self.mouse_id:
@@ -145,6 +151,7 @@ class Mouse:
             hook=hook,
             timeout=timeout,
             single_spout=single_spout,
+            advance_with_incorrects=advance_with_incorrects,
         )
 
     def save_data_to_file(self, data_dir):
