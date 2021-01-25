@@ -222,8 +222,7 @@ class Session:
                 self._recent_trials[-1]["cue_duration"], self._cue_duration
             )  # we do this in case the last trial was extended
 
-        if not single_spout:
-            self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
+        self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
         self._backend.position_spouts(self._spout_position)
         self._display_training_settings()
         self._backend.configure_callbacks(self)
