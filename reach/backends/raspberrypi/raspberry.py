@@ -136,13 +136,22 @@ class RaspberryPi(Backend):
         """
         Move one or both spouts to specified position.
         """
-        if position < 1:
-            position = 1
-        elif position > 7:
-            position = 7
+        if isinstance(position, list):
+            for i, spout in enumerate(self.spouts):
+                if position[i] < 1:
+                    position[i] = 1
+                elif position[i] > 7:
+                    position[i] = 7
+                self.spouts[i].set_position(position[i])
 
-        for spout in self.spouts:
-            spout.set_position(position)
+        else:
+            if position < 1:
+                position = 1
+            elif position > 7:
+                position = 7
+
+            for spout in self.spouts:
+                spout.set_position(position)
 
     def wait_for_rest(self):
         """

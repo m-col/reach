@@ -106,16 +106,15 @@ class Session:
         self.data = data or {}
 
         # These attributes track state during training
-        self._recent_trials = SlidingTrialList()
+        self._recent_trials = [SlidingTrialList(), SlidingTrialList()]
         self._reward_count = 0
         self._outcome = Outcomes.TBD
         self._iti_broken = False
         self._current_spout = Targets.LEFT
         self._backend = None
         self._message = print
-        self._extended_trial = False
         self._cue_duration = 10000
-        self._spout_position = 1
+        self._spout_position = [1, 1]
         self._hook = None
 
     @classmethod
@@ -215,12 +214,22 @@ class Session:
         self.data["single_spout"] = single_spout
         self.data["advance_with_incorrects"] = advance_with_incorrects
 
-        if previous_data and previous_data["trials"]:
-            self._recent_trials.extend(previous_data["trials"])
-            self._spout_position = self._recent_trials[-1]["spout_position"]
+        if False and previous_data and previous_data["trials"]:
+            prev_left = [
+                t for t in previous_data["trials"] if t["spout"] == Targets.LEFT
+            ]
+            prev_right = [
+                t for t in previous_data["trials"] if t["spout"] == Targets.RIGHT
+            ]
+            self._recent_trials[Targets.LEFT].extend(prev_left)
+            self._recent_trials[Targets.RIGHT].extend(prev_right)
+            self._spout_position[Targets.LEFT] = self._recent_trials[Targets.LEFT][-1]["spout_position"]
+            self._spout_position[Targets.RIGHT] = self._recent_trials[Targets.RIGHT][-1]["spout_position"]
+
             self._cue_duration = min(
-                self._recent_trials[-1]["cue_duration"], self._cue_duration
-            )  # we do this in case the last trial was extended
+                self._recent_trials[Targets.LEFT]["cue_duration"],
+                self._recent_trials[Targets.RIGHT]["cue_duration"],
+            )
 
         self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
         self._backend.position_spouts(self._spout_position)
@@ -287,31 +296,31 @@ class Session:
         """
         Adapt live training settings based on recent behavioural performance.
         """
-        if (
-                self._recent_trials
-                and not self.data["single_spout"]
-                and self._recent_trials[-1]["outcome"] == Outcomes.CORRECT
-        ):
-            self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
-
         advance = False
         if self.data["advance_with_incorrects"]:
-            advance = self._recent_trials.get_touch_rate() >= 0.90
+            advance = self._recent_trials[self._current_spout].get_touch_rate() >= 0.90
         else:
-            advance = self._recent_trials.get_hit_rate() >= 0.90
+            advance = self._recent_trials[self._current_spout].get_hit_rate() >= 0.90
 
         if advance:
             # check to see if the spout was in the same position during the last 5 trials
-            positions = [self._recent_trials[i]['spout_position'] for i in range(-5, 0)]
+            positions = [self._recent_trials[self._current_spout]['spout_position'] for i in range(-5, 0)]
             if len(set(positions)) == 1:
-                if self._spout_position < 4:
-                    self._spout_position += 1
+                if self._spout_position[self._current_spout] < 7:
+                    self._spout_position[self._current_spout] += 1
                     self._backend.position_spouts(self._spout_position)
                     self._message(f"Spouts progressed to position {self._spout_position}")
 
                 elif self._cue_duration > 2000:
                     self._cue_duration = max(int(self._cue_duration * 0.997), 2000)
                     self._message(f"Cue duration decreased to {self._cue_duration} ms")
+
+        if (
+                not self.data["single_spout"]
+                and any(self._recent_trials)
+                and self._recent_trials[self._current_spout]["outcome"] == Outcomes.CORRECT
+        ):
+            self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
 
     def _inter_trial_interval(self):
         """
@@ -328,7 +337,6 @@ class Session:
 
         """
         self._backend.start_iti()
-        self._extended_trial = False
         self._iti_broken = True
 
         while self._iti_broken:
@@ -361,10 +369,7 @@ class Session:
 
         self._backend.start_trial(self._current_spout)
 
-        if self._extended_trial:
-            cue_duration = self.data["end_time"] - now
-        else:
-            cue_duration = self._cue_duration / 1000
+        cue_duration = self._cue_duration / 1000
         cue_end = now + cue_duration
 
         while not self._outcome and now < cue_end:
@@ -396,7 +401,7 @@ class Session:
                 spout_position=self._spout_position,
             )
         )
-        self._recent_trials.append(self.data["trials"][-1])
+        self._recent_trials[self._current_spout].append(self.data["trials"][-1])
 
     def on_iti_lift(self, side):
         """
@@ -457,18 +462,6 @@ class Session:
         self._backend.end_trial()
         self._outcome = Outcomes.INCORRECT
         self._backend.miss_trial()
-
-    def extend_trial(self):
-        """
-        Stop the next trial from timing out, instead leaving the cue illuminated until
-        grasped.
-        """
-        if self._extended_trial:
-            self._extended_trial = False
-            self._message("Next trial will NOT be an extended trial")
-        else:
-            self._extended_trial = True
-            self._message("Next trial will be an extended trial")
 
     def _end_session(self, signal_number=None, frame=None):  # pylint: disable=W0613
         """
