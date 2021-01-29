@@ -304,7 +304,7 @@ class Session:
 
         if advance:
             # check to see if the spout was in the same position during the last 5 trials
-            positions = [self._recent_trials[self._current_spout]['spout_position'] for i in range(-5, 0)]
+            positions = [self._recent_trials[self._current_spout][i]['spout_position'] for i in range(-5, 0)]
             if len(set(positions)) == 1:
                 if self._spout_position[self._current_spout] < 7:
                     self._spout_position[self._current_spout] += 1
@@ -318,7 +318,7 @@ class Session:
         if (
                 not self.data["single_spout"]
                 and any(self._recent_trials)
-                and self._recent_trials[self._current_spout]["outcome"] == Outcomes.CORRECT
+                and self._recent_trials[self._current_spout][-1]["outcome"] == Outcomes.CORRECT
         ):
             self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
 
