@@ -304,7 +304,10 @@ class Session:
 
         if advance:
             # check to see if the spout was in the same position during the last 5 trials
-            positions = [self._recent_trials[self._current_spout][i]['spout_position'] for i in range(-5, 0)]
+            positions = [
+                self._recent_trials[self._current_spout][i]['spout_position'][self._current_spout]
+                for i in range(-5, 0)
+            ]
             if len(set(positions)) == 1:
                 if self._spout_position[self._current_spout] < 7:
                     self._spout_position[self._current_spout] += 1
