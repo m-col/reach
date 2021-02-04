@@ -214,7 +214,7 @@ class Session:
         self.data["single_spout"] = single_spout
         self.data["advance_with_incorrects"] = advance_with_incorrects
 
-        if False and previous_data and previous_data["trials"]:
+        if previous_data and previous_data["trials"]:
             prev_left = [
                 t for t in previous_data["trials"] if t["spout"] == Targets.LEFT
             ]
@@ -223,13 +223,18 @@ class Session:
             ]
             self._recent_trials[Targets.LEFT].extend(prev_left)
             self._recent_trials[Targets.RIGHT].extend(prev_right)
-            self._spout_position[Targets.LEFT] = self._recent_trials[Targets.LEFT][-1]["spout_position"]
-            self._spout_position[Targets.RIGHT] = self._recent_trials[Targets.RIGHT][-1]["spout_position"]
+            if self._recent_trials[Targets.LEFT]:
+                self._spout_position[Targets.LEFT] = self._recent_trials[Targets.LEFT][-1]["spout_position"][Targets.LEFT]
+            if self._recent_trials[Targets.RIGHT]:
+                self._spout_position[Targets.RIGHT] = self._recent_trials[Targets.RIGHT][-1]["spout_position"][Targets.RIGHT]
 
-            self._cue_duration = min(
-                self._recent_trials[Targets.LEFT]["cue_duration"],
-                self._recent_trials[Targets.RIGHT]["cue_duration"],
-            )
+            try:
+                self._cue_duration = min(
+                    self._recent_trials[Targets.LEFT][-1]["cue_duration"],
+                    self._recent_trials[Targets.RIGHT][-1]["cue_duration"],
+                )
+            except IndexError:
+                pass
 
         self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
         self._backend.position_spouts(self._spout_position)
