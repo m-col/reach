@@ -223,10 +223,7 @@ class Session:
             ]
             self._recent_trials[Targets.LEFT].extend(prev_left)
             self._recent_trials[Targets.RIGHT].extend(prev_right)
-            if self._recent_trials[Targets.LEFT]:
-                self._spout_position[Targets.LEFT] = self._recent_trials[Targets.LEFT][-1]["spout_position"][Targets.LEFT]
-            if self._recent_trials[Targets.RIGHT]:
-                self._spout_position[Targets.RIGHT] = self._recent_trials[Targets.RIGHT][-1]["spout_position"][Targets.RIGHT]
+            self._spout_position = previous_data["trials"][-1]["spout_position"]
 
             try:
                 self._cue_duration = min(
