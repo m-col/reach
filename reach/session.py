@@ -115,6 +115,7 @@ class Session:
         self._message = print
         self._cue_duration = 10000
         self._spout_position = [1, 1]
+        self._advance_delay = 1
         self._hook = None
 
     @classmethod
@@ -298,27 +299,30 @@ class Session:
         """
         Adapt live training settings based on recent behavioural performance.
         """
+        self._advance_delay -= 1
+
         advance = False
         if self.data["advance_with_incorrects"]:
             advance = self._recent_trials[self._current_spout].get_touch_rate() >= 0.90
         else:
             advance = self._recent_trials[self._current_spout].get_hit_rate() >= 0.90
 
-        if advance:
-            # check to see if the spout was in the same position during the last 5 trials
-            positions = [
-                self._recent_trials[self._current_spout][i]['spout_position'][self._current_spout]
-                for i in range(-5, 0)
-            ]
-            if len(set(positions)) == 1:
-                if self._spout_position[self._current_spout] < 7:
-                    self._spout_position[self._current_spout] += 1
-                    self._backend.position_spouts(self._spout_position)
-                    self._message(f"Spouts progressed to position {self._spout_position}")
+        if advance and self._advance_delay <= 0:
+            self._advance_delay = 5
+            other_spout = abs(self._current_spout - 1)
+            if self._spout_position[self._current_spout] < 7:
+                self._spout_position[self._current_spout] += 1
+                self._backend.position_spouts(self._spout_position)
+                self._message(f"Spouts progressed to position {self._spout_position}")
 
-                elif self._cue_duration > 2000:
-                    self._cue_duration = max(int(self._cue_duration * 0.997), 2000)
-                    self._message(f"Cue duration decreased to {self._cue_duration} ms")
+            elif self._spout_position[other_spout] < 7:
+                self._spout_position[other_spout] += 1
+                self._backend.position_spouts(self._spout_position)
+                self._message(f"Spouts progressed to position {self._spout_position}")
+
+            elif self._cue_duration > 2000:
+                self._cue_duration = max(int(self._cue_duration * 0.997), 2000)
+                self._message(f"Cue duration decreased to {self._cue_duration} ms")
 
         if (
                 not self.data["single_spout"]
