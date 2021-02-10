@@ -326,7 +326,7 @@ class Session:
 
         if (
                 not self.data["single_spout"]
-                and any(self._recent_trials)
+                and self._recent_trials[self._current_spout]
                 and self._recent_trials[self._current_spout][-1]["outcome"] == Outcomes.CORRECT
         ):
             self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
