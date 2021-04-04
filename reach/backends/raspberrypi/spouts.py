@@ -30,9 +30,9 @@ class Actuonix_PG12_P:
         7.7,
         7.95,
         8.2,
-        8.4,
-        8.7,
-        8.9,
+        8.2,
+        8.2,
+        8.2,
     )
 
     def __init__(self, pin, pin2=None):
