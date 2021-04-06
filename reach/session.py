@@ -285,11 +285,11 @@ class Session:
                 % (trial_count, now - data["start_time"])
             )
             self._adapt_settings()
+            if self._hook is not None:
+                self._hook()
             if self._inter_trial_interval():
                 self._trial()
                 self._message(f"Total rewards: {self._reward_count}")
-                if self._hook is not None:
-                    self._hook()
                 now = time.time()
 
             if self._outcome == Outcomes.CANCELLED:
