@@ -161,6 +161,7 @@ class Session:
         hook=None,
         timeout=None,
         single_spout=False,
+        initial_spout=None,
         advance_with_incorrects=False,
     ):
         """
@@ -190,6 +191,10 @@ class Session:
 
         single_spout : :class:`bool`, optional
             If True, only the left hand spout (spout 1) will be used. Default: False.
+
+        initial_spout : :class:`int`, optional
+            Initial spout to use for session. Default: None; initial spout is randomly
+            selected.
 
         advance_with_incorrects : :class:`bool`, optional
             If True, advancements between trials in spout position and cue duration can
@@ -234,7 +239,11 @@ class Session:
             except IndexError:
                 pass
 
-        self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
+        if initial_spout is None:
+            self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
+        else:
+            self._current_spout = initial_spout
+
         self._backend.position_spouts(self._spout_position)
         self._display_training_settings()
         self._backend.configure_callbacks(self)
