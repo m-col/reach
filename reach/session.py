@@ -497,6 +497,18 @@ class Session:
         data["duration"] = data["end_time"] - data["start_time"]
         data["date"] = time.strftime("%Y-%m-%d")
 
+    def set_spout(self, spout):
+        """
+        Set the current spout for the next trial.
+
+        Parameters
+        ----------
+        spout : :class:`int`
+            The spout to use.
+
+        """
+        self._current_spout = spout
+
     def get_recent_trials(self, spout=None):
         """
         Get last few trials that used a given spout.
