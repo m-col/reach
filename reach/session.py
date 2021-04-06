@@ -504,10 +504,14 @@ class Session:
         Parameters
         ----------
         spout : :class:`int`
-            The spout to use.
+            The spout to use. If the value provided is -1, instead invert the
+            choice from the current spout.
 
         """
-        self._current_spout = spout
+        if spout == -1:
+            self._current_spout = abs(self._current_spout - 1)
+        else:
+            self._current_spout = spout
 
     def get_recent_trials(self, spout=None):
         """
