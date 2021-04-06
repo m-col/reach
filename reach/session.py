@@ -160,7 +160,6 @@ class Session:
         previous_data=None,
         hook=None,
         timeout=None,
-        single_spout=False,
         initial_spout=None,
         advance_with_incorrects=False,
     ):
@@ -189,9 +188,6 @@ class Session:
         timeout : :class:`int`, optional
             Duration in milliseconds of a timeout to wait after an incorrect trial.
 
-        single_spout : :class:`bool`, optional
-            If True, only the left hand spout (spout 1) will be used. Default: False.
-
         initial_spout : :class:`int`, optional
             Initial spout to use for session. Default: None; initial spout is randomly
             selected.
@@ -217,7 +213,6 @@ class Session:
         self.data["trials"] = []
         self.data["resets"] = []
         self.data["spontaneous_reaches"] = []
-        self.data["single_spout"] = single_spout
         self.data["advance_with_incorrects"] = advance_with_incorrects
 
         if previous_data and previous_data["trials"]:
@@ -332,13 +327,6 @@ class Session:
             elif self._cue_duration > 2000:
                 self._cue_duration = max(int(self._cue_duration * 0.997), 2000)
                 self._message(f"Cue duration decreased to {self._cue_duration} ms")
-
-        if (
-                not self.data["single_spout"]
-                and self._recent_trials[self._current_spout]
-                and self._recent_trials[self._current_spout][-1]["outcome"] == Outcomes.CORRECT
-        ):
-            self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
 
     def _inter_trial_interval(self):
         """
