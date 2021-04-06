@@ -497,6 +497,21 @@ class Session:
         data["duration"] = data["end_time"] - data["start_time"]
         data["date"] = time.strftime("%Y-%m-%d")
 
+    def get_recent_trials(self, spout=None):
+        """
+        Get last few trials that used a given spout.
+
+        Parameters
+        ----------
+        spout : :class:`int`, optional
+            The spout to get trials for. By default, get the recent trials for the
+            current spout.
+
+        """
+        if spout is None:
+            spout = self._current_spout
+        return self._recent_trials[spout]
+
     def get_trials(self):
         """
         Get trial data for this session.
