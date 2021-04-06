@@ -87,12 +87,7 @@ class Mouse:
         self,
         backend,
         additional_data=None,
-        duration=None,
-        intertrial_interval=None,
-        hook=None,
-        timeout=None,
-        single_spout=False,
-        advance_with_incorrects=False,
+        **kwargs,
     ):
         """
         Create a new Session and run it, appending its newly-collected data to the
@@ -106,26 +101,7 @@ class Mouse:
         additional_data : :class:`dict`, optional
             Extra data that should be saved into the new session's data.
 
-        duration : :class:`int`, optional
-            The duration in seconds for the training session to run.
-
-        intertrial_interval : :class:`tuple` of 2 :class:`int`\s, optional
-            Min. and max. duration in milliseconds for the inter-trial intervals e.g.
-            (4000, 6000)
-
-        hook : :class:`callable`, optional
-            An object that will be called at the end of every trial.
-
-        timeout : :class:`callable`, optional
-            Duration in milliseconds of a timeout to wait after an incorrect trial.
-
-        single_spout : :class:`bool`, optional
-            If True, only the left hand spout (spout 1) will be used. Default: False.
-
-        advance_with_incorrects : :class:`bool`, optional
-            If True, advancements between trials in spout position and cue duration can
-            happen as long as the mouse is touch any reach target consistently, rather
-            than reaching only to the current target.
+        **kwargs : Additional keyword arguments are forwarded to Session.run()
 
         """
 
@@ -146,12 +122,7 @@ class Mouse:
         new_session.run(
             backend,
             previous_data=previous_data,
-            duration=duration,
-            intertrial_interval=intertrial_interval,
-            hook=hook,
-            timeout=timeout,
-            single_spout=single_spout,
-            advance_with_incorrects=advance_with_incorrects,
+            **kwargs,
         )
 
     def save_data_to_file(self, data_dir):
