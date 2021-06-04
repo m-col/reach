@@ -24,12 +24,11 @@ def main(cohort):
     results = pd.DataFrame(cohort.get_results())
     trials = pd.DataFrame(cohort.get_trials())
 
+    _, axes = plt.subplots(6, 1, sharex=True)
 
     results.loc[
         results["trials"] == 0, ["correct", "incorrect", "d_prime", "trials"]
     ] = np.nan
-    results.loc[results["single_spout"], "d_prime"] = np.nan
-
 
     # This makes the lines appear to "break" at changes between headfixed or
     # freely-moving days
@@ -44,15 +43,6 @@ def main(cohort):
     results.headfixed = 0
     results = results.append(results_hf)
 
-
-    # If all mice were single-spout only then we don't plot incorrects or d'
-    if results.single_spout.all():
-        plots = 4
-    else:
-        plots = 6
-    _, axes = plt.subplots(plots, 1, sharex=True)
-
-
     # Number of trials
     sns.lineplot(
         data=results, x='day', y='trials', hue='mouse_id', legend='brief', ax=axes[0],
@@ -61,14 +51,12 @@ def main(cohort):
     axes[0].set_ylabel('No.\ntrials', rotation="horizontal", ha="right")
     axes[0].set_ylim(bottom=0)
 
-
     # Number of correct trials
     sns.lineplot(
         data=results, x='day', y='correct', hue='mouse_id', legend=False, ax=axes[1],
         style="headfixed", markers=True,
     )
     axes[1].set_ylabel('No.\ncorrect', rotation="horizontal", ha="right")
-
 
     # Hit rate
     results['Hit rate'] = results['correct'] / results['trials']
@@ -78,37 +66,38 @@ def main(cohort):
     )
     axes[2].set_ylabel('Hit rate', rotation="horizontal", ha="right")
 
+    # Number of incorrect trials
+    sns.lineplot(
+        data=results, x='day', y='incorrect', hue='mouse_id', legend=False,
+        ax=axes[3], style="headfixed", markers=True,
+    )
+    axes[3].set_ylabel('No.\nincorrect', rotation="horizontal", ha="right")
 
-    if plots == 6:
-        # Number of incorrect trials
-        sns.lineplot(
-            data=results, x='day', y='incorrect', hue='mouse_id', legend=False,
-            ax=axes[3], style="headfixed", markers=True,
-        )
-        axes[3].set_ylabel('No.\nincorrect', rotation="horizontal", ha="right")
-
-
-        # d'
-        axes[4].axhline(0, color='#aaaaaa', alpha=0.5, ls='--')
-        # 1.5 here is an arbitrary threshold of ability to discriminate
-        axes[4].axhline(1.5, color='#aaaaaa', alpha=0.5, ls=':')
-        sns.lineplot(
-            data=results, x='day', y='d_prime', hue='mouse_id', legend=False,
-            ax=axes[4], style="headfixed", markers=True,
-        )
-        axes[4].set_ylabel("d'", rotation="horizontal", ha="right")
-
+    # d'
+    axes[4].axhline(0, color='#aaaaaa', alpha=0.5, ls='--')
+    # 1.5 here is an arbitrary threshold of ability to discriminate
+    axes[4].axhline(1.5, color='#aaaaaa', alpha=0.5, ls=':')
+    sns.lineplot(
+        data=results, x='day', y='d_prime', hue='mouse_id', legend=False,
+        ax=axes[4], style="headfixed", markers=True,
+    )
+    axes[4].set_ylabel("d'", rotation="horizontal", ha="right")
 
     # Spout position
-    axes[-1].axhline(7, color='#aaaaaa', alpha=0.5, ls='--')
+    axes[5].axhline(7, color='#aaaaaa', alpha=0.5, ls='--')
     sns.lineplot(
-        data=trials, x='day', y='spout_position', hue='mouse_id', legend=False,
-        ax=axes[-1], markers=True,
+        data=trials, x='day', y='spout_position_0', hue='mouse_id', legend=False,
+        ax=axes[5], markers=True,
     )
-    axes[-1].set_ylim(bottom=0, top=8)
-    axes[-1].set_ylabel('Spout\nposition\n(mm)', rotation="horizontal", ha="right")
+    sns.lineplot(
+        data=trials, x='day', y='spout_position_1', hue='mouse_id', legend=False,
+        ax=axes[5], markers=True, linestyle='dashed'
+    )
+    axes[5].set_ylim(bottom=0, top=8)
+    axes[5].set_ylabel('Spout\nposition\n(mm)', rotation="horizontal", ha="right")
 
-    axes[-1].xaxis.set_major_locator(MultipleLocator(2))
+    axes[5].xaxis.set_major_locator(MultipleLocator(2))
+
     plt.suptitle("Training summary for mice: " + ', '.join(cohort.mouse_ids))
     plt.show()
 
@@ -128,4 +117,3 @@ if __name__ == '__main__':
     )
 
     main(cohort)
-    raise Exception

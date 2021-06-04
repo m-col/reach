@@ -165,6 +165,8 @@ class Mouse:
             for t in ses_trials:
                 t['day'] = i + 1
                 t['mouse_id'] = self.mouse_id
+                for s, pos in enumerate(t['spout_position']):
+                    t[f'spout_position_{s}'] = pos
             trials.extend(ses_trials)
         return trials
 
