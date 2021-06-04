@@ -7,20 +7,11 @@ import re
 import setuptools
 
 
-def get_version():
-    """ Read version from __init__.py file """
-    with open(join('reach', '__init__.py'), 'r') as f:
-        content = f.read()
-    p = re.compile(r'^__version__ = [\'"]([^\'\"]*)[\'"]', re.M)
-    return p.search(content).group(1)
-
-
 with open("readme.rst", "r") as f:
     long_description = f.read()
 
 setuptools.setup(
     name="reach",
-    version=get_version(),
     author="Matt Colligan",
     author_email="mcol@posteo.net",
     description="Visually-guided reaching task for mice",

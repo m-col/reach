@@ -1,0 +1,28 @@
+name: ci
+
+on:
+    push:
+    pull_request:
+
+jobs:
+    build:
+        runs-on: ubuntu-20.04
+        name: "python ${{ matrix.python-version }}"
+        strategy:
+            matrix:
+                python-version: [3.8, 3.9]
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up python ${{ matrix.python-version}}
+              uses: actions/setup-python@v2
+              with:
+                  python-version: ${{ matrix.python-version }}
+            - name: Install dependencies
+              run: |
+                sudo apt update
+                pip install pytest
+                python3 setup.py build
+                python3 setup.py install
+            - name: Test
+              run: |
+                python3 -m pytest -- tests
