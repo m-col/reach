@@ -35,7 +35,9 @@ def test_train(mouse, backend):
     )
     assert len(mouse) == 9
     assert mouse[-1].data.get('key') == 'value'
-    assert len(mouse[-1]._recent_trials) == reach.session.SlidingTrialList.WINDOW
+    assert len(mouse[-1]._recent_trials) == 2
+    assert len(mouse[-1]._recent_trials[0]) == reach.session.SlidingTrialList.WINDOW
+    assert len(mouse[-1]._recent_trials[1]) == reach.session.SlidingTrialList.WINDOW
 
 
 def test_save_data_to_file(mouse, mouse_id):

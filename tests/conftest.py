@@ -86,8 +86,10 @@ class TestBackend(Backend):
         return True
 
     def position_spouts(self, position, spout_number=None):
-        assert isinstance(position, int)
-        assert 0 <= position <= 7
+        assert isinstance(position, list)
+        assert len(position) == 2
+        assert 0 <= position[0] <= 7
+        assert 0 <= position[1] <= 7
         assert spout_number is None
 
     def start_trial(self, spout_number):

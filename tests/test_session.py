@@ -5,8 +5,9 @@ Tests for reach.session
 
 import pytest
 
-import reach.session
-from reach import Session
+from reach.session import (
+    Outcomes, Session, SlidingTrialList, Targets, print_results
+)
 
 
 @pytest.fixture
@@ -23,9 +24,19 @@ def test_session(session):
 
 def test_recent_trials(session):
     recent_trials = session._recent_trials  # pylint: disable=protected-access
-    recent_trials.extend(session.data['trials'])
-    assert len(recent_trials) == reach.session.SlidingTrialList.WINDOW
-    assert recent_trials.get_hit_rate() == 0.7333333333333333
+
+    all_trials = [[], []]
+    for trial in session.data['trials']:
+        recent_trials[trial['spout']].append(trial)
+        all_trials[trial['spout']].append(trial['outcome'])
+
+    assert len(recent_trials[Targets.LEFT]) == SlidingTrialList.WINDOW
+    assert len(recent_trials[Targets.RIGHT]) == SlidingTrialList.WINDOW
+
+    for side in [Targets.LEFT, Targets.RIGHT]:
+        win = all_trials[side][-SlidingTrialList.WINDOW:]
+        hit_rate = win.count(Outcomes.CORRECT) / SlidingTrialList.WINDOW
+        assert recent_trials[side].get_hit_rate() == hit_rate
 
 
 def test_run(session, backend):
@@ -76,7 +87,7 @@ def test_get_results(session):
 
 def test_get_spontaneous_reaches(session):
     sponts = session.get_spontaneous_reaches()
-    locations = (reach.session.Targets.LEFT, reach.session.Targets.RIGHT)
+    locations = (Targets.LEFT, Targets.RIGHT)
     t = 0
     for s in sponts:
         assert s.get("timing") > t
@@ -86,4 +97,4 @@ def test_get_spontaneous_reaches(session):
 
 def test_print_results(session):
     # This function is not super important so it's fine as long as it doesn't fail.
-    reach.session.print_results(session)
+    print_results(session)
