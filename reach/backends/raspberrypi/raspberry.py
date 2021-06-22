@@ -34,6 +34,7 @@ class Pins:
             "actuator": 4,
         },
     ]
+    sync_signal = 27
 
 
 class RaspberryPi(Backend):
@@ -76,6 +77,10 @@ class RaspberryPi(Backend):
             spouts.Spout(pin_numbers.spouts[Targets.LEFT]),
             spouts.Spout(pin_numbers.spouts[Targets.RIGHT]),
         ]
+
+        self._sync_signal = getattr(pin_numbers, "sync_signal", False)
+        if self._sync_signal:
+            GPIO.setup(self._sync_signal, GPIO.OUT, initial=False)
 
     def configure_callbacks(self, session):
         """
@@ -166,6 +171,7 @@ class RaspberryPi(Backend):
                 time.sleep(0.010)
                 if self._finish:
                     return False
+                break
         except (RuntimeError, KeyboardInterrupt):
             # Ignore GPIO error when Ctrl-C cancels training
             return False
@@ -178,6 +184,8 @@ class RaspberryPi(Backend):
         self._is_trial = True
         GPIO.output(self.spouts[spout_number].cue_pin, True)
         self._current_target_spout = spout_number
+        if self._sync_signal:
+            GPIO.output(self._sync_signal, True)
         print("Cue illuminated")
 
     def give_reward(self, spout_number):
@@ -195,6 +203,8 @@ class RaspberryPi(Backend):
         self._is_trial = False
         for spout in self.spouts:
             GPIO.output(spout.cue_pin, False)
+        if self._sync_signal:
+            GPIO.output(self._sync_signal, False)
 
     def cleanup(self):
         """
