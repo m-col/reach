@@ -102,6 +102,8 @@ class Utilities(RaspberryPi):
                 GPIO.output(self.spouts[Targets.RIGHT].cue_pin, right_on)
             elif key == EXIT:
                 break
+            if self._sync_signal:
+                GPIO.output(self._sync_signal, left_on or right_on)
 
     def dispense_reward_volume(self):
         """
