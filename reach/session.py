@@ -217,10 +217,10 @@ class Session:
 
         if previous_data and previous_data["trials"]:
             prev_left = [
-                t for t in previous_data["trials"] if t["spout"] == Targets.LEFT
+                t for t in previous_data["trials"] if t.get("spout") == Targets.LEFT
             ]
             prev_right = [
-                t for t in previous_data["trials"] if t["spout"] == Targets.RIGHT
+                t for t in previous_data["trials"] if t.get("spout") == Targets.RIGHT
             ]
             self._recent_trials[Targets.LEFT].extend(prev_left)
             self._recent_trials[Targets.RIGHT].extend(prev_right)
