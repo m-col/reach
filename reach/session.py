@@ -539,7 +539,9 @@ class Session:
             nth trial.
 
         """
-        return self.data['trials'].copy()
+        if 'trials' in self.data:
+            return self.data['trials'].copy()
+        return None
 
     def get_d_prime(self):
         """
@@ -584,6 +586,8 @@ class Session:
         """
         results = self.data.copy()
         trials = self.get_trials()
+        if not trials:
+            return None
         outcomes = [i.get("outcome") for i in trials]
         results["missed"] = outcomes.count(Outcomes.MISSED)  # pylint: disable=E1101
         results["correct"] = outcomes.count(Outcomes.CORRECT)  # pylint: disable=E1101

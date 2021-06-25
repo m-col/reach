@@ -162,12 +162,13 @@ class Mouse:
         trials = []
         for i, session in enumerate(self.data):
             ses_trials = session.get_trials()
-            for t in ses_trials:
-                t['day'] = i + 1
-                t['mouse_id'] = self.mouse_id
-                for s, pos in enumerate(t['spout_position']):
-                    t[f'spout_position_{s}'] = pos
-            trials.extend(ses_trials)
+            if ses_trials:
+                for t in ses_trials:
+                    t['day'] = i + 1
+                    t['mouse_id'] = self.mouse_id
+                    for s, pos in enumerate(t['spout_position']):
+                        t[f'spout_position_{s}'] = pos
+                trials.extend(ses_trials)
         return trials
 
     def get_results(self):
@@ -180,9 +181,10 @@ class Mouse:
         results = []
         for day, session in enumerate(self.data):
             session_results = session.get_results()
-            session_results["day"] = day + 1
-            session_results["mouse_id"] = self.mouse_id
-            results.append(session_results)
+            if session_results:
+                session_results["day"] = day + 1
+                session_results["mouse_id"] = self.mouse_id
+                results.append(session_results)
         return results
 
     def get_spontaneous_reaches(self):
