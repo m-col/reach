@@ -588,10 +588,14 @@ class Session:
         trials = self.get_trials()
         if not trials:
             return None
-        outcomes = [i.get("outcome") for i in trials]
-        results["missed"] = outcomes.count(Outcomes.MISSED)  # pylint: disable=E1101
-        results["correct"] = outcomes.count(Outcomes.CORRECT)  # pylint: disable=E1101
-        results["incorrect"] = outcomes.count(Outcomes.INCORRECT)  # pylint: disable=E1101
+        outcomes_l = [i["outcome"] for i in trials if 'spout' in i and i['spout'] == Targets.LEFT]
+        outcomes_r = [i["outcome"] for i in trials if 'spout' in i and i['spout'] == Targets.RIGHT]
+        results["missed_l"] = outcomes_l.count(Outcomes.MISSED)  # pylint: disable=E1101
+        results["missed_r"] = outcomes_r.count(Outcomes.MISSED)  # pylint: disable=E1101
+        results["correct_l"] = outcomes_l.count(Outcomes.CORRECT)  # pylint: disable=E1101
+        results["correct_r"] = outcomes_r.count(Outcomes.CORRECT)  # pylint: disable=E1101
+        results["incorrect_l"] = outcomes_l.count(Outcomes.INCORRECT)  # pylint: disable=E1101
+        results["incorrect_r"] = outcomes_r.count(Outcomes.INCORRECT)  # pylint: disable=E1101
         results["trials"] = len(trials)
         results["resets"] = len(self.data["resets"])
         results["resets_l"] = len([x for x in self.data["resets"] if x[1] == Targets.LEFT])

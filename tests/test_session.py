@@ -51,14 +51,18 @@ def test_run(session, backend):
         intertrial_interval=(0, 0),
         timeout=0,
         hook=hook,
+        initial_spout=Targets.LEFT,
     )
     assert hook_flag == 4
     results = session.get_results()
-    assert results.get('correct') == 1
-    assert results.get('incorrect') == 1
-    assert results.get('missed') == 1
-    assert results.get('resets_l') == 4
-    assert results.get('spontaneous_reaches_l') == 4
+    assert results['correct_l'] == 1
+    assert results['correct_r'] == 0
+    assert results['incorrect_l'] == 1
+    assert results['incorrect_r'] == 0
+    assert results['missed_l'] == 1
+    assert results['missed_r'] == 0
+    assert results['resets_l'] == 4
+    assert results['spontaneous_reaches_l'] == 4
 
 
 def test_get_trials(session):
@@ -74,15 +78,18 @@ def test_get_d_prime(session):
 def test_get_results(session):
     results = session.get_results()
     assert isinstance(results, dict)
-    assert results.get('duration') == 1800
-    assert results.get('intertrial_interval') == [3000, 5000]
-    assert results.get('start_time') == "16:30:37"
-    assert results.get('end_time') == "17:00:37"
-    assert results.get('correct') == 41
-    assert results.get('incorrect') == 6
-    assert results.get('missed') == 29
-    assert results.get('resets_r') == 239
-    assert results.get('spontaneous_reaches_r') == 56
+    assert results['duration'] == 1800
+    assert results['intertrial_interval'] == [3000, 5000]
+    assert results['start_time'] == "16:30:37"
+    assert results['end_time'] == "17:00:37"
+    assert results['correct_l'] == 20
+    assert results['correct_r'] == 21
+    assert results['incorrect_l'] == 5
+    assert results['incorrect_r'] == 1
+    assert results['missed_l'] == 17
+    assert results['missed_r'] == 12
+    assert results['resets_r'] == 239
+    assert results['spontaneous_reaches_r'] == 56
 
 
 def test_get_spontaneous_reaches(session):
