@@ -26,6 +26,14 @@ class Utilities(RaspberryPi):
     A representation of a Raspberry Pi that exposes utilities for testing the training
     hardware.
     """
+    def enable_leds(self):
+        """
+        Turn on the LEDs. Useful for some utilities, especially if the procedure room is
+        in the dark.
+        """
+        GPIO.output(self.spouts[Targets.LEFT].cue_pin, True)
+        GPIO.output(self.spouts[Targets.RIGHT].cue_pin, True)
+
     def test_sensors(self):
         """
         Print a message upon contact with any touch sensor.
@@ -94,6 +102,8 @@ class Utilities(RaspberryPi):
                 GPIO.output(self.spouts[Targets.RIGHT].cue_pin, right_on)
             elif key == EXIT:
                 break
+            if self._sync_signal:
+                GPIO.output(self._sync_signal, left_on or right_on)
 
     def dispense_reward_volume(self):
         """
