@@ -51,6 +51,7 @@ def test_run(session, backend):
         intertrial_interval=(0, 0),
         timeout=0,
         hook=hook,
+        initial_spout=Targets.LEFT,
     )
     assert hook_flag == 4
     results = session.get_results()

@@ -217,10 +217,10 @@ class Session:
 
         if previous_data and previous_data["trials"]:
             prev_left = [
-                t for t in previous_data["trials"] if t["spout"] == Targets.LEFT
+                t for t in previous_data["trials"] if t.get("spout") == Targets.LEFT
             ]
             prev_right = [
-                t for t in previous_data["trials"] if t["spout"] == Targets.RIGHT
+                t for t in previous_data["trials"] if t.get("spout") == Targets.RIGHT
             ]
             self._recent_trials[Targets.LEFT].extend(prev_left)
             self._recent_trials[Targets.RIGHT].extend(prev_right)
@@ -539,7 +539,9 @@ class Session:
             nth trial.
 
         """
-        return self.data['trials'].copy()
+        if 'trials' in self.data:
+            return self.data['trials'].copy()
+        return None
 
     def get_d_prime(self):
         """
@@ -584,7 +586,8 @@ class Session:
         """
         results = self.data.copy()
         trials = self.get_trials()
-
+        if not trials:
+            return None
         outcomes_l = [i["outcome"] for i in trials if 'spout' in i and i['spout'] == Targets.LEFT]
         outcomes_r = [i["outcome"] for i in trials if 'spout' in i and i['spout'] == Targets.RIGHT]
         results["missed_l"] = outcomes_l.count(Outcomes.MISSED)  # pylint: disable=E1101
@@ -593,7 +596,6 @@ class Session:
         results["correct_r"] = outcomes_r.count(Outcomes.CORRECT)  # pylint: disable=E1101
         results["incorrect_l"] = outcomes_l.count(Outcomes.INCORRECT)  # pylint: disable=E1101
         results["incorrect_r"] = outcomes_r.count(Outcomes.INCORRECT)  # pylint: disable=E1101
-
         results["trials"] = len(trials)
         results["resets"] = len(self.data["resets"])
         results["resets_l"] = len([x for x in self.data["resets"] if x[1] == Targets.LEFT])
