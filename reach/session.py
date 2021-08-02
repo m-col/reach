@@ -226,13 +226,15 @@ class Session:
             self._recent_trials[Targets.RIGHT].extend(prev_right)
             self._spout_position = previous_data["trials"][-1]["spout_position"]
 
-            try:
+            if prev_left and prev_right:
                 self._cue_duration = min(
                     self._recent_trials[Targets.LEFT][-1]["cue_duration"],
                     self._recent_trials[Targets.RIGHT][-1]["cue_duration"],
                 )
-            except IndexError:
-                pass
+            elif prev_left:
+                self._cue_duration = self._recent_trials[Targets.LEFT][-1]["cue_duration"]
+            elif prev_right:
+                self._cue_duration = self._recent_trials[Targets.RIGHT][-1]["cue_duration"]
 
         if initial_spout is None:
             self._current_spout = random.randint(Targets.LEFT, Targets.RIGHT)
