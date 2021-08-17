@@ -560,15 +560,24 @@ class Session:
         def z(p):
             return - NormalDist().inv_cdf(p)
 
+        # Trials preceded by an incorrect trial are considered to be correction trials,
+        # and are therefore ignored. Remove missed trials to help.
+        trials = [
+            t for t in self.data['trials']
+            if t.get('outcome') in (Outcomes.CORRECT, Outcomes.INCORRECT)
+        ]
+
         lefts = []
         rights = []
-        for trial in self.data['trials']:
+        prev = None
+        for trial in trials:
             outcome = trial.get("outcome")
-            if outcome in (Outcomes.CORRECT, Outcomes.INCORRECT):
+            if prev != Outcomes.INCORRECT:
                 if trial.get('spout') == Targets.LEFT:
                     lefts.append(outcome)
                 else:
                     rights.append(outcome)
+            prev = outcome
 
         H = (lefts.count(Outcomes.CORRECT) + 0.5) / (len(lefts) + 1)
         FA = (rights.count(Outcomes.INCORRECT) + 0.5) / (len(rights) + 1)
