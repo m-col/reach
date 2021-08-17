@@ -30,23 +30,10 @@ def main(cohort):
         results["trials"] == 0, ["correct", "incorrect", "d_prime", "trials"]
     ] = np.nan
 
-    # This makes the lines appear to "break" at changes between headfixed or
-    # freely-moving days
-    results["headfixed"] = results["training_box"]
-    results.loc[results["headfixed"].str.startswith("fm"), "headfixed"] = 0
-    results.loc[results["headfixed"] != 0, "headfixed"] = 1
-    results_hf = results.copy()
-    cols = ['trials', 'missed', 'correct', 'incorrect', 'd_prime']
-    results_hf.loc[results["headfixed"] == 0, cols] = np.nan
-    results.loc[results["headfixed"] == 1, cols] = np.nan
-    results_hf.headfixed = 1
-    results.headfixed = 0
-    results = results.append(results_hf)
-
     # Number of trials
     sns.lineplot(
         data=results, x='day', y='trials', hue='mouse_id', legend='brief', ax=axes[0],
-        style="headfixed", markers=True
+        markers=True
     )
     axes[0].set_ylabel('No.\ntrials', rotation="horizontal", ha="right")
     axes[0].set_ylim(bottom=0)
@@ -54,7 +41,7 @@ def main(cohort):
     # Number of correct trials
     sns.lineplot(
         data=results, x='day', y='correct', hue='mouse_id', legend=False, ax=axes[1],
-        style="headfixed", markers=True,
+        markers=True,
     )
     axes[1].set_ylabel('No.\ncorrect', rotation="horizontal", ha="right")
 
@@ -62,14 +49,14 @@ def main(cohort):
     results['Hit rate'] = results['correct'] / results['trials']
     sns.lineplot(
         data=results, x='day', y='Hit rate', hue='mouse_id', legend=False, ax=axes[2],
-        style="headfixed", markers=True,
+        markers=True,
     )
     axes[2].set_ylabel('Hit rate', rotation="horizontal", ha="right")
 
     # Number of incorrect trials
     sns.lineplot(
         data=results, x='day', y='incorrect', hue='mouse_id', legend=False,
-        ax=axes[3], style="headfixed", markers=True,
+        ax=axes[3], markers=True,
     )
     axes[3].set_ylabel('No.\nincorrect', rotation="horizontal", ha="right")
 
@@ -79,7 +66,7 @@ def main(cohort):
     axes[4].axhline(1.5, color='#aaaaaa', alpha=0.5, ls=':')
     sns.lineplot(
         data=results, x='day', y='d_prime', hue='mouse_id', legend=False,
-        ax=axes[4], style="headfixed", markers=True,
+        ax=axes[4], markers=True,
     )
     axes[4].set_ylabel("d'", rotation="horizontal", ha="right")
 
