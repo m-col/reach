@@ -27,7 +27,8 @@ def main(cohort):
     _, axes = plt.subplots(6, 1, sharex=True)
 
     results.loc[
-        results["trials"] == 0, ["correct", "incorrect", "d_prime", "trials"]
+        results["trials"] == 0,
+        ["correct_r", "correct_l", "incorrect_l", "incorrect_r", "d_prime", "trials"]
     ] = np.nan
 
     # Number of trials
@@ -40,13 +41,17 @@ def main(cohort):
 
     # Number of correct trials
     sns.lineplot(
-        data=results, x='day', y='correct', hue='mouse_id', legend=False, ax=axes[1],
+        data=results, x='day', y='correct_l', hue='mouse_id', legend=False, ax=axes[1],
+        markers=True,
+    )
+    sns.lineplot(
+        data=results, x='day', y='correct_r', hue='mouse_id', legend=False, ax=axes[1],
         markers=True,
     )
     axes[1].set_ylabel('No.\ncorrect', rotation="horizontal", ha="right")
 
     # Hit rate
-    results['Hit rate'] = results['correct'] / results['trials']
+    results['Hit rate'] = (results['correct_l'] + results['correct_r']) / results['trials']
     sns.lineplot(
         data=results, x='day', y='Hit rate', hue='mouse_id', legend=False, ax=axes[2],
         markers=True,
@@ -55,7 +60,11 @@ def main(cohort):
 
     # Number of incorrect trials
     sns.lineplot(
-        data=results, x='day', y='incorrect', hue='mouse_id', legend=False,
+        data=results, x='day', y='incorrect_l', hue='mouse_id', legend=False,
+        ax=axes[3], markers=True,
+    )
+    sns.lineplot(
+        data=results, x='day', y='incorrect_r', hue='mouse_id', legend=False,
         ax=axes[3], markers=True,
     )
     axes[3].set_ylabel('No.\nincorrect', rotation="horizontal", ha="right")
