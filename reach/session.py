@@ -561,7 +561,7 @@ class Session:
             return - NormalDist().inv_cdf(p)
 
         # Trials preceded by an incorrect trial are considered to be correction trials,
-        # and are therefore ignored. Remove missed trials to help.
+        # and are therefore ignored. Remove missed trials to help identify these.
         trials = [
             t for t in self.data['trials']
             if t.get('outcome') in (Outcomes.CORRECT, Outcomes.INCORRECT)

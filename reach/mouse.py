@@ -152,40 +152,100 @@ class Mouse:
             print(f"Exception raised while saving: {type(e)}")
             print("Please report this.")
 
-    def get_trials(self):
+    def get_trials(self, collapse_days: bool = True):
         """
         Get trial data for all sessions.
 
         This can easily be turned into a useful pandas DataFrame:
         >>> trials = pd.DataFrame(mouse.get_trials())
+
+        collapse_days, if True, will merge the results of consecutive days if they share
+        a date.
         """
         trials = []
-        for i, session in enumerate(self.data):
+        date = None
+        day_decrement = 0
+
+        for day, session in enumerate(self.data, start=1):
             ses_trials = session.get_trials()
             if ses_trials:
+                if collapse_days:
+                    if date == session.data["date"]:
+                        day_decrement += 1
+                    else:
+                        date = session.data["date"]
+
+                good_ses_trials = []
                 for t in ses_trials:
                     if "outcome" in t:
-                        t['day'] = i + 1
+                        t['day'] = day - day_decrement
                         t['mouse_id'] = self.mouse_id
                         for s, pos in enumerate(t['spout_position']):
                             t[f'spout_position_{s}'] = pos
-                trials.extend(ses_trials)
+                        good_ses_trials.append(t)
+
+                trials.extend(good_ses_trials)
+
         return trials
 
-    def get_results(self):
+    def get_results(self, collapse_days: bool = True):
         """
         Get the high-level results for all sessions.
 
         This can easily be turned into a useful pandas DataFrame:
         >>> results = pandas.DataFrame(mouse.get_results())
+
+        collapse_days, if True, will merge the results of consecutive days if they share
+        a date. WARNING: if this occurs, d' values for collapsed days would be invalid,
+        and so are replaced with None for those days. These need to be re-calculated
+        with the trials returned from get_trials().
         """
         results = []
-        for day, session in enumerate(self.data):
+        date = None
+        if collapse_days:
+            day_decrement = 0
+
+        for day, session in enumerate(self.data, start=1):
             session_results = session.get_results()
+            if "notes" not in session_results:
+                session_results["notes"] = None
+
             if session_results:
-                session_results["day"] = day + 1
                 session_results["mouse_id"] = self.mouse_id
-                results.append(session_results)
+
+                if collapse_days:
+                    if date == session_results["date"]:
+                        results[-1]["trials"] += session_results["trials"]
+                        results[-1]["duration"] += session_results["duration"]
+                        results[-1]["resets"] += session_results["resets"]
+                        results[-1]["missed_l"] += session_results["missed_l"]
+                        results[-1]["missed_r"] += session_results["missed_r"]
+                        results[-1]["correct_l"] += session_results["correct_l"]
+                        results[-1]["correct_r"] += session_results["correct_r"]
+                        results[-1]["incorrect_l"] += session_results["incorrect_l"]
+                        results[-1]["incorrect_r"] += session_results["incorrect_r"]
+                        results[-1]["resets_l"] += session_results["resets_l"]
+                        results[-1]["resets_r"] += session_results["resets_r"]
+                        results[-1]["spontaneous_reaches_l"] += session_results["spontaneous_reaches_l"]
+                        results[-1]["spontaneous_reaches_r"] += session_results["spontaneous_reaches_r"]
+                        results[-1]["spontaneous_reaches"] += session_results["spontaneous_reaches"]
+                        results[-1]["end_time"] = session_results["end_time"]
+                        results[-1]["notes"] = "{} ... {}".format(
+                            results[-1]["notes"], session_results["notes"]
+                        )
+                        # We cannot reconstruct d prime with just this information, as
+                        # we not know which trials are correction trials.
+                        results[-1]["d_prime"] = None
+                        day_decrement += 1
+                    else:
+                        session_results["day"] = day - day_decrement
+                        date = session_results["date"]
+                        results.append(session_results)
+
+                else:
+                    session_results["day"] = day
+                    results.append(session_results)
+
         return results
 
     def get_spontaneous_reaches(self):

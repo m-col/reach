@@ -68,23 +68,23 @@ class Cohort(Sequence):
     def __repr__(self):
         return f"Cohort containing mice: {', '.join(self.mouse_ids)}"
 
-    def get_trials(self):
+    def get_trials(self, collapse_days: bool = True):
         """
         Get trial data for all mice across all sessions.
 
         This can easily be turned into a useful pandas DataFrame:
         >>> trials = pd.DataFrame(cohort.get_trials())
         """
-        return (i for mouse in self.mice for i in mouse.get_trials())
+        return (i for mouse in self.mice for i in mouse.get_trials(collapse_days))
 
-    def get_results(self):
+    def get_results(self, collapse_days: bool = True):
         """
         Get the high-level results for all training sessions for all mice.
 
         This can easily be turned into a useful pandas DataFrame:
         >>> results = pd.DataFrame(cohort.get_results())
         """
-        return (i for mouse in self.mice for i in mouse.get_results())
+        return (i for mouse in self.mice for i in mouse.get_results(collapse_days))
 
     def get_spontaneous_reaches(self):
         """
