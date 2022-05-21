@@ -41,4 +41,3 @@ Then either add the folder to :class:`PYTHONPATH` or install using setuptools:
    backends
    API
    data
-   construction
